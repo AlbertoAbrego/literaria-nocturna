@@ -18,3 +18,16 @@ export async function createBook(
     next(error);
   }
 }
+
+export async function getAllBooks(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  try {
+    const books = await BookService.getAllBooks();
+    res.status(200).json(books);
+  } catch (error) {
+    next(error);
+  }
+}
