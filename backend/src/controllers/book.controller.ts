@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import * as BookService from "../services/book.service";
 import { CreateBookDto } from "../dto/book/create-book.dto";
 import AppError from "../errors/AppError";
+import mongoose from "mongoose";
 
 export async function createBook(
   req: Request<Record<string, never>, Record<string, never>, CreateBookDto>,
@@ -27,6 +28,30 @@ export async function getAllBooks(
   try {
     const books = await BookService.getAllBooks();
     res.status(200).json(books);
+  } catch (error) {
+    next(error);
+  }
+}
+
+type GetBookParams = {
+  id: string;
+};
+
+export async function getBookById(
+  req: Request<GetBookParams>,
+  res: Response,
+  next: NextFunction,
+) {
+  const { id } = req.params;
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    return next(new AppError("Invalid ID", 400));
+  }
+  try {
+    const book = await BookService.getBookById(id);
+    if (!book) {
+      return next(new AppError("Book not found", 404));
+    }
+    res.status(200).json(book);
   } catch (error) {
     next(error);
   }
