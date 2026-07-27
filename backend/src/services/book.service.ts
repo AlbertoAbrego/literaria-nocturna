@@ -10,3 +10,7 @@ export async function createBook(book: CreateBookDto) {
   const newBook = await BookModel.create(book);
   return newBook;
 }
+
+export async function getAllBooks() {
+  return await BookModel.find();
+}
