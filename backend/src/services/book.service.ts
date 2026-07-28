@@ -11,6 +11,9 @@ export async function createBook(book: CreateBookDto) {
   return newBook;
 }
 
+export async function getBookById(id: string) {
+  return await BookModel.findById(id);
+}
 export async function getAllBooks() {
   return await BookModel.find();
 }
