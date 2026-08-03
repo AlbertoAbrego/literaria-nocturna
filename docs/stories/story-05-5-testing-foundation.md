@@ -21,6 +21,17 @@ Establish the testing infrastructure for the backend to support integration test
 - Initial integration tests are added for Stories 1–5.
 - Documentation is available in docs/testing.md.
 
+### **Initial integration tests for stories 1-5**
+
+- TC-H1-001 – GET /api/health returns 200 OK.
+- TC-H2-001 – Create a valid book (201 Created).
+- TC-H2-008 – Duplicate book (same title and author) returns 409 Conflict.
+- TC-H2-002 – Missing title returns 400 Bad Request.
+- TC-H4-001 – Retrieve all books (200 OK).
+- TC-H4-002 – Return an empty array when no books exist.
+- TC-H5-001 – Retrieve an existing book by ID (200 OK).
+- TC-H5-003 – Valid ObjectId that does not exist returns 404 Not Found.
+
 ### **Test Cases**
 
 **Framework**
