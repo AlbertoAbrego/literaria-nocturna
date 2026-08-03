@@ -37,7 +37,8 @@ src/test/
     ├── health.integration.test.ts
     ├── books.create.integration.test.ts
     ├── books.list.integration.test.ts
-    └── books.getById.integration.test.ts
+    ├── books.getById.integration.test.ts
+    └── books.update.integration.test.ts
 ```
 
 ## How it works
@@ -63,7 +64,7 @@ src/test/
 
 - Integration files: `<entity>.<action>.integration.test.ts` (e.g. `books.create.integration.test.ts`).
 - Each test references its story case with a `TC-*` ID (e.g. `TC-H2-001`).
-- One file per case group (create, list, getById), not one per test.
+- One file per case group (create, list, getById, update), not one per test.
 
 ## CI/CD
 

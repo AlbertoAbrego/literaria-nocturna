@@ -4,6 +4,8 @@
 
 Create book
 Health
+Update book
+Partially update book
 
 ## Validations
 
@@ -12,10 +14,16 @@ Author required
 Genre required
 Synopsis required
 Invalid Genre
+Invalid ID
+Empty body
 
 ## Business
 
 Duplicated book
+
+## Not found
+
+Book not found
 
 ## Middleware
 

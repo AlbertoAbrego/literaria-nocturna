@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import * as BookService from "../services/book.service";
 import { CreateBookDto } from "../dto/book/create-book.dto";
+import { UpdateBookDto } from "../dto/book/update-book.dto";
 import AppError from "../errors/AppError";
 import mongoose from "mongoose";
 
@@ -48,6 +49,33 @@ export async function getBookById(
   }
   try {
     const book = await BookService.getBookById(id);
+    if (!book) {
+      return next(new AppError("Book not found", 404));
+    }
+    res.status(200).json(book);
+  } catch (error) {
+    next(error);
+  }
+}
+
+type UpdateBookParams = {
+  id: string;
+};
+
+export async function updateBook(
+  req: Request<UpdateBookParams, Record<string, never>, UpdateBookDto>,
+  res: Response,
+  next: NextFunction,
+) {
+  if (!req.body || Object.keys(req.body).length === 0) {
+    return next(new AppError("Request body is missing", 400));
+  }
+  const { id } = req.params;
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    return next(new AppError("Invalid ID", 400));
+  }
+  try {
+    const book = await BookService.updateBook(id, req.body);
     if (!book) {
       return next(new AppError("Book not found", 404));
     }

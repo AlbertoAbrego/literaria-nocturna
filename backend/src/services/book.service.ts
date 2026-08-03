@@ -1,4 +1,5 @@
 import { CreateBookDto } from "../dto/book/create-book.dto";
+import { UpdateBookDto } from "../dto/book/update-book.dto";
 import AppError from "../errors/AppError";
 import { BookModel } from "../models/book.model";
 
@@ -16,4 +17,25 @@ export async function getBookById(id: string) {
 }
 export async function getAllBooks() {
   return await BookModel.find();
+}
+
+export async function updateBook(id: string, data: UpdateBookDto) {
+  if (data.title || data.author) {
+    const query: Record<string, unknown> = {};
+    if (data.title) query.title = data.title;
+    if (data.author) query.author = data.author;
+    query._id = { $ne: id };
+
+    const existingBook = await BookModel.findOne(query);
+    if (existingBook) {
+      throw new AppError("Book already exists.", 409);
+    }
+  }
+
+  const updatedBook = await BookModel.findByIdAndUpdate(id, data, {
+    new: true,
+    runValidators: true,
+  });
+
+  return updatedBook;
 }
