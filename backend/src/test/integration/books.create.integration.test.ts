@@ -5,7 +5,7 @@ import { expectConflictError, expectValidationError } from "../helpers/assertion
 import type { CreateBookDto } from "../../dto/book/create-book.dto";
 
 describe("POST /api/books", () => {
-  it("TC-H2-001: crea un libro válido y responde 201 Created", async () => {
+  it("TC-H2-001: create a valid book and respond with status 201 Created", async () => {
     const res = await testRequest.post("/api/books").send(createBookDto());
 
     expect(res.status).toBe(201);
@@ -13,7 +13,7 @@ describe("POST /api/books", () => {
     expect(res.body._id).toBeDefined();
   });
 
-  it("TC-H2-008: rechaza un duplicado de title + author con 409 Conflict", async () => {
+  it("TC-H2-008: reject a duplicate of title + author with 409 Conflict", async () => {
     await seedBooks([createBookModel()]);
 
     const res = await testRequest.post("/api/books").send(createBookDto());
@@ -21,7 +21,7 @@ describe("POST /api/books", () => {
     expectConflictError(res);
   });
 
-  it("TC-H2-002: rechaza un libro sin title con 400 Bad Request", async () => {
+  it("TC-H2-002: reject a book without title with 400 Bad Request", async () => {
     const dto: Partial<CreateBookDto> = createBookDto();
     delete dto.title;
 
