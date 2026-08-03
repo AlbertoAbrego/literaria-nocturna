@@ -16,15 +16,18 @@ export const errorHandler: ErrorRequestHandler = (
     return next(err);
   }
   const error = err as HttpError;
-  console.log("Error: ", error)
-  const statusCode = error.statusCode ?? error.status ?? 500;
-  const message = statusCode >= 500 ? "Internal Server Error" : error.message;
-
-  console.error(`[Error ${statusCode}]`, error);
-
+  
   if(error instanceof mongoose.Error.ValidationError){
     return res.status(400).json({ message: "Validation failed" });
   }
+  
+  const statusCode = error.statusCode ?? error.status ?? 500;
+  
+  if(statusCode >= 500){
+    console.error(`[Error ${statusCode}]`, error);
+  }
+  
+  const message = statusCode >= 500 ? "Internal Server Error" : error.message;
 
   return res.status(statusCode).json({ message });
 }

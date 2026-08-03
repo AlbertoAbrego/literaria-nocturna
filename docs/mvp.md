@@ -1,45 +1,45 @@
 # 📖 Literaria Nocturna
 
-## Objetivo
+## Objective
 
-Crear una aplicación web para gestionar un club de lectura.
+Create a web application to manage a book club.
 
 ---
 
 # MVP
 
-## Módulos
+## Modules
 
-- 📚 Libros
-- 👥 Miembros
-- 🤓 Lecturas
+- 📚 Books
+- 👥 Members
+- 🤓 Readings
 
 ---
 
-# Entidades
+# Entities
 
 ## Book
 
-Representa un libro disponible para el club.
+Represents a book available for the club.
 
 ## Member
 
-Representa un miembro del club.
+Represents a club member.
 
 ## Reading
 
-Representa una lectura activa o finalizada de un libro.
+Represents an active or finished reading of a book.
 
 ---
 
-# Relaciones
+# Relationships
 
-- Un **Reading** pertenece a un **Book**.
-- Un **Reading** puede tener muchos **Members**.
-- Un **Member** puede participar en muchas **Readings**.
+- A **Reading** belongs to a **Book**.
+- A **Reading** can have many **Members**.
+- A **Member** can participate in many **Readings**.
 
 ---
 
-# Futuras funcionalidades
+# Future features
 
 -
