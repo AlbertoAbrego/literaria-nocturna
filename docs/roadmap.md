@@ -5,14 +5,14 @@ Stories completed:
 - Story 3
 - Story 4
 - Story 5
+- Story 5.5
 
 Current:
 
-- Story 5.5
+- Story 6
 
 Upcoming:
 
-- Story 6
 - Story 7
 - Story 8
 - Story 9
