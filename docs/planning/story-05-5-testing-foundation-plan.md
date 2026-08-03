@@ -124,19 +124,17 @@ Actualizar `package.json`:
 ### Estructura de archivos:
 ```
 src/
-├── test/
-│   ├── globalSetup.ts
-│   ├── globalTeardown.ts
-│   ├── setup.ts
-│   └── helpers/
-│       ├── database.ts
-│       ├── request.ts
-│       ├── factories.ts
-│       └── assertions.ts
-└── modules/
-    ├── health/
-    │   └── health.integration.test.ts
-    └── books/
+└── test/
+    ├── globalSetup.ts
+    ├── globalTeardown.ts
+    ├── setup.ts
+    ├── helpers/
+    |   ├── database.ts
+    |   ├── request.ts
+    |   ├── factories.ts
+    |   └── assertions.ts
+    └── integration/
+        ├── health.integration.test.ts
         ├── books.create.integration.test.ts
         ├── books.list.integration.test.ts
         └── books.getById.integration.test.ts
