@@ -12,7 +12,7 @@ async function startServer() {
       console.log(`🚀 Server running on port ${PORT}`);
     });
   } catch (error) {
-    console.error("Error al iniciar el servidor", error);
+    console.error("Error starting the server", error);
     process.exit(1);
   }
 }

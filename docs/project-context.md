@@ -1,4 +1,4 @@
-# Contexto del proyecto
+# Project context
 
 ## Stack
 
@@ -7,7 +7,7 @@
 - MongoDB
 - Mongoose
 
-## Arquitectura
+## Architecture
 
 - routes
 - controllers
@@ -16,22 +16,22 @@
 - middleware
 - dto
 
-## Filosofía
+## Philosophy
 
-- Mantener arquitectura simple.
-- Evitar sobreingeniería.
-- Preferir funciones sobre clases cuando sea suficiente.
-- Aprender el porqué de cada decisión.
+- Keep the architecture simple.
+- Avoid over-engineering.
+- Prefer functions over classes when sufficient.
+- Learn the why behind every decision.
 
-## Convenciones
+## Conventions
 
-- Services contienen lógica de negocio.
-- Controllers coordinan la petición.
-- Models solo representan MongoDB.
-- DTO para entrada.
-- Middleware para errores globales.
+- Services contain business logic.
+- Controllers coordinate the request.
+- Models only represent MongoDB.
+- DTO for input.
+- Middleware for global errors.
 
-## Flujo
+## Flow
 
 Route
 → Controller
@@ -39,10 +39,10 @@ Route
 → Model
 → MongoDB
 
-## Cómo quiero que actúes
+## How I want you to act
 
-- No implementes código inmediatamente.
-- Primero propón la arquitectura.
-- Si hay varias alternativas, explica los trade-offs.
-- Si detectas una mala práctica, señálala.
-- Asume que quiero aprender, no solo terminar la historia.
+- Do not implement code immediately.
+- Propose the architecture first.
+- If there are multiple alternatives, explain the trade-offs.
+- If you spot a bad practice, point it out.
+- Assume I want to learn, not just finish the story.
