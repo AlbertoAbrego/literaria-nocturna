@@ -84,3 +84,27 @@ export async function updateBook(
     next(error);
   }
 }
+
+type DeleteBookParams = {
+  id: string;
+};
+
+export async function deleteBook(
+  req: Request<DeleteBookParams>,
+  res: Response,
+  next: NextFunction,
+) {
+  const { id } = req.params;
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    return next(new AppError("Invalid ID", 400));
+  }
+  try {
+    const book = await BookService.deleteBook(id);
+    if (!book) {
+      return next(new AppError("Book not found", 404));
+    }
+    res.status(204).send();
+  } catch (error) {
+    next(error);
+  }
+}

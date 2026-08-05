@@ -6,6 +6,7 @@ Create book
 Health
 Update book
 Partially update book
+Delete book
 
 ## Validations
 

@@ -39,3 +39,7 @@ export async function updateBook(id: string, data: UpdateBookDto) {
 
   return updatedBook;
 }
+
+export async function deleteBook(id: string) {
+  return await BookModel.findByIdAndDelete(id);
+}
