@@ -1,3 +1,4 @@
+import { BookQueryDto } from "../dto/book/book-query.dto";
 import { CreateBookDto } from "../dto/book/create-book.dto";
 import { UpdateBookDto } from "../dto/book/update-book.dto";
 import AppError from "../errors/AppError";
@@ -15,8 +16,14 @@ export async function createBook(book: CreateBookDto) {
 export async function getBookById(id: string) {
   return await BookModel.findById(id);
 }
-export async function getAllBooks() {
-  return await BookModel.find();
+export async function getAllBooks(filters?: BookQueryDto) {
+  const query: Record<string, unknown> = {};
+
+  if (filters?.genre) query.genre = filters.genre;
+  if (filters?.author) query.author = { $regex: filters.author, $options: "i" };
+  if (filters?.title) query.title = { $regex: filters.title, $options: "i" };
+
+  return await BookModel.find(query).sort({ title: 1 });
 }
 
 export async function updateBook(id: string, data: UpdateBookDto) {
