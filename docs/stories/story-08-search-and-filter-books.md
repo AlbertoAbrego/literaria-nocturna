@@ -11,7 +11,18 @@ Allow filtering books using query parameters.
 - genre
 - author
 - title (optional)
-- Acceptance Criteria
+
+### **Matching Semantics**
+
+- `genre` matches exactly (enum value).
+- `author` and `title` match partially and case-insensitively (`$regex`, `$options: "i"`).
+
+### **Sorting**
+
+- Results are sorted by `title` in ascending order.
+
+### **Acceptance Criteria**
+
 - Return books matching the provided filters.
 - Support combining multiple filters.
 - Return an empty array when no books match.
@@ -33,7 +44,7 @@ Allow filtering books using query parameters.
 
 **Validation**
 
-- TC-H8-006 – Invalid filter values return 400 Bad Request (if validation is implemented).
+- TC-H8-006 – Invalid `genre` returns 400 Bad Request (implemented; other filter values are free text and require no validation).
 
 **Error Handling**
 

@@ -36,7 +36,7 @@ src/test/
 └── integration/                # per-endpoint integration tests
     ├── health.integration.test.ts
     ├── books.create.integration.test.ts
-    ├── books.list.integration.test.ts
+    ├── books.list.integration.test.ts    # list + filters (TC-H4, TC-H8)
     ├── books.getById.integration.test.ts
     ├── books.update.integration.test.ts
     └── books.delete.integration.test.ts
