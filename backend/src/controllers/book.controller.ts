@@ -1,9 +1,11 @@
 import { Request, Response, NextFunction } from "express";
 import * as BookService from "../services/book.service";
+import { BookQueryDto } from "../dto/book/book-query.dto";
 import { CreateBookDto } from "../dto/book/create-book.dto";
 import { UpdateBookDto } from "../dto/book/update-book.dto";
 import AppError from "../errors/AppError";
 import mongoose from "mongoose";
+import { Genre } from "../models/book.model";
 
 export async function createBook(
   req: Request<Record<string, never>, Record<string, never>, CreateBookDto>,
@@ -22,12 +24,24 @@ export async function createBook(
 }
 
 export async function getAllBooks(
-  req: Request,
+  req: Request<Record<string, never>, Record<string, never>, Record<string, never>, BookQueryDto>,
   res: Response,
   next: NextFunction,
 ) {
+  const { genre, author, title } = req.query;
+
+  if (genre && !Object.values(Genre).includes(genre as Genre)) {
+    return next(new AppError("Invalid genre", 400));
+  }
+
+  const filters: BookQueryDto = {
+    genre: genre as Genre | undefined,
+    author: author as string | undefined,
+    title: title as string | undefined,
+  };
+
   try {
-    const books = await BookService.getAllBooks();
+    const books = await BookService.getAllBooks(filters);
     res.status(200).json(books);
   } catch (error) {
     next(error);

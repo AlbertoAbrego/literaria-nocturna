@@ -7,6 +7,11 @@ Health
 Update book
 Partially update book
 Delete book
+Filter books by genre
+Filter books by author
+Filter books by title
+Combine multiple filters
+Sort by title
 
 ## Validations
 
@@ -15,8 +20,13 @@ Author required
 Genre required
 Synopsis required
 Invalid Genre
+Invalid genre (query param)
 Invalid ID
 Empty body
+
+## No results
+
+No matching books (empty array)
 
 ## Business
 
