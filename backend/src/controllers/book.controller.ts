@@ -1,6 +1,11 @@
 import { Request, Response, NextFunction } from "express";
 import * as BookService from "../services/book.service";
-import { BookQueryDto } from "../dto/book/book-query.dto";
+import {
+  BookQueryDto,
+  DEFAULT_LIMIT,
+  DEFAULT_PAGE,
+  MAX_LIMIT,
+} from "../dto/book/book-query.dto";
 import { CreateBookDto } from "../dto/book/create-book.dto";
 import { UpdateBookDto } from "../dto/book/update-book.dto";
 import AppError from "../errors/AppError";
@@ -28,21 +33,33 @@ export async function getAllBooks(
   res: Response,
   next: NextFunction,
 ) {
-  const { genre, author, title } = req.query;
+  const { genre, author, title, page, limit } = req.query;
 
   if (genre && !Object.values(Genre).includes(genre as Genre)) {
     return next(new AppError("Invalid genre", 400));
+  }
+
+  const parsedPage = Number(page ?? DEFAULT_PAGE);
+  const parsedLimit = Number(limit ?? DEFAULT_LIMIT);
+
+  if (!Number.isInteger(parsedPage) || parsedPage < 1) {
+    return next(new AppError("Invalid page value", 400));
+  }
+  if (!Number.isInteger(parsedLimit) || parsedLimit < 1 || parsedLimit > MAX_LIMIT) {
+    return next(new AppError("Invalid limit value", 400));
   }
 
   const filters: BookQueryDto = {
     genre: genre as Genre | undefined,
     author: author as string | undefined,
     title: title as string | undefined,
+    page: parsedPage,
+    limit: parsedLimit,
   };
 
   try {
-    const books = await BookService.getAllBooks(filters);
-    res.status(200).json(books);
+    const result = await BookService.getAllBooks(filters);
+    res.status(200).json(result);
   } catch (error) {
     next(error);
   }
