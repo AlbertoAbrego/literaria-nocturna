@@ -1,4 +1,8 @@
-import { BookQueryDto } from "../dto/book/book-query.dto";
+import {
+  BookQueryDto,
+  DEFAULT_LIMIT,
+  DEFAULT_PAGE,
+} from "../dto/book/book-query.dto";
 import { CreateBookDto } from "../dto/book/create-book.dto";
 import { UpdateBookDto } from "../dto/book/update-book.dto";
 import AppError from "../errors/AppError";
@@ -23,7 +27,24 @@ export async function getAllBooks(filters?: BookQueryDto) {
   if (filters?.author) query.author = { $regex: filters.author, $options: "i" };
   if (filters?.title) query.title = { $regex: filters.title, $options: "i" };
 
-  return await BookModel.find(query).sort({ title: 1 });
+  const page = filters?.page ?? DEFAULT_PAGE;
+  const limit = filters?.limit ?? DEFAULT_LIMIT;
+  const skip = (page - 1) * limit;
+
+  const [books, total] = await Promise.all([
+    BookModel.find(query).skip(skip).limit(limit).sort({ title: 1 }),
+    BookModel.countDocuments(query),
+  ]);
+
+  return {
+    data: books,
+    pagination: {
+      page,
+      limit,
+      total,
+      totalPages: Math.ceil(total / limit),
+    },
+  };
 }
 
 export async function updateBook(id: string, data: UpdateBookDto) {
