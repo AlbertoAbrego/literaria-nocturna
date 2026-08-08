@@ -17,7 +17,10 @@ describe("DELETE /api/books/:id", () => {
     const res = await testRequest.delete("/api/books/not-an-id");
 
     expect(res.status).toBe(400);
-    expect(res.body.message).toBe("Invalid ID");
+    expect(res.body).toMatchObject({
+      message: "Invalid ID",
+      code: "VALIDATION_ERROR",
+    });
   });
 
   it("TC-H7-003: return 404 NotFound for a valid non-existent ObjectId", async () => {
@@ -45,7 +48,10 @@ describe("DELETE /api/books/:id", () => {
     const res = await testRequest.delete(`/api/books/${book._id}`);
 
     expect(res.status).toBe(500);
-    expect(res.body.message).toBe("Internal Server Error");
+    expect(res.body).toMatchObject({
+      message: "Internal Server Error",
+      code: "INTERNAL_ERROR",
+    });
 
     spy.mockRestore();
   });
