@@ -8,7 +8,7 @@ import {
 } from "../dto/book/book-query.dto";
 import { CreateBookDto } from "../dto/book/create-book.dto";
 import { UpdateBookDto } from "../dto/book/update-book.dto";
-import { AppError } from "../errors/AppError";
+import { AppError, ErrorCodes } from "../errors/AppError";
 import mongoose from "mongoose";
 import { Genre } from "../models/book.model";
 
@@ -17,8 +17,8 @@ export async function createBook(
   res: Response,
   next: NextFunction,
 ) {
-  if(!req.body){
-    return next(new AppError("Request body is missing", 400));
+  if (!req.body) {
+    return next(new AppError("Request body is missing", 400, ErrorCodes.VALIDATION_ERROR));
   }
   try {
     const book = await BookService.createBook(req.body);
@@ -36,17 +36,17 @@ export async function getAllBooks(
   const { genre, author, title, page, limit } = req.query;
 
   if (genre && !Object.values(Genre).includes(genre as Genre)) {
-    return next(new AppError("Invalid genre", 400));
+    return next(new AppError("Invalid genre", 400, ErrorCodes.VALIDATION_ERROR));
   }
 
   const parsedPage = Number(page ?? DEFAULT_PAGE);
   const parsedLimit = Number(limit ?? DEFAULT_LIMIT);
 
   if (!Number.isInteger(parsedPage) || parsedPage < 1) {
-    return next(new AppError("Invalid page value", 400));
+    return next(new AppError("Invalid page value", 400, ErrorCodes.VALIDATION_ERROR));
   }
   if (!Number.isInteger(parsedLimit) || parsedLimit < 1 || parsedLimit > MAX_LIMIT) {
-    return next(new AppError("Invalid limit value", 400));
+    return next(new AppError("Invalid limit value", 400, ErrorCodes.VALIDATION_ERROR));
   }
 
   const filters: BookQueryDto = {
@@ -76,7 +76,7 @@ export async function getBookById(
 ) {
   const { id } = req.params;
   if (!mongoose.Types.ObjectId.isValid(id)) {
-    return next(new AppError("Invalid ID", 400));
+    return next(new AppError("Invalid ID", 400, ErrorCodes.VALIDATION_ERROR));
   }
   try {
     const book = await BookService.getBookById(id);
@@ -99,11 +99,11 @@ export async function updateBook(
   next: NextFunction,
 ) {
   if (!req.body || Object.keys(req.body).length === 0) {
-    return next(new AppError("Request body is missing", 400));
+    return next(new AppError("Request body is missing", 400, ErrorCodes.VALIDATION_ERROR));
   }
   const { id } = req.params;
   if (!mongoose.Types.ObjectId.isValid(id)) {
-    return next(new AppError("Invalid ID", 400));
+    return next(new AppError("Invalid ID", 400, ErrorCodes.VALIDATION_ERROR));
   }
   try {
     const book = await BookService.updateBook(id, req.body);
@@ -127,7 +127,7 @@ export async function deleteBook(
 ) {
   const { id } = req.params;
   if (!mongoose.Types.ObjectId.isValid(id)) {
-    return next(new AppError("Invalid ID", 400));
+    return next(new AppError("Invalid ID", 400, ErrorCodes.VALIDATION_ERROR));
   }
   try {
     const book = await BookService.deleteBook(id);

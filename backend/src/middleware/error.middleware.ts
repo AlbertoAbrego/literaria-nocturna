@@ -14,9 +14,21 @@ export const errorHandler: ErrorRequestHandler = (err, _req, res, next) => {
   }
 
   if (err instanceof mongoose.Error.ValidationError) {
+    const details = Object.keys(err.errors).reduce(
+      (acc, key) => {
+        acc[key] = err.errors[key].message;
+        return acc;
+      },
+      {} as Record<string, string>,
+    );
+    // `err.errors` maps field names to mongoose validator/cast errors; reducing it
+    // to { field: message } gives clients field-level details without exposing internals.
+    // The `{} as Record<string, string>` cast types the accumulator so no implicit any is inferred.
+
     return res.status(400).json({
       message: "Validation failed",
       code: ErrorCodes.VALIDATION_ERROR,
+      details,
     });
   }
 
