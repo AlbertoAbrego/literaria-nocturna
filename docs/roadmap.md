@@ -9,11 +9,12 @@ Stories completed:
 - Story 6
 - Story 7
 - Story 8
+- Story 9
 
 Current:
 
-- Story 9
+- Story 10
 
 Upcoming:
 
-- Story 10
+- Story 11
