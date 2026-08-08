@@ -12,6 +12,32 @@ import { AppError, ErrorCodes } from "../errors/AppError";
 import mongoose from "mongoose";
 import { Genre } from "../models/book.model";
 
+/**
+ * @openapi
+ * /books:
+ *   post:
+ *     summary: Create a new book
+ *     tags: [Books]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: "#/components/schemas/CreateBookDto"
+ *     responses:
+ *       "201":
+ *         description: Book created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Book"
+ *       "400":
+ *         $ref: "#/components/responses/ValidationError"
+ *       "409":
+ *         $ref: "#/components/responses/ConflictError"
+ *       "500":
+ *         $ref: "#/components/responses/InternalError"
+ */
 export async function createBook(
   req: Request<Record<string, never>, Record<string, never>, CreateBookDto>,
   res: Response,
@@ -28,6 +54,52 @@ export async function createBook(
   }
 }
 
+/**
+ * @openapi
+ * /books:
+ *   get:
+ *     summary: List books with optional filters and pagination
+ *     tags: [Books]
+ *     parameters:
+ *       - name: genre
+ *         in: query
+ *         schema:
+ *           $ref: "#/components/schemas/Genre"
+ *       - name: author
+ *         in: query
+ *         schema:
+ *           type: string
+ *         description: Case-insensitive partial match
+ *       - name: title
+ *         in: query
+ *         schema:
+ *           type: string
+ *         description: Case-insensitive partial match
+ *       - name: page
+ *         in: query
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           default: 1
+ *       - name: limit
+ *         in: query
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           maximum: 100
+ *           default: 10
+ *     responses:
+ *       "200":
+ *         description: Paginated list of books
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/PaginatedResponse"
+ *       "400":
+ *         $ref: "#/components/responses/ValidationError"
+ *       "500":
+ *         $ref: "#/components/responses/InternalError"
+ */
 export async function getAllBooks(
   req: Request<Record<string, never>, Record<string, never>, Record<string, never>, BookQueryDto>,
   res: Response,
@@ -69,6 +141,33 @@ type GetBookParams = {
   id: string;
 };
 
+/**
+ * @openapi
+ * /books/{id}:
+ *   get:
+ *     summary: Get a book by id
+ *     tags: [Books]
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: MongoDB ObjectId
+ *     responses:
+ *       "200":
+ *         description: Book found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Book"
+ *       "400":
+ *         $ref: "#/components/responses/ValidationError"
+ *       "404":
+ *         $ref: "#/components/responses/NotFoundError"
+ *       "500":
+ *         $ref: "#/components/responses/InternalError"
+ */
 export async function getBookById(
   req: Request<GetBookParams>,
   res: Response,

@@ -79,3 +79,19 @@ Verify all book endpoints appear in Swagger.
 ### TC-H10-007
 
 Verify documented schemas match actual API responses.
+
+## Notes: Malformed JSON Body Handling (Phase 3 trade-off)
+
+As part of the Phase 3 middleware cleanup, errors that are neither `AppError` nor Mongoose `ValidationError` are now classified as unknown and return `500 INTERNAL_ERROR`. This changed how body-parser payload failures are handled: a request with malformed JSON used to return `400` (the parser's `SyntaxError` carries `status: 400`) and now returns `500`.
+
+### Impact on Story Scope
+
+This gap affects the story's acceptance criteria: malformed payloads are client errors, so they should return `400` and must not be logged as server errors.
+
+### Required Changes in Next Phases
+
+* **Middleware (small follow-up, before Phase 5):** add an explicit branch for body-parser parse errors (`SyntaxError` with `status: 400`, e.g. `type: 'entity.parse.failed'`) returning `400` with `VALIDATION_ERROR` and a generic message (e.g. `Invalid JSON payload`), without logging.
+* **Phase 5 (Testing):** add a test case for malformed JSON bodies asserting `400` + `code: VALIDATION_ERROR`, and that the error is not logged as a server error.
+* **Phase 6 (Documentation):** document the malformed JSON response in `docs/project-context.md` and in the OpenAPI error components.
+
+**Alternative (not chosen):** treat all parser failures as `500` and accept that a client-error case gets logged. Rejected because it conflicts with the "client errors are not logged" criterion.
