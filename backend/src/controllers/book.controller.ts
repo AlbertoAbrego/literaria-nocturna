@@ -192,6 +192,41 @@ type UpdateBookParams = {
   id: string;
 };
 
+/**
+ * @openapi
+ * /books/{id}:
+ *   patch:
+ *     summary: Partially update a book
+ *     tags: [Books]
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: MongoDB ObjectId
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: "#/components/schemas/UpdateBookDto"
+ *     responses:
+ *       "200":
+ *         description: Book updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Book"
+ *       "400":
+ *         $ref: "#/components/responses/ValidationError"
+ *       "404":
+ *         $ref: "#/components/responses/NotFoundError"
+ *       "409":
+ *         $ref: "#/components/responses/ConflictError"
+ *       "500":
+ *         $ref: "#/components/responses/InternalError"
+ */
 export async function updateBook(
   req: Request<UpdateBookParams, Record<string, never>, UpdateBookDto>,
   res: Response,
@@ -219,6 +254,29 @@ type DeleteBookParams = {
   id: string;
 };
 
+/**
+ * @openapi
+ * /books/{id}:
+ *   delete:
+ *     summary: Delete a book
+ *     tags: [Books]
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: MongoDB ObjectId
+ *     responses:
+ *       "204":
+ *         description: Book deleted successfully
+ *       "400":
+ *         $ref: "#/components/responses/ValidationError"
+ *       "404":
+ *         $ref: "#/components/responses/NotFoundError"
+ *       "500":
+ *         $ref: "#/components/responses/InternalError"
+ */
 export async function deleteBook(
   req: Request<DeleteBookParams>,
   res: Response,
