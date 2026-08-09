@@ -20,6 +20,7 @@ The backend is a TypeScript/Express application using MongoDB (via Mongoose) as 
 | Formatting | Prettier |
 | Validation | Manual in controllers + Mongoose schema validation |
 | Error Handling | Custom `AppError` class + global Express error middleware |
+| API Docs | OpenAPI 3.0 (swagger-jsdoc + swagger-ui-express) |
 
 ## Architecture
 
@@ -28,7 +29,8 @@ src/
 ├── app.ts                    # Express app factory
 ├── server.ts                 # Entry point (starts server)
 ├── config/
-│   └── database.ts           # MongoDB connection
+│   ├── database.ts           # MongoDB connection
+│   └── swagger.ts            # OpenAPI spec generation (swagger-jsdoc)
 ├── controllers/              # HTTP layer (request/response handling)
 │   ├── health.controller.ts
 │   └── book.controller.ts
@@ -43,11 +45,12 @@ src/
 │       └── book-query.dto.ts
 ├── routes/                   # Route definitions
 │   ├── health.routes.ts
-│   └── book.routes.ts
+│   ├── book.routes.ts
+│   └── swagger.routes.ts     # Serves Swagger UI + raw swagger.json
 ├── middleware/
 │   └── error.middleware.ts   # Global error handler
 ├── errors/
-│   └── AppError.ts           # Custom error class
+│   └── AppError.ts           # Custom error class + ErrorCodes
 └── test/                     # Integration test infrastructure
     ├── globalSetup.ts
     ├── globalTeardown.ts
@@ -83,6 +86,7 @@ HTTP Request
 - Define endpoint paths and HTTP methods
 - Wire controllers to routes
 - No business logic
+- `swagger.routes.ts` serves the Swagger UI at `/api/docs` and the raw OpenAPI JSON at `/api/docs/swagger.json`
 
 ### Controllers (`src/controllers/`)
 - Handle HTTP concerns: request parsing, response formatting, status codes
@@ -163,19 +167,37 @@ HTTP Request
 
 ### `AppError` (`src/errors/AppError.ts`)
 - Extends `Error`
-- Constructor: `new AppError(message: string, statusCode: number)`
-- Public `statusCode` property
+- Constructor: `new AppError(message: string, statusCode: number, code?: ErrorCode, details?: Record<string, string>)`
+- Public `statusCode` and `code` properties, optional `details`
+- `ErrorCodes` constant holds the canonical code strings; `ErrorCode` type is a union of its literal values
+- `code` is optional: when omitted it is derived from `statusCode` (404 → `NOT_FOUND`, 409 → `CONFLICT`, 5xx → `INTERNAL_ERROR`, else `VALIDATION_ERROR`)
 - Used for all expected business errors (400, 404, 409)
+
+### Standardized Error Response Format
+
+Every error response follows the shape:
+
+```json
+{
+  "message": "string",
+  "code": "string",
+  "details": {}
+}
+```
+
+- `message` — human-readable message
+- `code` — machine-readable error identifier (`VALIDATION_ERROR`, `NOT_FOUND`, `CONFLICT`, `INTERNAL_ERROR`)
+- `details` — optional, only present when field-level validation messages exist
 
 ### Global Error Middleware (`src/middleware/error.middleware.ts`)
 - Single `ErrorRequestHandler` registered last in `app.ts`
 - Checks `res.headersSent` before responding
 - Handles error types:
-  - `mongoose.Error.ValidationError` → 400, `{ message: "Validation failed" }`
-  - `AppError` (or any error with `statusCode`/`status`) → uses that status, returns `{ message: error.message }`
-  - Unknown errors → 500, `{ message: "Internal Server Error" }`
+  - `mongoose.Error.ValidationError` → 400, `{ message: "Validation failed", code: "VALIDATION_ERROR", details: { field: message } }`
+  - `AppError` → its `statusCode`/`code`, with `details` only when attached; 5xx messages are masked as `"Internal Server Error"`
+  - Unknown errors → 500, `{ message: "Internal Server Error", code: "INTERNAL_ERROR" }`
 - **Logging**: Only logs 5xx errors (`console.error`). Client errors (4xx) are silent.
-- Response format: `{ message: string }` (no `code`, `details`, or stack trace)
+- No stack traces or internal details are exposed to the client.
 
 ## Validation Conventions
 
@@ -188,7 +210,7 @@ HTTP Request
 | Service | Business uniqueness (title+author) | Manual query + `AppError(409)` |
 
 - No separate validation middleware or libraries
-- Validation errors from Mongoose return generic `"Validation failed"` message (no field details)
+- Mongoose validation errors return `"Validation failed"` with field-level `details` (e.g. `{ title: "Path `title` is required." }`)
 
 ## Query, Filtering and Pagination Conventions
 
@@ -312,12 +334,20 @@ npm run test:ci       # CI mode: --ci --coverage --maxWorkers=2
 - **Story documents** (`docs/stories/`) serve as requirements + acceptance criteria
 - **Planning documents** (`docs/planning/`) for complex stories
 - **Architecture decisions** captured in this file (`project-context.md`)
-- **API documentation**: Story 10 plans OpenAPI/Swagger integration (not yet implemented)
+- **API documentation**: OpenAPI 3.0 via Swagger (see below)
 - **Test documentation**: `docs/testing.md` (this file's companion) + `docs/tests.md` (test case index)
+
+## API Documentation (OpenAPI / Swagger)
+
+- **Spec generation**: `src/config/swagger.ts` builds the OpenAPI document with `swagger-jsdoc`, reading `@openapi` JSDoc annotations from `src/routes/*.ts` and `src/controllers/*.ts`.
+- **UI**: Swagger UI is served at `GET /api/docs` (mounted via `src/routes/swagger.routes.ts`).
+- **Raw spec**: `GET /api/docs/swagger.json` returns the machine-readable OpenAPI document.
+- **Shared components**: `components.schemas` defines `Genre`, `Book`, `CreateBookDto`, `UpdateBookDto`, `BookQueryDto`, `PaginatedResponse`, and `ErrorResponse`; `components.responses` defines reusable `ValidationError`, `NotFoundError`, `ConflictError`, and `InternalError` responses matching the standardized error format.
+- Endpoint annotations are the source of truth for paths, params, request bodies, and responses; keep them in sync when API contracts change.
 
 ## Current Project State
 
-### Implemented (Stories 1–9)
+### Implemented (Stories 1–10)
 - Project setup (TS, Express, ESLint, Prettier, Jest, MongoDB)
 - Health endpoint (`GET /api/health`, `GET /`)
 - Book CRUD:
@@ -328,12 +358,12 @@ npm run test:ci       # CI mode: --ci --coverage --maxWorkers=2
   - `DELETE /api/books/:id` — delete (204, 404 not found)
 - Global error handling with `AppError` and middleware
 - Integration test suite with full isolation
-
-### In Progress (Story 10)
-- Standardized error response format (add `code` field)
-- Improved validation error details
-- Logging cleanup (already: only 5xx logged)
-- Swagger/OpenAPI documentation
+- Story 10 — API standardization and documentation:
+  - Standardized error response format (`message`, `code`, optional `details`) via `ErrorCodes`/`AppError`
+  - Field-level Mongoose validation details for 400 responses
+  - Logging cleanup (only 5xx logged)
+  - OpenAPI/Swagger documentation (`GET /api/docs`, `GET /api/docs/swagger.json`)
+  - Tests updated for `code` field + Swagger integration tests
 
 ### Planned (Story 11+)
 - CI/CD with GitHub Actions

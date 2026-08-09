@@ -5,7 +5,7 @@ import {
 } from "../dto/book/book-query.dto";
 import { CreateBookDto } from "../dto/book/create-book.dto";
 import { UpdateBookDto } from "../dto/book/update-book.dto";
-import AppError from "../errors/AppError";
+import { AppError } from "../errors/AppError";
 import { BookModel } from "../models/book.model";
 
 export async function createBook(book: CreateBookDto) {

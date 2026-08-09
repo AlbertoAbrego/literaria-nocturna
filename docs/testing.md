@@ -43,6 +43,7 @@ src/test/
 │   └── assertions.ts           # API error assertions
 └── integration/                # per-endpoint integration tests
     ├── health.integration.test.ts
+    ├── swagger.integration.test.ts            # Swagger UI + spec (TC-H10)
     ├── books.create.integration.test.ts
     ├── books.list.integration.test.ts    # list + filters (TC-H4, TC-H8)
     ├── books.getById.integration.test.ts
@@ -71,9 +72,11 @@ src/test/
 | `seedBooks([...])` | Inserts books and returns the created documents (with `_id`) |
 | `createBookDto(overrides?)` | Valid payload for `POST /api/books` with real defaults |
 | `createBookModel(overrides?)` | Complete `Book` document (with `createdAt`/`updatedAt`) |
-| `expectValidationError(res)` | Asserts 400 + `"Validation failed"` |
-| `expectConflictError(res)` | Asserts 409 + `"Book already exists."` |
-| `expectNotFoundError(res)` | Asserts 404 + `"Book not found"` |
+| `expectValidationError(res)` | Asserts 400 + `{ message: "Validation failed", code: "VALIDATION_ERROR" }` |
+| `expectConflictError(res)` | Asserts 409 + `{ message: "Book already exists.", code: "CONFLICT" }` |
+| `expectNotFoundError(res)` | Asserts 404 + `{ message: "Book not found", code: "NOT_FOUND" }` |
+
+The error assertion helpers assert both the HTTP status and the standardized error body using `toMatchObject`, so they are safe to use across the whole API as long as the standardized `code` format is respected.
 
 ---
 
@@ -141,9 +144,40 @@ it("TC-H7-005: return 500 Internal Server Error on a database failure", async ()
   const res = await testRequest.delete(`/api/books/${book._id}`);
 
   expect(res.status).toBe(500);
-  expect(res.body.message).toBe("Internal Server Error");
+  expect(res.body).toMatchObject({
+    message: "Internal Server Error",
+    code: "INTERNAL_ERROR",
+  });
 
   spy.mockRestore();
+});
+```
+
+### Custom Code Assertion
+When a test needs a specific non-standard message (e.g. pagination validation), assert both fields with `toMatchObject` instead of inlining a new helper:
+```typescript
+expect(res.body).toMatchObject({
+  message: "Invalid page value",
+  code: "VALIDATION_ERROR",
+});
+```
+
+### Swagger Test
+```typescript
+it("TC-H10-005: Swagger documentation loads successfully", async () => {
+  const res = await testRequest.get("/api/docs").redirects(1);
+  // `.redirects(1)` follows the 301 from `/docs` to `/docs/` emitted by swagger-ui-express.
+
+  expect(res.status).toBe(200);
+  expect(res.text).toContain("swagger-ui");
+});
+
+it("TC-H10-006: All book endpoints appear in Swagger spec", async () => {
+  const res = await testRequest.get("/api/docs/swagger.json");
+
+  expect(res.status).toBe(200);
+  expect(res.body.paths["/books"]).toBeDefined();
+  expect(res.body.paths["/books/{id}"]).toBeDefined();
 });
 ```
 
@@ -168,7 +202,7 @@ The `test:ci` script (`jest --ci --coverage --maxWorkers=2`) is the CI entry poi
 | `TS151002` warning from ts-jest | Shows up when `tsconfig.json` uses `module: NodeNext` without `isolatedModules: true`. Add `isolatedModules: true`. |
 | Flaky tests in parallel | Each worker must use its own database (`dbName` per pid). Two workers sharing the same DB wipe each other's data. |
 | Slow first run | `mongodb-memory-server` downloads the `mongod` binary on the first run. Run `npm test` once before CI to cache it. |
-| Console noise | The error middleware logs every error with `console.error`, including the expected 400s from tests. |
+| Console noise | The error middleware logs 5xx errors with `console.error`. Client errors (4xx) are not logged. |
 
 ---
 
@@ -181,7 +215,8 @@ The `test:ci` script (`jest --ci --coverage --maxWorkers=2`) is the CI entry poi
 
 ### Assertions
 - Use `toMatchObject` for partial response matching
-- Use helper assertions (`expectValidationError`, etc.) for error responses
+- Use helper assertions (`expectValidationError`, etc.) for standard error responses
+- Assert the `code` field on every error response (the standardized error format includes `message` + `code` + optional `details`)
 - Verify both status code and response body
 
 ### Data Setup

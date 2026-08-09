@@ -38,7 +38,10 @@ describe("PATCH /api/books/:id", () => {
     const res = await testRequest.patch("/api/books/not-an-id").send(createBookDto());
 
     expect(res.status).toBe(400);
-    expect(res.body.message).toBe("Invalid ID");
+    expect(res.body).toMatchObject({
+      message: "Invalid ID",
+      code: "VALIDATION_ERROR",
+    });
   });
 
   it("TC-H6-004: reject an invalid genre with 400 Bad Request", async () => {
@@ -57,7 +60,10 @@ describe("PATCH /api/books/:id", () => {
     const res = await testRequest.patch(`/api/books/${book._id}`).send({});
 
     expect(res.status).toBe(400);
-    expect(res.body.message).toBe("Request body is missing");
+    expect(res.body).toMatchObject({
+      message: "Request body is missing",
+      code: "VALIDATION_ERROR",
+    });
   });
 
   it("TC-H6-006: return 404 NotFound for a valid non-existent ObjectId", async () => {

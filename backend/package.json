@@ -23,7 +23,9 @@
         "cors": "^2.8.6",
         "dotenv": "^17.4.2",
         "express": "^5.2.1",
-        "mongoose": "^9.7.4"
+        "mongoose": "^9.7.4",
+        "swagger-jsdoc": "^6.3.0",
+        "swagger-ui-express": "^5.0.1"
     },
     "devDependencies": {
         "@eslint/js": "^10.0.1",
@@ -32,6 +34,8 @@
         "@types/jest": "^30.0.0",
         "@types/node": "^26.1.0",
         "@types/supertest": "^7.2.1",
+        "@types/swagger-jsdoc": "^6.0.4",
+        "@types/swagger-ui-express": "^4.1.8",
         "eslint": "^10.6.0",
         "eslint-config-prettier": "^10.1.8",
         "globals": "^17.7.0",

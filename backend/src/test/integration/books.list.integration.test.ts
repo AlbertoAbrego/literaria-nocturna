@@ -94,7 +94,10 @@ describe("GET /api/books", () => {
     const res = await testRequest.get("/api/books").query({ genre: "Misterio" });
 
     expect(res.status).toBe(400);
-    expect(res.body.message).toBe("Invalid genre");
+    expect(res.body).toMatchObject({
+      message: "Invalid genre",
+      code: "VALIDATION_ERROR",
+    });
   });
 
   it("TC-H8-007: return 500 Internal Server Error on database failure", async () => {
@@ -105,6 +108,10 @@ describe("GET /api/books", () => {
     const res = await testRequest.get("/api/books");
 
     expect(res.status).toBe(500);
+    expect(res.body).toMatchObject({
+      message: "Internal Server Error",
+      code: "INTERNAL_ERROR",
+    });
 
     jest.restoreAllMocks();
   });
@@ -198,7 +205,10 @@ describe("GET /api/books", () => {
       const res = await testRequest.get("/api/books").query({ page });
 
       expect(res.status).toBe(400);
-      expect(res.body.message).toBe("Invalid page value");
+      expect(res.body).toMatchObject({
+        message: "Invalid page value",
+        code: "VALIDATION_ERROR",
+      });
     });
 
     it.each([
@@ -210,7 +220,10 @@ describe("GET /api/books", () => {
       const res = await testRequest.get("/api/books").query({ limit });
 
       expect(res.status).toBe(400);
-      expect(res.body.message).toBe("Invalid limit value");
+      expect(res.body).toMatchObject({
+        message: "Invalid limit value",
+        code: "VALIDATION_ERROR",
+      });
     });
 
     it("TC-H9-008: pagination metadata is returned correctly", async () => {
@@ -245,6 +258,10 @@ describe("GET /api/books", () => {
       const res = await testRequest.get("/api/books");
 
       expect(res.status).toBe(500);
+      expect(res.body).toMatchObject({
+        message: "Internal Server Error",
+        code: "INTERNAL_ERROR",
+      });
 
       jest.restoreAllMocks();
     });
