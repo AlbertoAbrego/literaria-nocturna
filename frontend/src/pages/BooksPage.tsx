@@ -1,8 +1,10 @@
+import PageContainer from "@/shared/components/layout/PageContainer";
+
 function BooksPage() {
   return (
-    <main>
+    <PageContainer>
       <h1 className="text-2xl font-bold">Books</h1>
-    </main>
+    </PageContainer>
   );
 }
 

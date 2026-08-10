@@ -1,8 +1,10 @@
+import PageContainer from "@/shared/components/layout/PageContainer";
+
 function HomePage() {
   return (
-    <main>
+    <PageContainer>
       <h1 className="text-3xl font-bold">Literaria Nocturna</h1>
-    </main>
+    </PageContainer>
   );
 }
 
