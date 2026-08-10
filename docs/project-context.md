@@ -8,19 +8,19 @@ The backend is a TypeScript/Express application using MongoDB (via Mongoose) as 
 
 ## Technology Stack
 
-| Category | Technology |
-|----------|------------|
-| Runtime | Node.js (ES2022) |
-| Language | TypeScript (strict mode, NodeNext modules) |
-| Framework | Express 5 |
-| Database | MongoDB |
-| ODM | Mongoose 8 |
-| Testing | Jest 29, ts-jest, supertest, mongodb-memory-server |
-| Linting | ESLint 9 + typescript-eslint + eslint-config-prettier |
-| Formatting | Prettier |
-| Validation | Manual in controllers + Mongoose schema validation |
+| Category       | Technology                                                |
+| -------------- | --------------------------------------------------------- |
+| Runtime        | Node.js (ES2022)                                          |
+| Language       | TypeScript (strict mode, NodeNext modules)                |
+| Framework      | Express 5                                                 |
+| Database       | MongoDB                                                   |
+| ODM            | Mongoose 8                                                |
+| Testing        | Jest 29, ts-jest, supertest, mongodb-memory-server        |
+| Linting        | ESLint 9 + typescript-eslint + eslint-config-prettier     |
+| Formatting     | Prettier                                                  |
+| Validation     | Manual in controllers + Mongoose schema validation        |
 | Error Handling | Custom `AppError` class + global Express error middleware |
-| API Docs | OpenAPI 3.0 (swagger-jsdoc + swagger-ui-express) |
+| API Docs       | OpenAPI 3.0 (swagger-jsdoc + swagger-ui-express)          |
 
 ## Architecture
 
@@ -64,6 +64,7 @@ src/
 ```
 
 **Request Flow:**
+
 ```
 HTTP Request
     → Express Router (routes/*.ts)
@@ -83,12 +84,14 @@ HTTP Request
 ## Layer Responsibilities
 
 ### Routes (`src/routes/`)
+
 - Define endpoint paths and HTTP methods
 - Wire controllers to routes
 - No business logic
 - `swagger.routes.ts` serves the Swagger UI at `/api/docs` and the raw OpenAPI JSON at `/api/docs/swagger.json`
 
 ### Controllers (`src/controllers/`)
+
 - Handle HTTP concerns: request parsing, response formatting, status codes
 - Validate route parameters (ObjectId), query parameters (pagination, filters), and request body presence
 - Delegate to services
@@ -96,18 +99,21 @@ HTTP Request
 - **Never** contain business logic
 
 ### Services (`src/services/`)
+
 - Pure business logic functions (no Express types)
 - Throw `AppError` for business rule violations (409 Conflict, etc.)
 - Perform data access via Mongoose models
 - Return domain objects or pagination results
 
 ### Models (`src/models/`)
+
 - Mongoose schema definitions
 - Export `InferSchemaType` for type-safe documents
 - Define enums (e.g., `Genre`) used across layers
 - No business logic
 
 ### DTOs (`src/dto/`)
+
 - Plain TypeScript `type` aliases (not classes, no decorators)
 - Three categories per entity:
   - `CreateXxxDto` — required fields for creation
@@ -116,17 +122,18 @@ HTTP Request
 - No validation logic; validation happens in controllers (query) and Mongoose (body via schema)
 
 ### Middleware (`src/middleware/`)
+
 - Global error handler only (`error.middleware.ts`)
 - Maps error types to HTTP responses
 - Logs only 5xx errors (not 4xx)
 
 ## DTO Conventions
 
-| DTO Type | Convention | Example |
-|----------|------------|---------|
-| Create | All fields required, matches model required fields | `CreateBookDto` |
-| Update | All fields optional (`?`), same types as create | `UpdateBookDto` |
-| Query | Optional filters + `page`/`limit`; exports constants for defaults | `BookQueryDto`, `DEFAULT_PAGE`, `DEFAULT_LIMIT`, `MAX_LIMIT` |
+| DTO Type | Convention                                                        | Example                                                      |
+| -------- | ----------------------------------------------------------------- | ------------------------------------------------------------ |
+| Create   | All fields required, matches model required fields                | `CreateBookDto`                                              |
+| Update   | All fields optional (`?`), same types as create                   | `UpdateBookDto`                                              |
+| Query    | Optional filters + `page`/`limit`; exports constants for defaults | `BookQueryDto`, `DEFAULT_PAGE`, `DEFAULT_LIMIT`, `MAX_LIMIT` |
 
 - DTOs import enums from models (`Genre` from `book.model.ts`)
 - No class-validator, no Zod, no runtime validation libraries
@@ -166,6 +173,7 @@ HTTP Request
 ## Error Handling Conventions
 
 ### `AppError` (`src/errors/AppError.ts`)
+
 - Extends `Error`
 - Constructor: `new AppError(message: string, statusCode: number, code?: ErrorCode, details?: Record<string, string>)`
 - Public `statusCode` and `code` properties, optional `details`
@@ -190,6 +198,7 @@ Every error response follows the shape:
 - `details` — optional, only present when field-level validation messages exist
 
 ### Global Error Middleware (`src/middleware/error.middleware.ts`)
+
 - Single `ErrorRequestHandler` registered last in `app.ts`
 - Checks `res.headersSent` before responding
 - Handles error types:
@@ -201,13 +210,13 @@ Every error response follows the shape:
 
 ## Validation Conventions
 
-| Layer | What is Validated | How |
-|-------|-------------------|-----|
-| Controller (params) | ObjectId format | `mongoose.Types.ObjectId.isValid()` |
-| Controller (query) | Enum values (genre), pagination bounds | Manual checks |
-| Controller (body) | Presence (non-empty) | `Object.keys(req.body).length === 0` |
-| Mongoose (schema) | Required fields, types, enum values | Schema definition + `runValidators: true` |
-| Service | Business uniqueness (title+author) | Manual query + `AppError(409)` |
+| Layer               | What is Validated                      | How                                       |
+| ------------------- | -------------------------------------- | ----------------------------------------- |
+| Controller (params) | ObjectId format                        | `mongoose.Types.ObjectId.isValid()`       |
+| Controller (query)  | Enum values (genre), pagination bounds | Manual checks                             |
+| Controller (body)   | Presence (non-empty)                   | `Object.keys(req.body).length === 0`      |
+| Mongoose (schema)   | Required fields, types, enum values    | Schema definition + `runValidators: true` |
+| Service             | Business uniqueness (title+author)     | Manual query + `AppError(409)`            |
 
 - No separate validation middleware or libraries
 - Mongoose validation errors return `"Validation failed"` with field-level `details` (e.g. `{ title: "Path `title` is required." }`)
@@ -215,6 +224,7 @@ Every error response follows the shape:
 ## Query, Filtering and Pagination Conventions
 
 ### Query Parameters (`BookQueryDto`)
+
 - `genre?: Genre` — exact match
 - `author?: string` — case-insensitive partial match (`$regex`, `$options: "i"`)
 - `title?: string` — case-insensitive partial match (`$regex`, `$options: "i"`)
@@ -222,10 +232,12 @@ Every error response follows the shape:
 - `limit?: number` — default `10`, min `1`, max `100`
 
 ### Filter Combination
+
 - All filters combined with AND (`{ genre, author: regex, title: regex }`)
 - Multiple filters can be used simultaneously
 
 ### Pagination Response Format
+
 ```json
 {
   "data": [...],
@@ -237,10 +249,12 @@ Every error response follows the shape:
   }
 }
 ```
+
 - `totalPages = Math.ceil(total / limit)`
 - Empty page (beyond `totalPages`) returns `data: []` with correct metadata
 
 ### Defaults
+
 - `DEFAULT_PAGE = 1`
 - `DEFAULT_LIMIT = 10`
 - `MAX_LIMIT = 100`
@@ -248,13 +262,14 @@ Every error response follows the shape:
 ## Testing Architecture
 
 ### Strategy
+
 **Integration tests only** — the real Express app is exercised against a real in-memory MongoDB.
 
-| Tool | Purpose |
-|------|---------|
-| `supertest` | Sends HTTP requests to the app (no port opened) |
-| `mongodb-memory-server` | Spawns isolated `mongod` per test run |
-| Jest | Test runner, assertions, lifecycle hooks |
+| Tool                    | Purpose                                         |
+| ----------------------- | ----------------------------------------------- |
+| `supertest`             | Sends HTTP requests to the app (no port opened) |
+| `mongodb-memory-server` | Spawns isolated `mongod` per test run           |
+| Jest                    | Test runner, assertions, lifecycle hooks        |
 
 **Trade-off**: Slower than unit tests, but verifies the full Route → Controller → Service → Model contract.
 
@@ -274,6 +289,7 @@ src/test/
 ```
 
 ### Isolation Model
+
 - `globalSetup` creates **one** `MongoMemoryServer` for the entire test run
 - URI shared via temp file (workers don't share globals)
 - Each Jest worker connects to a **unique database** (`test-${process.pid}`)
@@ -283,31 +299,36 @@ src/test/
 ## Testing Conventions
 
 ### File Organization
+
 - One test file per endpoint group: `<entity>.<action>.integration.test.ts`
 - Examples: `books.create.integration.test.ts`, `books.list.integration.test.ts`
 
 ### Test Naming
+
 - Each `it()` references a story test case ID: `TC-H2-001`, `TC-H8-003`, etc.
 - Descriptive names: `"TC-H2-001: create a valid book and respond with status 201 Created"`
 
 ### Helper Usage
-| Helper | Usage |
-|--------|-------|
-| `testRequest` | `await testRequest.post("/api/books").send(dto)` |
-| `seedBooks([...])` | Insert test data, returns documents with `_id` |
-| `createBookDto({ title: "X" })` | Valid create payload with overrides |
-| `createBookModel({ genre: Genre.Horror })` | Full document with timestamps |
-| `expectValidationError(res)` | Asserts 400 + "Validation failed" |
-| `expectConflictError(res)` | Asserts 409 + "Book already exists." |
-| `expectNotFoundError(res)` | Asserts 404 + "Book not found" |
+
+| Helper                                     | Usage                                            |
+| ------------------------------------------ | ------------------------------------------------ |
+| `testRequest`                              | `await testRequest.post("/api/books").send(dto)` |
+| `seedBooks([...])`                         | Insert test data, returns documents with `_id`   |
+| `createBookDto({ title: "X" })`            | Valid create payload with overrides              |
+| `createBookModel({ genre: Genre.Horror })` | Full document with timestamps                    |
+| `expectValidationError(res)`               | Asserts 400 + "Validation failed"                |
+| `expectConflictError(res)`                 | Asserts 409 + "Book already exists."             |
+| `expectNotFoundError(res)`                 | Asserts 404 + "Book not found"                   |
 
 ### Test Patterns
+
 - **Arrange**: `seedBooks` or inline `createBookDto`
 - **Act**: `testRequest.<method>(url).send(body).query(params)`
 - **Assert**: `expect(res.status).toBe(...)` + `expect(res.body).toMatchObject(...)`
 - **Error simulation**: `jest.spyOn(Model, "method").mockRejectedValueOnce(...)`
 
 ### Commands
+
 ```bash
 npm test              # single run
 npm run test:watch    # watch mode
@@ -316,10 +337,15 @@ npm run test:ci       # CI mode: --ci --coverage --maxWorkers=2
 ```
 
 ### CI/CD
-- `test:ci` script is the pipeline entry point
+
+- GitHub Actions pipeline configured for backend
+- Trigger: push and pull_request to main
+- Node.js 22
+- npm dependency cache enabled
+- Pipeline order: lint → build → integration tests
 - `mongodb-memory-server` requires no external services
+- First run downloads the `mongod` binary
 - No coverage thresholds configured yet
-- First run downloads `mongod` binary (cache for CI)
 
 ## Git Workflow
 
@@ -348,6 +374,7 @@ npm run test:ci       # CI mode: --ci --coverage --maxWorkers=2
 ## Current Project State
 
 ### Implemented (Stories 1–10)
+
 - Project setup (TS, Express, ESLint, Prettier, Jest, MongoDB)
 - Health endpoint (`GET /api/health`, `GET /`)
 - Book CRUD:
@@ -366,6 +393,7 @@ npm run test:ci       # CI mode: --ci --coverage --maxWorkers=2
   - Tests updated for `code` field + Swagger integration tests
 
 ### Planned (Story 11+)
+
 - CI/CD with GitHub Actions
 - Members module
 - Readings module
