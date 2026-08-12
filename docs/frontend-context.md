@@ -133,6 +133,8 @@ All server state must use **TanStack Query**.
 
 Do not manually manage loading, error, and caching with useState.
 
+Query defaults (retry, staleTime, refetch behavior) are configured once in the app `QueryClient` at `src/app/providers.tsx`. Feature hooks must not duplicate these defaults per query; per-query overrides are only allowed when they intentionally differ. This keeps hooks consistent and keeps the test client's `retry: false` isolation rule effective (see [frontend-testing.md](./frontend-testing.md)).
+
 Preferred pattern:
 
 ```text
@@ -257,11 +259,20 @@ Hooks should return:
 
 # Styling Strategy
 
-The styling system will be defined separately.
+The frontend uses **Tailwind CSS v4** with the design system wired as theme tokens.
 
-Current priority is architecture, not visual design.
+Design tokens (colors, fonts, radii) are defined in:
 
-Avoid inline styles except for temporary prototypes.
+```text
+src/index.css  (@theme block)
+```
+
+and documented in [design-system.md](./design/design-system.md).
+
+- Cormorant Garamond (headings) and Inter (body) are loaded in `index.html`.
+- Components must use semantic token utilities (`bg-charcoal`, `text-parchment`, ...) instead of hardcoded hex values or default Tailwind palette colors.
+- The token set can be extended in the `@theme` block when new values are needed.
+- Avoid inline styles except for temporary prototypes.
 
 ---
 
@@ -356,7 +367,7 @@ Examples:
 - Modal
 - Table
 - Pagination
-- LoadingSpinner
+- Skeleton
 - ErrorAlert
 
 These components encapsulate:
