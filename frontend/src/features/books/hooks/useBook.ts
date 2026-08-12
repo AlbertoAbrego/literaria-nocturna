@@ -15,5 +15,6 @@ export function useBook(id?: string) {
     isError: query.isError,
     error: query.error,
     isNotFound: query.error instanceof ApiError && query.error.status === 404,
+    refetch: query.refetch,
   };
 }
