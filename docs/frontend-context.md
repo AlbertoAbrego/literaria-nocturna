@@ -299,17 +299,11 @@ Avoid exposing raw server errors.
 
 ---
 
-# Testing Strategy
+# Testing
 
-Future frontend testing stack:
+The frontend is tested with Vitest, React Testing Library, and Mock Service Worker (MSW).
 
-- Vitest
-- React Testing Library
-- MSW (Mock Service Worker)
-
-Component tests should not depend on the backend.
-
-API interactions should be mocked with MSW.
+The complete testing setup, utilities, and conventions are documented in [frontend-testing.md](./frontend-testing.md).
 
 ---
 
