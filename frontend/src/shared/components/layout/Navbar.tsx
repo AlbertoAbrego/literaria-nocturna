@@ -2,13 +2,13 @@ import { NavLink } from "react-router";
 
 function Navbar() {
   return (
-    <header className="border-b border-slate-800">
-      <nav className="mx-auto flex w-full max-w-5xl items-center gap-6 px-4 py-4">
+    <header className="h-16 border-b border-graphite bg-midnight">
+      <nav className="mx-auto flex h-full w-full max-w-[1200px] items-center gap-6 px-4 sm:px-6">
         <NavLink
           to="/"
           end
           className={({ isActive }) =>
-            isActive ? "font-semibold text-slate-100" : "text-slate-400 hover:text-slate-200"
+            isActive ? "font-medium text-parchment" : "text-ash transition-colors duration-200 hover:text-fog"
           }
         >
           Home
@@ -16,7 +16,7 @@ function Navbar() {
         <NavLink
           to="/books"
           className={({ isActive }) =>
-            isActive ? "font-semibold text-slate-100" : "text-slate-400 hover:text-slate-200"
+            isActive ? "font-medium text-parchment" : "text-ash transition-colors duration-200 hover:text-fog"
           }
         >
           Books
