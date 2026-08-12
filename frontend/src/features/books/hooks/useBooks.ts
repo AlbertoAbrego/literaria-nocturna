@@ -6,7 +6,5 @@ export function useBooks(params?: BooksQueryParams) {
   return useQuery({
     queryKey: ["books", params],
     queryFn: () => getBooks(params),
-    staleTime: 60_000,
-    retry: 1,
   });
 }
