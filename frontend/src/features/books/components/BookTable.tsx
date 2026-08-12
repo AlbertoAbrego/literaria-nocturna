@@ -1,4 +1,12 @@
 import type { Book } from "@/features/books/types";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/shared/components/ui/Table";
 import BookTableSkeleton from "@/features/books/components/BookTableSkeleton";
 import EmptyState from "@/features/books/components/EmptyState";
 import ErrorState from "@/features/books/components/ErrorState";
@@ -23,46 +31,34 @@ function BookTable({ books, isLoading, isError, onRetry }: BookTableProps) {
   }
 
   return (
-    <div className="overflow-x-auto">
+    <>
       {isLoading && (
         <span role="status" className="sr-only">
           Loading the catalog
         </span>
       )}
-      <table
-        aria-label="Book catalog"
-        aria-busy={isLoading}
-        className="w-full min-w-[640px] overflow-hidden rounded-xl border border-[#F3EBDD]/10 bg-[#1C212B] text-left"
-      >
-        <thead>
-          <tr className="border-b border-[#F3EBDD]/10">
-            {COLUMNS.map((column) => (
-              <th
-                key={column}
-                scope="col"
-                className="px-6 py-4 font-serif text-xs font-normal uppercase tracking-[0.12em] text-[#C9A86A]"
-              >
-                {column}
-              </th>
-            ))}
-          </tr>
-        </thead>
+      <Table aria-label="Book catalog" aria-busy={isLoading}>
+        <TableHeader>
+          {COLUMNS.map((column) => (
+            <TableHead key={column}>{column}</TableHead>
+          ))}
+        </TableHeader>
         {isLoading ? (
           <BookTableSkeleton />
         ) : (
-          <tbody className="divide-y divide-[#F3EBDD]/10">
+          <TableBody>
             {books.map((book) => (
-              <tr key={book._id} className="transition-colors duration-200 hover:bg-[#252B36]">
-                <td className="px-6 py-4 font-medium text-[#F3EBDD]">{book.title}</td>
-                <td className="px-6 py-4 text-[#C9C2B8]">{book.author}</td>
-                <td className="px-6 py-4 text-[#9A948A]">{book.genre}</td>
-                <td className="max-w-md truncate px-6 py-4 text-[#9A948A]">{book.synopsis}</td>
-              </tr>
+              <TableRow key={book._id}>
+                <TableCell className="font-medium text-parchment">{book.title}</TableCell>
+                <TableCell className="text-fog">{book.author}</TableCell>
+                <TableCell className="text-ash">{book.genre}</TableCell>
+                <TableCell className="max-w-md truncate text-ash">{book.synopsis}</TableCell>
+              </TableRow>
             ))}
-          </tbody>
+          </TableBody>
         )}
-      </table>
-    </div>
+      </Table>
+    </>
   );
 }
 

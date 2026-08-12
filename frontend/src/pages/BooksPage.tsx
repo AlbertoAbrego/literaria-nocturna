@@ -8,7 +8,7 @@ function BooksPage() {
   return (
     <PageContainer>
       <header className="mb-8">
-        <h1 className="font-serif text-3xl text-[#F3EBDD]">Catalog</h1>
+        <h1 className="font-heading text-3xl text-parchment">Catalog</h1>
       </header>
       <BookTable
         books={data?.data ?? []}
