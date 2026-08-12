@@ -301,15 +301,109 @@ Avoid exposing raw server errors.
 
 # Testing Strategy
 
-Future frontend testing stack:
+The frontend testing stack is fully established in `frontend/src/test/`:
 
 - Vitest
 - React Testing Library
-- MSW (Mock Service Worker)
+- Mock Service Worker (MSW)
 
-Component tests should not depend on the backend.
+Component tests must not depend on the backend.
 
-API interactions should be mocked with MSW.
+All API interactions are mocked with MSW.
+
+## Test Scripts
+
+| Script              | Purpose                              |
+| ------------------- | ------------------------------------ |
+| `npm run test`      | Watch mode                           |
+| `npm run test:ui`   | Vitest UI dashboard                  |
+| `npm run test:run`  | Run once (CI)                        |
+| `npm run test:coverage` | Run once with v8 coverage report |
+
+## Test Directory Structure
+
+```text
+src/test/
+├── setup.ts                  # Global setup: jest-dom, MSW lifecycle, RTL cleanup
+├── server.ts                 # MSW setupServer instance
+├── handlers.ts               # Handler composition root
+├── handlers/
+│   ├── books.ts              # Feature handlers + in-memory seed DB
+│   └── errors.ts             # Standardized error response helpers
+├── utils/
+│   ├── render.tsx            # renderWithProviders + re-exported RTL utilities
+│   ├── query-client.ts       # createTestQueryClient
+│   └── factories/
+│       └── book.factory.ts   # Book contract types + test data factories
+└── examples/                 # Copy-pasteable reference tests
+```
+
+## MSW Usage
+
+- Handlers are feature-organized per module and composed in `handlers.ts`.
+- `setup.ts` manages the server lifecycle globally: `listen` before all tests,
+  `resetHandlers` + seed DB reset after each test, `close` after all tests.
+- Unhandled requests fail tests (`onUnhandledRequest: "error"`). Every request
+  in a test must be covered by a handler.
+- Per-test overrides use `server.use(...)` and are automatically cleared
+  between tests.
+
+```ts
+server.use(http.get("/api/books", () => internalError()));
+```
+
+- Error responses (400, 401, 404, 409, 500) are produced by helpers in
+  `handlers/errors.ts` and follow the backend error format
+  (`{ message, code, details }`).
+
+## Custom Render Helper
+
+Import `renderWithProviders` (and `screen`, `userEvent`, `waitFor`, `within`,
+`act`, `fireEvent`) from `@/test/utils/render`.
+
+`renderWithProviders` composes a `QueryClientProvider` around the UI, returns
+the `QueryClient` instance, and supports an optional `route` for router
+context:
+
+```ts
+const view = renderWithProviders(<BookList />);
+const view = renderWithProviders(<BookList />, { route: "/books" });
+```
+
+For `renderHook`, use `createQueryClientWrapper`:
+
+```ts
+renderHook(() => useBooks(), { wrapper: createQueryClientWrapper(createTestQueryClient()) });
+```
+
+## QueryClient Isolation
+
+- `createTestQueryClient()` returns a fresh client per call: `retry: false`,
+  `gcTime: 0`. No cache bleeds between tests.
+- Memory routers also carry state — create a fresh router per test instead of
+  reusing a module-level instance.
+
+## Test Data Factories
+
+Factories in `src/test/utils/factories/` are the single source of truth for
+API contract types and mock data:
+
+```ts
+createBook({ genre: "Horror" });
+createBookList(5);
+createBookFormData({ title: "..." });
+```
+
+## Test Types
+
+| Type                            | Responsibility                                  |
+| ------------------------------- | ----------------------------------------------- |
+| Component tests (`*.test.tsx`)  | Rendering, interactions, conditional UI, a11y   |
+| Hook tests (`*.test.ts`)        | Queries, mutations, loading/error/derived state |
+| Integration tests (`*.test.tsx`) | Pages, component composition, caching, flows    |
+
+See `src/test/examples/` for copy-pasteable references covering loading,
+success, error, and mutation scenarios.
 
 ---
 

@@ -77,15 +77,14 @@ function Books() {
   );
 }
 
-const router = createMemoryRouter(
-  [
-    { path: "/", element: <Home /> },
-    { path: "/books", element: <Books /> },
-  ],
-  { initialEntries: ["/books"] },
-);
-
 function renderBooksApp() {
+  const router = createMemoryRouter(
+    [
+      { path: "/", element: <Home /> },
+      { path: "/books", element: <Books /> },
+    ],
+    { initialEntries: ["/books"] },
+  );
   return renderWithProviders(<RouterProvider router={router} />);
 }
 
