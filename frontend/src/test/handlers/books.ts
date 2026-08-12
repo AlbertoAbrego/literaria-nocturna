@@ -1,38 +1,8 @@
 import { http, HttpResponse, type HttpHandler } from "msw";
+import { GENRES, type Book } from "@/test/utils/factories/book.factory";
 import { conflictError, notFoundError, validationError } from "./errors";
 
-const GENRES = [
-  "Romance",
-  "Thriller",
-  "Fantasy",
-  "Science Fiction",
-  "Dystopia",
-  "Historical Fiction",
-  "Adventure",
-  "Self Help",
-  "Popular Science",
-  "Horror",
-  "Young Adult",
-  "Children",
-  "Health",
-  "Sports",
-  "Cooking",
-] as const;
-
-type Genre = (typeof GENRES)[number];
-
-export type MockBook = {
-  _id: string;
-  title: string;
-  author: string;
-  genre: Genre;
-  synopsis: string;
-  createdAt: string;
-  updatedAt: string;
-  __v: number;
-};
-
-function seedBooks(): MockBook[] {
+function seedBooks(): Book[] {
   return [
     {
       _id: "64f1c2e5a1b2c3d4e5f6a001",
@@ -92,7 +62,7 @@ function seedBooks(): MockBook[] {
   ];
 }
 
-const books: MockBook[] = seedBooks();
+const books: Book[] = seedBooks();
 
 export function resetBookDb(): void {
   books.length = 0;
@@ -147,7 +117,7 @@ export const bookHandlers: HttpHandler[] = [
   }),
 
   http.post("/api/books", async ({ request }) => {
-    const body = (await request.json()) as Partial<MockBook>;
+    const body = (await request.json()) as Partial<Book>;
     if (!body.title || !body.author || !body.genre || !body.synopsis) {
       return validationError("Validation failed", {
         body: "title, author, genre and synopsis are required",
@@ -165,7 +135,7 @@ export const bookHandlers: HttpHandler[] = [
     }
 
     const now = new Date().toISOString();
-    const book: MockBook = {
+    const book: Book = {
       _id: randomId(),
       title: body.title,
       author: body.author,
@@ -186,7 +156,7 @@ export const bookHandlers: HttpHandler[] = [
       return notFoundError("Book not found");
     }
 
-    const body = (await request.json()) as Partial<MockBook>;
+    const body = (await request.json()) as Partial<Book>;
     const title = body.title ?? book.title;
     const author = body.author ?? book.author;
     const duplicated = books.some(
