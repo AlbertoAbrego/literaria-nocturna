@@ -105,6 +105,30 @@ renderHook(() => useBooks(), {
 The helpers also re-export the RTL utilities used by tests: `screen`,
 `userEvent`, `waitFor`, `within`, `act`, `fireEvent`.
 
+### Dynamic Routes (`:id` Params)
+
+The `route` option renders the element under a `path="*"` catch-all route, so
+it **will not populate `useParams`**. To test a page that reads route params
+(e.g. `/books/:id`), build a real `createMemoryRouter` with explicit routes and
+render it through `RouterProvider`:
+
+```tsx
+const router = createMemoryRouter(
+  [
+    { path: "/", element: <></> },
+    { path: "/books", element: <BooksPage /> },
+    { path: "/books/:id", element: <BookDetailsPage /> },
+  ],
+  { initialEntries: ["/books/64f1c2e5a1b2c3d4e5f6a001"] },
+);
+
+renderWithProviders(<RouterProvider router={router} />);
+```
+
+Including sibling routes in the tree (not just the parametrized one) also makes
+`Link` navigation flows testable, e.g. "back to the list". See
+`src/pages/BookDetailsPage.test.tsx` for a reference implementation.
+
 ### Isolation Rules
 
 - **Fresh `QueryClient` per test.** `createTestQueryClient()` sets

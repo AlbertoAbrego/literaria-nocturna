@@ -255,6 +255,19 @@ Hooks should return:
 - error state,
 - mutation actions.
 
+Hooks may also expose **derived states** that rows/state components consume
+directly. For example, `useBook` returns an `isNotFound` flag derived from the
+shared `ApiError.status`:
+
+```ts
+isNotFound: query.error instanceof ApiError && query.error.status === 404,
+```
+
+Treating a `404` as a distinct not-found state (instead of a generic error)
+lets the page render a specific not-found UI without making each consumer
+re-derive status from the error object. Hooks centralize this logic so error
+discrimination lives in one place.
+
 ---
 
 # Styling Strategy
