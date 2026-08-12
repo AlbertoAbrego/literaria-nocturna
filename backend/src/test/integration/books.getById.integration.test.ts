@@ -13,6 +13,16 @@ describe("GET /api/books/:id", () => {
     expect(res.body).toMatchObject({ title: book.title, author: book.author });
   });
 
+  it("TC-H5-002: reject an invalid ObjectId with 400 Bad Request", async () => {
+    const res = await testRequest.get("/api/books/not-an-id");
+
+    expect(res.status).toBe(400);
+    expect(res.body).toMatchObject({
+      message: "Invalid ID",
+      code: "VALIDATION_ERROR",
+    });
+  });
+
   it("TC-H5-003: return 404 NotFound for a valid non-existent ObjectId", async () => {
     const res = await testRequest.get("/api/books/66f000000000000000000000");
 

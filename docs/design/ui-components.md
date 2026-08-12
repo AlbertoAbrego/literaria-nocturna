@@ -48,6 +48,10 @@ Hover:
 
 - midnight
 
+Ghost styling is also used for **navigation links** (e.g. “Back to catalog”).
+Use the router `Link` (an anchor) instead of `Button` when the action is
+navigational, but apply the same ghost classes.
+
 ---
 
 ## Input
@@ -165,6 +169,21 @@ Avoid alarming warning styles.
 Example:
 
 > “The archive could not be reached.”
+
+---
+
+## Not Found State
+
+Distinct from the error state. Rendered when a requested resource does not
+exist (e.g. `404` on a book details page).
+
+- Use the headline face (Cormorant Garamond) for the message.
+- Include a ghost-styled link back to a valid location (e.g. the list).
+- Editorial, literary tone.
+
+Example:
+
+> “This volume does not exist in the catalog.”
 
 ---
 
