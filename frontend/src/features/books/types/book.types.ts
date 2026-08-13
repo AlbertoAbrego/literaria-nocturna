@@ -60,3 +60,6 @@ export interface BooksQueryParams {
   author?: string;
   genre?: string;
 }
+
+// The backend responds to a successful deletion with 204 No Content (no body).
+export type DeleteBookResponse = void;

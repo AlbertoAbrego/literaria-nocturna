@@ -3,6 +3,7 @@ import type {
   Book,
   BooksQueryParams,
   CreateBookInput,
+  DeleteBookResponse,
   PaginatedResponse,
   UpdateBookInput,
 } from "@/features/books/types";
@@ -25,4 +26,8 @@ export async function createBook(input: CreateBookInput): Promise<Book> {
 export async function updateBook(id: string, input: UpdateBookInput): Promise<Book> {
   const response = await http.patch<Book>(`/books/${id}`, input);
   return response.data;
+}
+
+export async function deleteBook(id: string): Promise<DeleteBookResponse> {
+  await http.delete(`/books/${id}`);
 }
