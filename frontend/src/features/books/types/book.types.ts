@@ -9,6 +9,13 @@ export interface Book {
   __v: number;
 }
 
+export interface CreateBookInput {
+  title: string;
+  author: string;
+  genre: string;
+  synopsis: string;
+}
+
 export interface PaginatedResponse<T> {
   data: T[];
   pagination: {
