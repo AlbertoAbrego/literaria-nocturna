@@ -8,6 +8,7 @@ import {
   TableRow,
 } from "@/shared/components/ui/Table";
 import BookTableSkeleton from "@/features/books/components/BookTableSkeleton";
+import DeleteBookButton from "@/features/books/components/DeleteBookButton";
 import EmptyState from "@/features/books/components/EmptyState";
 import ErrorState from "@/features/books/components/ErrorState";
 
@@ -19,7 +20,7 @@ interface BookTableProps {
   onRetry?: () => void;
 }
 
-const COLUMNS = ["Title", "Author", "Genre", "Synopsis"] as const;
+const COLUMNS = ["Title", "Author", "Genre", "Synopsis", "Actions"] as const;
 
 function BookTable({ books, isLoading, isError, onRetry }: BookTableProps) {
   if (isError) {
@@ -53,6 +54,9 @@ function BookTable({ books, isLoading, isError, onRetry }: BookTableProps) {
                 <TableCell className="text-fog">{book.author}</TableCell>
                 <TableCell className="text-ash">{book.genre}</TableCell>
                 <TableCell className="max-w-md truncate text-ash">{book.synopsis}</TableCell>
+                <TableCell className="text-right">
+                  <DeleteBookButton bookId={book._id} bookTitle={book.title} />
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>

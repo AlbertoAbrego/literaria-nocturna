@@ -22,8 +22,8 @@ describe("BookTable", () => {
   it("renders the table headers", () => {
     renderWithProviders(<BookTable books={createBookList(1)} />);
 
-    expect(screen.getAllByRole("columnheader")).toHaveLength(4);
-    for (const column of ["Title", "Author", "Genre", "Synopsis"]) {
+    expect(screen.getAllByRole("columnheader")).toHaveLength(5);
+    for (const column of ["Title", "Author", "Genre", "Synopsis", "Actions"]) {
       expect(screen.getByRole("columnheader", { name: column })).toBeInTheDocument();
     }
   });
@@ -62,7 +62,7 @@ describe("BookTable", () => {
     renderWithProviders(<BookTable books={createBookList(1)} />);
 
     expect(screen.getByRole("table", { name: "Book catalog" })).toBeInTheDocument();
-    expect(screen.getAllByRole("columnheader")).toHaveLength(4);
+    expect(screen.getAllByRole("columnheader")).toHaveLength(5);
     expect(screen.getAllByRole("row")).toHaveLength(2);
   });
 });
