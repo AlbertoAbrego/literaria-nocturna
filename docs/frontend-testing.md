@@ -76,6 +76,29 @@ Runs before every test file:
 server.use(http.get("/api/books", () => internalError()));
 ```
 
+- To pin a test in a loading/pending state, a handler can return a Promise the
+  test resolves manually (used for `isPending` mutations and skeleton states):
+
+```ts
+let resolveRequest: (value: HttpResponse<CreateBookInput>) => void;
+server.use(
+  http.post("/api/books", () =>
+    new Promise<HttpResponse<CreateBookInput>>((resolve) => {
+      resolveRequest = resolve;
+    }),
+  ),
+);
+// trigger the mutation/query...
+expect(pendingButton).toBeDisabled();
+await act(async () => {
+  resolveRequest(HttpResponse.json(createBookFormData(), { status: 201 }));
+});
+```
+
+  Note that MSW v2's `HttpResponse` is generic (`HttpResponse<BodyType>` with
+  no default), so referencing the response type explicitly requires the body
+  type argument.
+
 - Error responses follow the backend standardized format
   (`{ message, code, details }`), produced by helpers in `handlers/errors.ts`:
   `validationError` (400), `unauthorizedError` (401), `notFoundError` (404),

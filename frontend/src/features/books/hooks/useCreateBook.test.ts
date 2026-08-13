@@ -7,7 +7,7 @@ import { useBooks } from "@/features/books/hooks/useBooks";
 import { useCreateBook } from "@/features/books/hooks/useCreateBook";
 import { server } from "@/test/server";
 import { internalError } from "@/test/handlers/errors";
-import { createBookFormData, type Book } from "@/test/utils/factories/book.factory";
+import { createBookFormData, type Book, type CreateBookInput } from "@/test/utils/factories/book.factory";
 import { createTestQueryClient } from "@/test/utils/query-client";
 import { createQueryClientWrapper } from "@/test/utils/render";
 
@@ -51,10 +51,10 @@ describe("useCreateBook", () => {
   });
 
   it("reports the pending state while the mutation is in flight", async () => {
-    let resolveRequest: (value: HttpResponse) => void;
+    let resolveRequest: (value: HttpResponse<CreateBookInput>) => void;
     server.use(
       http.post("/api/books", () =>
-        new Promise<HttpResponse>((resolve) => {
+        new Promise<HttpResponse<CreateBookInput>>((resolve) => {
           resolveRequest = resolve;
         }),
       ),

@@ -68,10 +68,10 @@ describe("BookForm", () => {
   });
 
   it("shows a pending state on the submit button while the mutation is in flight", async () => {
-    let resolveRequest: (value: HttpResponse) => void;
+    let resolveRequest: (value: HttpResponse<typeof VALID_INPUT>) => void;
     server.use(
       http.post("/api/books", () =>
-        new Promise<HttpResponse>((resolve) => {
+        new Promise<HttpResponse<typeof VALID_INPUT>>((resolve) => {
           resolveRequest = resolve;
         }),
       ),

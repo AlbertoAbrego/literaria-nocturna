@@ -10,9 +10,17 @@ interface FormFieldProps {
   children: ReactNode;
 }
 
+type FormControlProps = {
+  id?: string;
+  "aria-required"?: boolean;
+  "aria-invalid"?: boolean;
+  "aria-describedby"?: string;
+  disabled?: boolean;
+};
+
 function FormField({ id, label, error, required, disabled, children }: FormFieldProps) {
   const control = isValidElement(children)
-    ? cloneElement(children as ReactElement, {
+    ? cloneElement(children as ReactElement<FormControlProps>, {
         id,
         "aria-required": required,
         "aria-invalid": error ? true : undefined,
