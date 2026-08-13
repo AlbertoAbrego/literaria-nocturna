@@ -36,6 +36,13 @@ export interface CreateBookInput {
   synopsis: string;
 }
 
+export interface UpdateBookInput {
+  title?: string;
+  author?: string;
+  genre?: string;
+  synopsis?: string;
+}
+
 export interface PaginatedResponse<T> {
   data: T[];
   pagination: {
