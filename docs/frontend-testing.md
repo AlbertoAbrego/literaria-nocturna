@@ -163,6 +163,14 @@ Including sibling routes in the tree (not just the parametrized one) also makes
   route in the next. Build a new router inside the render helper per test.
 - **Fixed seed data.** The mock database is reseeded after every test, so
   tests can rely on known ids and counts.
+- **Proving cache invalidation.** The default client's `gcTime: 0` garbage
+  collects a query as soon as its last observer unmounts, so navigating away
+  and back always refetches — an invalidated cache is indistinguishable from a
+  cold mount. To assert that a mutation actually invalidates cached queries,
+  build a custom `QueryClient` with `staleTime: Infinity` and a long `gcTime`
+  and pass it to `renderWithProviders`. With never-stale data, the only reason
+  a remounted query refetches is an `invalidateQueries` call. See
+  `src/pages/EditBookPage.test.tsx` for a reference implementation.
 
 ### Test Data Factories
 
