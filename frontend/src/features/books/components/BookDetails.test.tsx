@@ -39,6 +39,17 @@ describe("BookDetails", () => {
     expect(screen.getByRole("link", { name: /back to catalog/i })).toHaveAttribute("href", "/books");
   });
 
+  it("provides a link to edit the volume", () => {
+    const book = createBook();
+
+    renderWithProviders(<BookDetails book={book} />, { route: "/books" });
+
+    expect(screen.getByRole("link", { name: /edit this volume/i })).toHaveAttribute(
+      "href",
+      `/books/${book._id}/edit`,
+    );
+  });
+
   it("exposes accessible semantics", () => {
     const book = createBook({ title: "The Accessible Grimoire" });
 
