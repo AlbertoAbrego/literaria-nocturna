@@ -268,6 +268,28 @@ lets the page render a specific not-found UI without making each consumer
 re-derive status from the error object. Hooks centralize this logic so error
 discrimination lives in one place.
 
+### Cache-Synchronizing Mutations
+
+Mutations that change list data (e.g. `useDeleteBook`) keep every cached list
+view consistent. Because the list is cached under many keys
+(`["books", undefined]`, `["books", { page, search }]`, ...), use the query-key
+**prefix** with `getQueriesData`/`setQueriesData` to touch all variants at once:
+
+- `onMutate`: `cancelQueries(["books"])` (prevents an in-flight fetch racing the
+  optimistic write), snapshot the previous lists, then optimistically update.
+- `onError`: restore the snapshots (rollback).
+- `onSuccess`: `invalidateQueries(["books"])` to refetch authoritatively, and
+  evict any dependent queries (e.g. `removeQueries(["books", "detail", id])`).
+
+Optimistic updaters must return `undefined` unchanged so `setQueriesData` never
+evicts a query that simply is not cached yet.
+
+### Hooks Barrel
+
+Each feature exposes a `hooks/index.ts` barrel (e.g. `features/books/hooks/index.ts`)
+so consumers import from one place (`@/features/books/hooks`) instead of many
+deep paths.
+
 ---
 
 # Styling Strategy
