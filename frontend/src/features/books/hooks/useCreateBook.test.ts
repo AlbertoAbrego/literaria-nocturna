@@ -3,6 +3,7 @@ import { HttpResponse, http } from "msw";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { ApiError } from "@/shared/api/errors";
 import { http as apiHttp } from "@/shared/api/http";
+import { useBooks } from "@/features/books/hooks/useBooks";
 import { useCreateBook } from "@/features/books/hooks/useCreateBook";
 import { server } from "@/test/server";
 import { internalError } from "@/test/handlers/errors";
@@ -142,5 +143,30 @@ describe("useCreateBook", () => {
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ["books"] });
+  });
+
+  it("keeps mutations isolated between query clients", async () => {
+    const firstClient = createTestQueryClient();
+    const secondClient = createTestQueryClient();
+
+    const second = renderHook(() => useBooks(), {
+      wrapper: createQueryClientWrapper(secondClient),
+    });
+    await waitFor(() => expect(second.result.current.isSuccess).toBe(true));
+    expect(second.result.current.data?.pagination.total).toBe(5);
+
+    const first = renderHook(() => useCreateBook(), {
+      wrapper: createQueryClientWrapper(firstClient),
+    });
+
+    act(() => {
+      first.result.current.mutate(createBookFormData({ title: "The Mutation Grimoire" }));
+    });
+    await waitFor(() => expect(first.result.current.isSuccess).toBe(true));
+
+    expect(second.result.current.data?.pagination.total).toBe(5);
+    expect(
+      second.result.current.data?.data.some((book) => book.title === "The Mutation Grimoire"),
+    ).toBe(false);
   });
 });
