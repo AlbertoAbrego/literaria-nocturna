@@ -34,6 +34,41 @@ describe("DeleteBookButton", () => {
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   });
 
+  it("closes the modal when the backdrop is clicked", async () => {
+    renderWithProviders(<DeleteBookButton bookId={SEED_BOOK_ID} bookTitle="The Whisper of the Void" />);
+    await openModal();
+
+    await userEvent.click(screen.getByTestId("modal-overlay"));
+
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  });
+
+  it("closes the modal when Escape is pressed", async () => {
+    renderWithProviders(<DeleteBookButton bookId={SEED_BOOK_ID} bookTitle="The Whisper of the Void" />);
+    await openModal();
+
+    await userEvent.keyboard("{Escape}");
+
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  });
+
+  it("restores focus to the trigger button after the modal closes", async () => {
+    renderWithProviders(<DeleteBookButton bookId={SEED_BOOK_ID} bookTitle="The Whisper of the Void" />);
+    const trigger = screen.getByRole("button", { name: "Delete The Whisper of the Void" });
+
+    await userEvent.click(trigger);
+    await userEvent.keyboard("{Escape}");
+
+    expect(trigger).toHaveFocus();
+  });
+
+  it("falls back to a generic label and title when the book title is absent", async () => {
+    renderWithProviders(<DeleteBookButton bookId={SEED_BOOK_ID} />);
+    await userEvent.click(screen.getByRole("button", { name: "Delete book" }));
+
+    expect(screen.getByRole("dialog", { name: "Delete this book?" })).toBeInTheDocument();
+  });
+
   it("deletes the book when the user confirms and closes the modal", async () => {
     renderWithProviders(<DeleteBookButton bookId={SEED_BOOK_ID} bookTitle="The Whisper of the Void" />);
     await openModal();

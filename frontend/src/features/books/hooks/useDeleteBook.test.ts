@@ -181,4 +181,16 @@ describe("useDeleteBook", () => {
     expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ["books"] });
     expect(removeSpy).toHaveBeenCalledWith({ queryKey: ["books", "detail", SEED_BOOK_ID] });
   });
+
+  it("deletes without error when the list has no cached data", async () => {
+    const { result } = renderHook(() => useDeleteBook(), {
+      wrapper: createQueryClientWrapper(createTestQueryClient()),
+    });
+
+    act(() => {
+      result.current.mutate(SEED_BOOK_ID);
+    });
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+  });
 });
