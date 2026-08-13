@@ -184,6 +184,21 @@ createBookList(5);                     // array of 5 distinct books
 createBookFormData({ title: "..." });  // create-request body
 ```
 
+### Testing Focus-Managed Overlays (Modal)
+
+Dialogs/modals that manage focus (trap + restoration) are tested through their
+rendered roles and keyboard behavior, not implementation details:
+
+- Assert the dialog via `getByRole("dialog", { name: <title> })` (the accessible
+  name comes from `aria-labelledby`).
+- Close paths: cancel/confirm buttons, the backdrop (`data-testid` on the
+  overlay), and `{Escape}` via `userEvent.keyboard`.
+- Focus: on open the first focusable receives focus; after close the trigger is
+  re-focused (`expect(trigger).toHaveFocus()`).
+- Tab cycling can be asserted with `userEvent.tab()` / `userEvent.tab({ shift: true })`.
+
+Reference: `src/shared/components/ui/Modal.test.tsx`.
+
 ---
 
 ## What It Tests

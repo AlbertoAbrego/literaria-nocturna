@@ -70,4 +70,68 @@ describe("BooksPage", () => {
     await waitFor(() => expect(screen.getByText("The Whisper of the Void")).toBeInTheDocument());
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
   });
+
+  it("deletes a book through the confirmation flow and refreshes the list", async () => {
+    const queryClient = new QueryClient({
+      defaultOptions: { queries: { retry: false, staleTime: Infinity, gcTime: 60_000 } },
+    });
+
+    renderWithProviders(<BooksPage />, { route: "/books", queryClient });
+
+    await waitFor(() => expect(screen.getByText("The Whisper of the Void")).toBeInTheDocument());
+    expect(screen.getAllByRole("row")).toHaveLength(6);
+
+    await userEvent.click(
+      screen.getByRole("button", { name: "Delete The Whisper of the Void" }),
+    );
+    await userEvent.click(screen.getByRole("button", { name: "Delete" }));
+
+    await waitFor(() => expect(screen.queryByText("The Whisper of the Void")).not.toBeInTheDocument());
+    expect(screen.getAllByRole("row")).toHaveLength(5);
+  });
+
+  it("keeps the book when the deletion is cancelled", async () => {
+    renderWithProviders(<BooksPage />, { route: "/books" });
+
+    await waitFor(() => expect(screen.getByText("The Whisper of the Void")).toBeInTheDocument());
+
+    await userEvent.click(
+      screen.getByRole("button", { name: "Delete The Whisper of the Void" }),
+    );
+    await userEvent.click(screen.getByRole("button", { name: "Cancel" }));
+
+    expect(screen.getByText("The Whisper of the Void")).toBeInTheDocument();
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  });
+
+  it("deletes multiple books sequentially", async () => {
+    renderWithProviders(<BooksPage />, { route: "/books" });
+
+    await waitFor(() => expect(screen.getByText("The Whisper of the Void")).toBeInTheDocument());
+    expect(screen.getAllByRole("row")).toHaveLength(6);
+
+    for (const title of ["The Whisper of the Void", "Atlas of Forgotten Stars"]) {
+      await userEvent.click(screen.getByRole("button", { name: `Delete ${title}` }));
+      await userEvent.click(screen.getByRole("button", { name: "Delete" }));
+      await waitFor(() => expect(screen.queryByText(title)).not.toBeInTheDocument());
+    }
+
+    expect(screen.getAllByRole("row")).toHaveLength(4);
+  });
+
+  it("supports keyboard navigation through the delete flow", async () => {
+    renderWithProviders(<BooksPage />, { route: "/books" });
+
+    await waitFor(() => expect(screen.getByText("The Whisper of the Void")).toBeInTheDocument());
+
+    const trigger = screen.getByRole("button", { name: "Delete The Whisper of the Void" });
+    trigger.focus();
+
+    await userEvent.keyboard("{Enter}");
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+
+    await userEvent.keyboard("{Escape}");
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(trigger).toHaveFocus();
+  });
 });

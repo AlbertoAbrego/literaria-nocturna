@@ -30,6 +30,8 @@
   --radius-card: 12px;
   --radius-input: 10px;
   --radius-modal: 16px;
+
+  --shadow-modal: 0 24px 64px -16px rgba(0, 0, 0, 0.6);
 }
 
 @layer base {
