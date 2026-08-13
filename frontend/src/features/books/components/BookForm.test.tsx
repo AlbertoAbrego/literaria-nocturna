@@ -4,6 +4,7 @@ import { BookForm } from "@/features/books/components";
 import { GENRES } from "@/features/books/types";
 import { conflictError, validationError } from "@/test/handlers/errors";
 import { server } from "@/test/server";
+import { createBook, type Book } from "@/test/utils/factories/book.factory";
 import { act, renderWithProviders, screen, userEvent, waitFor } from "@/test/utils/render";
 
 const VALID_INPUT = {
@@ -11,6 +12,15 @@ const VALID_INPUT = {
   author: "Ada Lovelace",
   genre: "Fantasy",
   synopsis: "A catalog of doors that open only once.",
+};
+
+const EDIT_ID = "64f1c2e5a1b2c3d4e5f6a001";
+
+const EDIT_INITIAL_VALUES = {
+  title: "The Whisper of the Void",
+  author: "Isabella Marchetti",
+  genre: "Horror",
+  synopsis: "A scholar discovers that her university library is cataloging books that should not exist.",
 };
 
 async function fillValidForm() {
@@ -164,5 +174,112 @@ describe("BookForm", () => {
     expect(title).toHaveAttribute("aria-required", "true");
     expect(title).toHaveAttribute("aria-describedby", "title-error");
     expect(screen.getByText("Title is required.")).toHaveAttribute("id", "title-error");
+  });
+});
+
+describe("BookForm in edit mode", () => {
+  it("pre-populates the fields with the given initial values", () => {
+    renderWithProviders(<BookForm id={EDIT_ID} initialValues={EDIT_INITIAL_VALUES} />, {
+      route: `/books/${EDIT_ID}/edit`,
+    });
+
+    expect(screen.getByLabelText("Title")).toHaveValue(EDIT_INITIAL_VALUES.title);
+    expect(screen.getByLabelText("Author")).toHaveValue(EDIT_INITIAL_VALUES.author);
+    expect(screen.getByLabelText("Genre")).toHaveValue(EDIT_INITIAL_VALUES.genre);
+    expect(screen.getByLabelText("Synopsis")).toHaveValue(EDIT_INITIAL_VALUES.synopsis);
+  });
+
+  it("uses the update submit button and links back to the volume details", () => {
+    renderWithProviders(<BookForm id={EDIT_ID} initialValues={EDIT_INITIAL_VALUES} />, {
+      route: `/books/${EDIT_ID}/edit`,
+    });
+
+    expect(screen.getByRole("button", { name: "Update the Book" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /back to catalog/i })).toHaveAttribute(
+      "href",
+      `/books/${EDIT_ID}`,
+    );
+  });
+
+  it("shows a pending state on the submit button while the update is in flight", async () => {
+    let resolveRequest: (value: HttpResponse<Book>) => void;
+    server.use(
+      http.patch("/api/books/:id", () =>
+        new Promise<HttpResponse<Book>>((resolve) => {
+          resolveRequest = resolve;
+        }),
+      ),
+    );
+
+    renderWithProviders(<BookForm id={EDIT_ID} initialValues={EDIT_INITIAL_VALUES} />, {
+      route: `/books/${EDIT_ID}/edit`,
+    });
+    const user = userEvent.setup();
+
+    await user.click(screen.getByRole("button", { name: "Update the Book" }));
+
+    const pendingButton = screen.getByRole("button", { name: "Updating..." });
+    expect(pendingButton).toBeDisabled();
+
+    await act(async () => {
+      resolveRequest(HttpResponse.json(createBook(), { status: 200 }));
+    });
+
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: "Update the Book" })).toBeEnabled(),
+    );
+  });
+
+  it("calls onUpdated after a successful update", async () => {
+    const onUpdated = vi.fn();
+    renderWithProviders(
+      <BookForm id={EDIT_ID} initialValues={EDIT_INITIAL_VALUES} onUpdated={onUpdated} />,
+      { route: `/books/${EDIT_ID}/edit` },
+    );
+    const user = userEvent.setup();
+
+    await user.click(screen.getByRole("button", { name: "Update the Book" }));
+
+    await waitFor(() => expect(onUpdated).toHaveBeenCalledTimes(1));
+  });
+
+  it("shows field-level API errors under the respective fields", async () => {
+    server.use(
+      http.patch("/api/books/:id", () =>
+        validationError("Validation failed", {
+          title: "A book with this title already exists",
+        }),
+      ),
+    );
+
+    renderWithProviders(<BookForm id={EDIT_ID} initialValues={EDIT_INITIAL_VALUES} />, {
+      route: `/books/${EDIT_ID}/edit`,
+    });
+    const user = userEvent.setup();
+
+    await user.click(screen.getByRole("button", { name: "Update the Book" }));
+
+    expect(
+      await screen.findByText("A book with this title already exists"),
+    ).toBeInTheDocument();
+    expect(screen.getByLabelText("Title")).toHaveAttribute("aria-invalid", "true");
+  });
+
+  it("shows a form-level conflict error through an alert", async () => {
+    server.use(
+      http.patch("/api/books/:id", () =>
+        conflictError("A volume by this name and author already exists."),
+      ),
+    );
+
+    renderWithProviders(<BookForm id={EDIT_ID} initialValues={EDIT_INITIAL_VALUES} />, {
+      route: `/books/${EDIT_ID}/edit`,
+    });
+    const user = userEvent.setup();
+
+    await user.click(screen.getByRole("button", { name: "Update the Book" }));
+
+    const alert = await screen.findByRole("alert");
+    expect(alert).toHaveTextContent("A volume by this name and author already exists.");
   });
 });

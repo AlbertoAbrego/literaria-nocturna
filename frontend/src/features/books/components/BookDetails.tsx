@@ -19,9 +19,17 @@ function BookDetails({ book }: BookDetailsProps) {
         &larr; Back to catalog
       </Link>
       <div className="rounded-card border border-graphite bg-charcoal p-6 sm:p-8">
-        <span className="inline-block rounded-button border border-antique-gold/40 bg-antique-gold/10 px-3 py-1 text-xs tracking-wide text-antique-gold">
-          {book.genre}
-        </span>
+        <div className="flex items-start justify-between gap-4">
+          <span className="inline-block rounded-button border border-antique-gold/40 bg-antique-gold/10 px-3 py-1 text-xs tracking-wide text-antique-gold">
+            {book.genre}
+          </span>
+          <Link
+            to={`/books/${book._id}/edit`}
+            className="inline-block px-3 py-2 text-sm text-fog transition-colors duration-200 hover:bg-midnight hover:text-parchment"
+          >
+            Edit this volume
+          </Link>
+        </div>
         <h1 className="mt-4 font-heading text-4xl text-parchment">{book.title}</h1>
         <p className="mt-2 text-fog">by {book.author}</p>
         <hr className="my-6 border-graphite" />

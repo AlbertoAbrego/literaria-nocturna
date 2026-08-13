@@ -56,3 +56,14 @@ export function createBookFormData(overrides: Partial<CreateBookInput> = {}): Cr
     ...overrides,
   };
 }
+
+export function updateBookFormData(overrides: Partial<CreateBookInput> = {}): CreateBookInput {
+  counter += 1;
+  return {
+    title: `The Revised Volume ${counter}`,
+    author: "Anonymous Scribe",
+    genre: "Horror",
+    synopsis: "A volume that should never have been cataloged.",
+    ...overrides,
+  };
+}

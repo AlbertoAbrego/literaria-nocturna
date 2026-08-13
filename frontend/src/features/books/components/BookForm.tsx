@@ -2,6 +2,7 @@ import { useState } from "react";
 import type { FormEvent } from "react";
 import { Link } from "react-router";
 import { useCreateBook } from "@/features/books/hooks/useCreateBook";
+import { useUpdateBook } from "@/features/books/hooks/useUpdateBook";
 import { GENRES } from "@/features/books/types";
 import {
   INITIAL_BOOK_FORM_VALUES,
@@ -18,18 +19,41 @@ import Select from "@/shared/components/ui/Select";
 import Textarea from "@/shared/components/ui/Textarea";
 
 interface BookFormProps {
+  id?: string;
+  initialValues?: BookFormValues;
   onCreated?: () => void;
+  onUpdated?: () => void;
 }
 
-function BookForm({ onCreated }: BookFormProps) {
+function BookForm({ id, initialValues, onCreated, onUpdated }: BookFormProps) {
   const createBook = useCreateBook();
-  const [values, setValues] = useState<BookFormValues>(INITIAL_BOOK_FORM_VALUES);
+  const updateBook = useUpdateBook(id ?? "");
+  const isEditing = Boolean(id);
+  const isPending = isEditing ? updateBook.isPending : createBook.isPending;
+  const [values, setValues] = useState<BookFormValues>(initialValues ?? INITIAL_BOOK_FORM_VALUES);
   const [fieldErrors, setFieldErrors] = useState<Partial<Record<BookFormField, string>>>({});
   const [formError, setFormError] = useState<string | null>(null);
 
   function handleChange(field: BookFormField, value: string) {
     setValues((current) => ({ ...current, [field]: value }));
     setFieldErrors((current) => ({ ...current, [field]: undefined }));
+  }
+
+  function handleSuccess() {
+    setValues(initialValues ?? INITIAL_BOOK_FORM_VALUES);
+    if (isEditing) {
+      onUpdated?.();
+    } else {
+      onCreated?.();
+    }
+  }
+
+  function handleError(error: unknown) {
+    if (error instanceof ApiError && error.details) {
+      setFieldErrors(error.details);
+    } else {
+      setFormError(error instanceof Error ? error.message : "Unable to save the book.");
+    }
   }
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -43,33 +67,24 @@ function BookForm({ onCreated }: BookFormProps) {
       return;
     }
 
-    createBook.mutate(
-      {
-        title: values.title.trim(),
-        author: values.author.trim(),
-        genre: values.genre,
-        synopsis: values.synopsis.trim(),
-      },
-      {
-        onSuccess: () => {
-          setValues(INITIAL_BOOK_FORM_VALUES);
-          onCreated?.();
-        },
-        onError: (error) => {
-          if (error instanceof ApiError && error.details) {
-            setFieldErrors(error.details);
-          } else {
-            setFormError(error instanceof Error ? error.message : "Unable to create the book.");
-          }
-        },
-      },
-    );
+    const input = {
+      title: values.title.trim(),
+      author: values.author.trim(),
+      genre: values.genre,
+      synopsis: values.synopsis.trim(),
+    };
+
+    if (isEditing) {
+      updateBook.mutate(input, { onSuccess: handleSuccess, onError: handleError });
+    } else {
+      createBook.mutate(input, { onSuccess: handleSuccess, onError: handleError });
+    }
   }
 
   return (
     <div className="mx-auto max-w-2xl">
       <Link
-        to="/books"
+        to={isEditing ? `/books/${id}` : "/books"}
         className="mb-6 inline-block px-3 py-2 text-sm text-fog transition-colors duration-200 hover:bg-midnight hover:text-parchment"
       >
         &larr; Back to catalog
@@ -78,7 +93,7 @@ function BookForm({ onCreated }: BookFormProps) {
       <form noValidate onSubmit={handleSubmit} className="space-y-6">
         {formError && <ErrorAlert message={formError} />}
 
-        <FormField id="title" label="Title" error={fieldErrors.title} required disabled={createBook.isPending}>
+        <FormField id="title" label="Title" error={fieldErrors.title} required disabled={isPending}>
           <Input
             name="title"
             value={values.title}
@@ -86,7 +101,7 @@ function BookForm({ onCreated }: BookFormProps) {
           />
         </FormField>
 
-        <FormField id="author" label="Author" error={fieldErrors.author} required disabled={createBook.isPending}>
+        <FormField id="author" label="Author" error={fieldErrors.author} required disabled={isPending}>
           <Input
             name="author"
             value={values.author}
@@ -94,7 +109,7 @@ function BookForm({ onCreated }: BookFormProps) {
           />
         </FormField>
 
-        <FormField id="genre" label="Genre" error={fieldErrors.genre} required disabled={createBook.isPending}>
+        <FormField id="genre" label="Genre" error={fieldErrors.genre} required disabled={isPending}>
           <Select
             name="genre"
             value={values.genre}
@@ -109,7 +124,7 @@ function BookForm({ onCreated }: BookFormProps) {
           </Select>
         </FormField>
 
-        <FormField id="synopsis" label="Synopsis" error={fieldErrors.synopsis} required disabled={createBook.isPending}>
+        <FormField id="synopsis" label="Synopsis" error={fieldErrors.synopsis} required disabled={isPending}>
           <Textarea
             name="synopsis"
             rows={5}
@@ -119,8 +134,14 @@ function BookForm({ onCreated }: BookFormProps) {
         </FormField>
 
         <div className="pt-2">
-          <Button type="submit" disabled={createBook.isPending}>
-            {createBook.isPending ? "Cataloging..." : "Catalog the Book"}
+          <Button type="submit" disabled={isPending}>
+            {isEditing
+              ? isPending
+                ? "Updating..."
+                : "Update the Book"
+              : isPending
+                ? "Cataloging..."
+                : "Catalog the Book"}
           </Button>
         </div>
       </form>

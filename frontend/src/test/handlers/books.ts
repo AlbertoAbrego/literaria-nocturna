@@ -157,6 +157,13 @@ export const bookHandlers: HttpHandler[] = [
     }
 
     const body = (await request.json()) as Partial<Book>;
+    if (Object.keys(body).length === 0) {
+      return validationError("Validation failed", { body: "Update body is required" });
+    }
+    if (body.genre !== undefined && !GENRES.includes(body.genre)) {
+      return validationError("Validation failed", { genre: "Invalid genre" });
+    }
+
     const title = body.title ?? book.title;
     const author = body.author ?? book.author;
     const duplicated = books.some(
