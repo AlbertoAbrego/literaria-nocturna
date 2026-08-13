@@ -1,22 +1,6 @@
-export const GENRES = [
-  "Romance",
-  "Thriller",
-  "Fantasy",
-  "Science Fiction",
-  "Dystopia",
-  "Historical Fiction",
-  "Adventure",
-  "Self Help",
-  "Popular Science",
-  "Horror",
-  "Young Adult",
-  "Children",
-  "Health",
-  "Sports",
-  "Cooking",
-] as const;
+import { GENRES, type Genre } from "@/features/books/types";
 
-export type Genre = (typeof GENRES)[number];
+export { GENRES, type Genre };
 
 export type Book = {
   _id: string;
