@@ -38,23 +38,32 @@ export function parseSearchFilters(searchParams: URLSearchParams): SearchFilters
   };
 }
 
-export function buildSearchParams(filters: SearchFilters): URLSearchParams {
+export function parsePage(searchParams: URLSearchParams): number {
+  const raw = searchParams.get("page");
+  if (!raw) return 1;
+  const parsed = Number.parseInt(raw, 10);
+  return Number.isFinite(parsed) && parsed >= 1 ? parsed : 1;
+}
+
+export function buildSearchParams(filters: SearchFilters, page = 1): URLSearchParams {
   const params = new URLSearchParams();
   const title = filters.title.trim();
   const author = filters.author.trim();
   if (title) params.set("title", title);
   if (author) params.set("author", author);
   if (filters.genre) params.set("genre", filters.genre);
+  if (page > 1) params.set("page", String(page));
   return params;
 }
 
-export function toBooksQueryParams(filters: SearchFilters): BooksQueryParams {
+export function toBooksQueryParams(filters: SearchFilters, page = 1): BooksQueryParams {
   const params: BooksQueryParams = {};
   const title = filters.title.trim();
   const author = filters.author.trim();
   if (title) params.title = title;
   if (author) params.author = author;
   if (filters.genre) params.genre = filters.genre;
+  if (page > 1) params.page = page;
   return params;
 }
 

@@ -16,6 +16,22 @@ function paginatedBooks() {
   };
 }
 
+function multiPageBooks() {
+  const pageOne = createBookList(2);
+  const pageTwo = createBookList(1);
+  server.use(
+    http.get("/api/books", ({ request }) => {
+      const url = new URL(request.url);
+      const page = Math.max(1, Number(url.searchParams.get("page")) || 1);
+      return HttpResponse.json({
+        data: page === 1 ? pageOne : pageTwo,
+        pagination: { page, limit: 2, total: 3, totalPages: 2 },
+      });
+    }),
+  );
+  return { pageOne, pageTwo };
+}
+
 describe("BooksPage", () => {
   afterEach(() => {
     vi.restoreAllMocks();
@@ -275,5 +291,124 @@ describe("BooksPage", () => {
 
     await waitFor(() => expect(screen.getByRole("status")).toHaveTextContent("Loading the catalog"));
     expect(screen.getByRole("table")).toHaveAttribute("aria-busy", "true");
+  });
+
+  it("displays pagination metadata for the current result set", async () => {
+    renderWithProviders(<BooksPage />, { route: "/books" });
+
+    await waitFor(() => expect(screen.getByText("The Whisper of the Void")).toBeInTheDocument());
+
+    expect(screen.getByText("Showing 1–5 of 5 volumes")).toBeInTheDocument();
+  });
+
+  it("navigates to the next page and synchronizes the URL", async () => {
+    const { pageOne, pageTwo } = multiPageBooks();
+    const router = createMemoryRouter([{ path: "/books", element: <BooksPage /> }], {
+      initialEntries: ["/books"],
+    });
+    renderWithProviders(<RouterProvider router={router} />);
+
+    await waitFor(() => expect(screen.getByText(pageOne[0].title)).toBeInTheDocument());
+    expect(screen.getByText("Showing 1–2 of 3 volumes")).toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole("button", { name: "Next" }));
+
+    await waitFor(() => expect(router.state.location.search).toBe("?page=2"));
+    await waitFor(() => expect(screen.getByText(pageTwo[0].title)).toBeInTheDocument());
+    expect(screen.getByText("Showing 3–3 of 3 volumes")).toBeInTheDocument();
+  });
+
+  it("navigates to a specific page by clicking its number", async () => {
+    const { pageOne, pageTwo } = multiPageBooks();
+    const router = createMemoryRouter([{ path: "/books", element: <BooksPage /> }], {
+      initialEntries: ["/books"],
+    });
+    renderWithProviders(<RouterProvider router={router} />);
+
+    await waitFor(() => expect(screen.getByText(pageOne[0].title)).toBeInTheDocument());
+
+    await userEvent.click(screen.getByRole("button", { name: "Go to page 2" }));
+
+    await waitFor(() => expect(screen.getByText(pageTwo[0].title)).toBeInTheDocument());
+    expect(screen.getByRole("button", { name: "Go to page 2" })).toHaveAttribute(
+      "aria-current",
+      "page",
+    );
+  });
+
+  it("returns to the previous page with the previous button", async () => {
+    const { pageOne, pageTwo } = multiPageBooks();
+    const router = createMemoryRouter([{ path: "/books", element: <BooksPage /> }], {
+      initialEntries: ["/books?page=2"],
+    });
+    renderWithProviders(<RouterProvider router={router} />);
+
+    await waitFor(() => expect(screen.getByText(pageTwo[0].title)).toBeInTheDocument());
+
+    await userEvent.click(screen.getByRole("button", { name: "Previous" }));
+
+    await waitFor(() => expect(screen.getByText(pageOne[0].title)).toBeInTheDocument());
+    expect(screen.getByText("Showing 1–2 of 3 volumes")).toBeInTheDocument();
+  });
+
+  it("resets to the first page when a search filter is applied", async () => {
+    multiPageBooks();
+    const router = createMemoryRouter([{ path: "/books", element: <BooksPage /> }], {
+      initialEntries: ["/books?page=2"],
+    });
+    renderWithProviders(<RouterProvider router={router} />);
+
+    await waitFor(() => expect(screen.getByText("Showing 3–3 of 3 volumes")).toBeInTheDocument());
+
+    await userEvent.type(screen.getByLabelText("Title"), "Void");
+
+    await waitFor(() => expect(router.state.location.search).toBe("?title=Void"));
+    await waitFor(() => expect(screen.getByText("Showing 1–2 of 3 volumes")).toBeInTheDocument());
+  });
+
+  it("shows a loading state while navigating between pages", async () => {
+    server.use(
+      http.get("/api/books", ({ request }) => {
+        const url = new URL(request.url);
+        const page = Math.max(1, Number(url.searchParams.get("page")) || 1);
+        if (page === 1) {
+          return HttpResponse.json({
+            data: createBookList(2),
+            pagination: { page: 1, limit: 2, total: 3, totalPages: 2 },
+          });
+        }
+        return new Promise<never>(() => {});
+      }),
+    );
+
+    renderWithProviders(<BooksPage />, { route: "/books" });
+
+    await waitFor(() => expect(screen.getByText("Showing 1–2 of 3 volumes")).toBeInTheDocument());
+
+    await userEvent.click(screen.getByRole("button", { name: "Next" }));
+
+    await waitFor(() => expect(screen.getByRole("status")).toHaveTextContent("Loading the catalog"));
+    expect(screen.getByRole("table")).toHaveAttribute("aria-busy", "true");
+  });
+
+  it("shows an empty state and hides pagination for an out-of-range page", async () => {
+    server.use(
+      http.get("/api/books", ({ request }) => {
+        const url = new URL(request.url);
+        const page = Math.max(1, Number(url.searchParams.get("page")) || 1);
+        return HttpResponse.json({
+          data: page === 1 ? createBookList(2) : [],
+          pagination: { page, limit: 2, total: 3, totalPages: 2 },
+        });
+      }),
+    );
+
+    renderWithProviders(<BooksPage />, { route: "/books?page=99" });
+
+    await waitFor(() => expect(screen.getByRole("table")).toBeInTheDocument());
+
+    expect(screen.queryByText(/Showing/)).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Previous" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Next" })).not.toBeInTheDocument();
   });
 });
