@@ -1,11 +1,12 @@
 import { renderHook, waitFor } from "@testing-library/react";
-import { http } from "msw";
+import { HttpResponse, http } from "msw";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { ApiError } from "@/shared/api/errors";
 import { useBooks } from "@/features/books/hooks/useBooks";
 import type { Book, PaginatedResponse } from "@/features/books/types";
 import { server } from "@/test/server";
 import { internalError } from "@/test/handlers/errors";
+import { createBookList } from "@/test/utils/factories/book.factory";
 import { createTestQueryClient } from "@/test/utils/query-client";
 import { createQueryClientWrapper } from "@/test/utils/render";
 
@@ -66,5 +67,35 @@ describe("useBooks", () => {
     expect(queryClient.getQueryData<PaginatedResponse<Book>>(["books", { title: "whisper" }])?.data).toHaveLength(
       1,
     );
+  });
+
+  it("sends the page as a query parameter and separates cache entries by page", async () => {
+    server.use(
+      http.get("/api/books", ({ request }) => {
+        const url = new URL(request.url);
+        const page = Math.max(1, Number(url.searchParams.get("page")) || 1);
+        return HttpResponse.json({
+          data: page === 1 ? createBookList(2) : createBookList(1),
+          pagination: { page, limit: 10, total: 3, totalPages: 2 },
+        });
+      }),
+    );
+
+    const queryClient = createTestQueryClient();
+
+    const pageOne = renderHook(() => useBooks({ page: 1 }), {
+      wrapper: createQueryClientWrapper(queryClient),
+    });
+    await waitFor(() => expect(pageOne.result.current.isSuccess).toBe(true));
+
+    const pageTwo = renderHook(() => useBooks({ page: 2 }), {
+      wrapper: createQueryClientWrapper(queryClient),
+    });
+    await waitFor(() => expect(pageTwo.result.current.isSuccess).toBe(true));
+
+    expect(pageOne.result.current.data?.data).toHaveLength(2);
+    expect(pageTwo.result.current.data?.data).toHaveLength(1);
+    expect(queryClient.getQueryData<PaginatedResponse<Book>>(["books", { page: 1 }])?.data).toHaveLength(2);
+    expect(queryClient.getQueryData<PaginatedResponse<Book>>(["books", { page: 2 }])?.data).toHaveLength(1);
   });
 });
