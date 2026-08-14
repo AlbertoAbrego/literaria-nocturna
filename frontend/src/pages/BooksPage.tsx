@@ -1,10 +1,13 @@
 import { Link } from "react-router";
-import { BookTable } from "@/features/books/components";
+import { BookTable, FilterBar } from "@/features/books/components";
+import { useBookFilters } from "@/features/books/hooks/useBookFilters";
 import { useBooks } from "@/features/books/hooks/useBooks";
 import PageContainer from "@/shared/components/layout/PageContainer";
 
 function BooksPage() {
-  const { data, isLoading, isError, error, refetch } = useBooks();
+  const filters = useBookFilters();
+  const { data, isLoading, isError, error, refetch } = useBooks(filters.queryParams);
+  const activeFilterCount = Object.keys(filters.queryParams).length;
 
   return (
     <PageContainer>
@@ -17,6 +20,25 @@ function BooksPage() {
           Create Book
         </Link>
       </header>
+
+      <div className="mb-8">
+        <FilterBar
+          title={filters.title}
+          author={filters.author}
+          genre={filters.genre}
+          onTitleChange={filters.setTitle}
+          onAuthorChange={filters.setAuthor}
+          onGenreChange={filters.setGenre}
+          onReset={filters.resetFilters}
+          isFiltered={filters.isFiltered}
+        />
+        {filters.isFiltered && (
+          <p className="mt-3 text-sm text-fog">
+            {activeFilterCount} active {activeFilterCount === 1 ? "filter" : "filters"}
+          </p>
+        )}
+      </div>
+
       <BookTable
         books={data?.data ?? []}
         isLoading={isLoading}

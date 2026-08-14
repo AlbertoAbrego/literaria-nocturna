@@ -1,5 +1,6 @@
 import { QueryClient } from "@tanstack/react-query";
 import { HttpResponse, http } from "msw";
+import { createMemoryRouter, RouterProvider } from "react-router";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import BooksPage from "@/pages/BooksPage";
 import { server } from "@/test/server";
@@ -133,5 +134,116 @@ describe("BooksPage", () => {
     await userEvent.keyboard("{Escape}");
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     expect(trigger).toHaveFocus();
+  });
+
+  it("filters books by title search", async () => {
+    renderWithProviders(<BooksPage />, { route: "/books" });
+    await waitFor(() => expect(screen.getByText("The Whisper of the Void")).toBeInTheDocument());
+    expect(screen.getAllByRole("row")).toHaveLength(6);
+
+    await userEvent.type(screen.getByLabelText("Title"), "Whisper");
+
+    await waitFor(() => {
+      expect(screen.getByText("The Whisper of the Void")).toBeInTheDocument();
+      expect(screen.queryByText("Atlas of Forgotten Stars")).not.toBeInTheDocument();
+    });
+    expect(screen.getAllByRole("row")).toHaveLength(2);
+  });
+
+  it("filters books by author search", async () => {
+    renderWithProviders(<BooksPage />, { route: "/books" });
+    await waitFor(() => expect(screen.getByText("The Whisper of the Void")).toBeInTheDocument());
+
+    await userEvent.type(screen.getByLabelText("Author"), "Almeida");
+
+    await waitFor(() => {
+      expect(screen.getByText("Atlas of Forgotten Stars")).toBeInTheDocument();
+      expect(screen.queryByText("The Whisper of the Void")).not.toBeInTheDocument();
+    });
+    expect(screen.getAllByRole("row")).toHaveLength(2);
+  });
+
+  it("filters books by genre", async () => {
+    renderWithProviders(<BooksPage />, { route: "/books" });
+    await waitFor(() => expect(screen.getByText("The Whisper of the Void")).toBeInTheDocument());
+
+    await userEvent.selectOptions(screen.getByLabelText("Genre"), "Horror");
+
+    await waitFor(() => {
+      expect(screen.getByText("The Whisper of the Void")).toBeInTheDocument();
+      expect(screen.queryByText("Atlas of Forgotten Stars")).not.toBeInTheDocument();
+    });
+    expect(screen.getAllByRole("row")).toHaveLength(2);
+  });
+
+  it("combines multiple filters", async () => {
+    renderWithProviders(<BooksPage />, { route: "/books" });
+    await waitFor(() => expect(screen.getByText("The Whisper of the Void")).toBeInTheDocument());
+
+    await userEvent.type(screen.getByLabelText("Title"), "Whisper");
+    await userEvent.selectOptions(screen.getByLabelText("Genre"), "Horror");
+
+    await waitFor(() => {
+      expect(screen.getByText("The Whisper of the Void")).toBeInTheDocument();
+      expect(screen.queryByText("Atlas of Forgotten Stars")).not.toBeInTheDocument();
+    });
+    expect(screen.getAllByRole("row")).toHaveLength(2);
+  });
+
+  it("debounces search so the list does not refetch before the delay", async () => {
+    renderWithProviders(<BooksPage />, { route: "/books" });
+    await waitFor(() => expect(screen.getByText("The Whisper of the Void")).toBeInTheDocument());
+    expect(screen.getAllByRole("row")).toHaveLength(6);
+
+    await userEvent.type(screen.getByLabelText("Title"), "Whisper");
+
+    expect(screen.getAllByRole("row")).toHaveLength(6);
+
+    await waitFor(() => expect(screen.getAllByRole("row")).toHaveLength(2));
+  });
+
+  it("synchronizes filters to the URL after debounce", async () => {
+    const router = createMemoryRouter([{ path: "/books", element: <BooksPage /> }], {
+      initialEntries: ["/books"],
+    });
+    renderWithProviders(<RouterProvider router={router} />);
+
+    await waitFor(() => expect(screen.getByText("The Whisper of the Void")).toBeInTheDocument());
+
+    await userEvent.type(screen.getByLabelText("Title"), "Whisper");
+    await userEvent.selectOptions(screen.getByLabelText("Genre"), "Horror");
+
+    await waitFor(() => expect(router.state.location.search).toBe("?title=Whisper&genre=Horror"));
+  });
+
+  it("applies filters present in the URL on load", async () => {
+    renderWithProviders(<BooksPage />, { route: "/books?genre=Horror" });
+
+    await waitFor(() => expect(screen.getByText("The Whisper of the Void")).toBeInTheDocument());
+    expect(screen.queryByText("Atlas of Forgotten Stars")).not.toBeInTheDocument();
+    expect(screen.getAllByRole("row")).toHaveLength(2);
+  });
+
+  it("clears filters and restores the full list", async () => {
+    renderWithProviders(<BooksPage />, { route: "/books" });
+    await waitFor(() => expect(screen.getByText("The Whisper of the Void")).toBeInTheDocument());
+
+    await userEvent.type(screen.getByLabelText("Title"), "Whisper");
+    await waitFor(() => expect(screen.queryByText("Atlas of Forgotten Stars")).not.toBeInTheDocument());
+
+    await userEvent.click(screen.getByRole("button", { name: "Clear filters" }));
+
+    await waitFor(() => expect(screen.getByText("Atlas of Forgotten Stars")).toBeInTheDocument());
+    expect(screen.getAllByRole("row")).toHaveLength(6);
+  });
+
+  it("shows the number of active filters", async () => {
+    renderWithProviders(<BooksPage />, { route: "/books" });
+    await waitFor(() => expect(screen.getByText("The Whisper of the Void")).toBeInTheDocument());
+
+    await userEvent.type(screen.getByLabelText("Title"), "Whisper");
+    await userEvent.selectOptions(screen.getByLabelText("Genre"), "Horror");
+
+    await waitFor(() => expect(screen.getByText("2 active filters")).toBeInTheDocument());
   });
 });
