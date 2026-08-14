@@ -14,6 +14,12 @@ export function useBookFilters() {
   const [searchParams, setSearchParams] = useSearchParams();
   const committed = useMemo(() => parseSearchFilters(searchParams), [searchParams]);
   const [draft, setDraft] = useState<SearchFilters>(committed);
+  const [previousCommitted, setPreviousCommitted] = useState<SearchFilters>(committed);
+
+  if (!filtersEqual(previousCommitted, committed)) {
+    setPreviousCommitted(committed);
+    setDraft(committed);
+  }
 
   useEffect(() => {
     if (filtersEqual(draft, committed)) return;

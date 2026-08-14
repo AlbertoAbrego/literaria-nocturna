@@ -224,6 +224,24 @@ describe("BooksPage", () => {
     expect(screen.getAllByRole("row")).toHaveLength(2);
   });
 
+  it("resyncs the filter inputs when navigating back or forward", async () => {
+    const router = createMemoryRouter([{ path: "/books", element: <BooksPage /> }], {
+      initialEntries: ["/books"],
+    });
+    renderWithProviders(<RouterProvider router={router} />);
+
+    await waitFor(() => expect(screen.getByText("The Whisper of the Void")).toBeInTheDocument());
+
+    await userEvent.type(screen.getByLabelText("Title"), "Whisper");
+    await waitFor(() => expect(router.state.location.search).toBe("?title=Whisper"));
+
+    router.navigate("/books?title=Atlas");
+    await waitFor(() => expect(screen.getByLabelText("Title")).toHaveValue("Atlas"));
+
+    router.navigate(-1);
+    await waitFor(() => expect(screen.getByLabelText("Title")).toHaveValue("Whisper"));
+  });
+
   it("clears filters and restores the full list", async () => {
     renderWithProviders(<BooksPage />, { route: "/books" });
     await waitFor(() => expect(screen.getByText("The Whisper of the Void")).toBeInTheDocument());
