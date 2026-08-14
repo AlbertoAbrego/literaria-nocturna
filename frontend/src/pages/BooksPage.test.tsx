@@ -390,4 +390,25 @@ describe("BooksPage", () => {
     await waitFor(() => expect(screen.getByRole("status")).toHaveTextContent("Loading the catalog"));
     expect(screen.getByRole("table")).toHaveAttribute("aria-busy", "true");
   });
+
+  it("shows an empty state and hides pagination for an out-of-range page", async () => {
+    server.use(
+      http.get("/api/books", ({ request }) => {
+        const url = new URL(request.url);
+        const page = Math.max(1, Number(url.searchParams.get("page")) || 1);
+        return HttpResponse.json({
+          data: page === 1 ? createBookList(2) : [],
+          pagination: { page, limit: 2, total: 3, totalPages: 2 },
+        });
+      }),
+    );
+
+    renderWithProviders(<BooksPage />, { route: "/books?page=99" });
+
+    await waitFor(() => expect(screen.getByRole("table")).toBeInTheDocument());
+
+    expect(screen.queryByText(/Showing/)).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Previous" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Next" })).not.toBeInTheDocument();
+  });
 });

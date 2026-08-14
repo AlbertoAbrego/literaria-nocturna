@@ -112,6 +112,24 @@ describe("Pagination", () => {
     expect(onPageChange).toHaveBeenCalledWith(2);
   });
 
+  it("moves focus between controls with the arrow keys", async () => {
+    renderWithProviders(
+      <Pagination currentPage={3} totalPages={5} onPageChange={vi.fn()} />,
+    );
+
+    const pageTwo = screen.getByRole("button", { name: "Go to page 2" });
+    pageTwo.focus();
+
+    await userEvent.keyboard("{ArrowRight}");
+    expect(screen.getByRole("button", { name: "Go to page 3" })).toHaveFocus();
+
+    await userEvent.keyboard("{ArrowRight}");
+    expect(screen.getByRole("button", { name: "Go to page 4" })).toHaveFocus();
+
+    await userEvent.keyboard("{ArrowLeft}");
+    expect(screen.getByRole("button", { name: "Go to page 3" })).toHaveFocus();
+  });
+
   it("disables every control while loading", async () => {
     renderWithProviders(
       <Pagination currentPage={3} totalPages={5} onPageChange={vi.fn()} isLoading />,

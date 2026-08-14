@@ -11,8 +11,7 @@ function BooksPage() {
   const activeFilterCount = Object.keys(filters.queryParams).length;
 
   const pagination = data?.pagination;
-  const start =
-    pagination && pagination.total > 0 ? (pagination.page - 1) * pagination.limit + 1 : 0;
+  const start = pagination ? (pagination.page - 1) * pagination.limit + 1 : 0;
   const end = pagination ? Math.min(pagination.page * pagination.limit, pagination.total) : 0;
 
   return (
@@ -54,7 +53,7 @@ function BooksPage() {
         onRetry={refetch}
       />
 
-      {pagination && pagination.total > 0 && (
+      {data && data.data.length > 0 && pagination && (
         <div className="mt-8 flex flex-col items-center gap-4">
           <p className="text-sm text-fog">
             Showing {start}–{end} of {pagination.total}{" "}

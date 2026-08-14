@@ -144,6 +144,16 @@ Muted appearance.
 
 Current page highlighted with antique gold.
 
+Uses the shared `Pagination` component in `shared/components/ui/`:
+
+- Previous/Next buttons, disabled at the first/last page.
+- Collapsed page ranges with ellipses for many pages.
+- `aria-label` on the navigation region, `aria-current="page"` on the
+  active page button.
+- Arrow keys (`Left`/`Right`) move focus between the controls.
+- The active page is passed as `currentPage` and page changes are emitted via
+  `onPageChange`; the component is controlled and owns no state.
+
 ---
 
 ## Empty State

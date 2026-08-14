@@ -1,3 +1,6 @@
+import { useRef } from "react";
+import type { KeyboardEvent } from "react";
+
 type PageItem = number | "ellipsis";
 
 function pageRange(totalPages: number, currentPage: number): PageItem[] {
@@ -41,14 +44,36 @@ const PAGE_BUTTON_CLASSES =
   "h-9 min-w-9 rounded-button px-2 text-sm transition-colors duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-antique-gold disabled:opacity-50";
 
 function Pagination({ currentPage, totalPages, onPageChange, isLoading = false }: PaginationProps) {
+  const navRef = useRef<HTMLElement>(null);
+
   if (totalPages <= 1) return null;
 
   const items = pageRange(totalPages, currentPage);
   const isFirst = currentPage <= 1;
   const isLast = currentPage >= totalPages;
 
+  function handleKeyDown(event: KeyboardEvent<HTMLElement>) {
+    if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
+    const current = event.target as HTMLElement;
+    if (current.tagName !== "BUTTON") return;
+    const buttons = Array.from(
+      navRef.current?.querySelectorAll<HTMLButtonElement>("button") ?? [],
+    );
+    const index = buttons.indexOf(current as HTMLButtonElement);
+    const nextIndex = event.key === "ArrowRight" ? index + 1 : index - 1;
+    if (nextIndex >= 0 && nextIndex < buttons.length) {
+      event.preventDefault();
+      buttons[nextIndex].focus();
+    }
+  }
+
   return (
-    <nav aria-label="Pagination" className="flex flex-wrap items-center justify-center gap-2">
+    <nav
+      ref={navRef}
+      aria-label="Pagination"
+      onKeyDown={handleKeyDown}
+      className="flex flex-wrap items-center justify-center gap-2"
+    >
       <button
         type="button"
         onClick={() => onPageChange(currentPage - 1)}
