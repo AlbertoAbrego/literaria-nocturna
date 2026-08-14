@@ -290,6 +290,31 @@ Each feature exposes a `hooks/index.ts` barrel (e.g. `features/books/hooks/index
 so consumers import from one place (`@/features/books/hooks`) instead of many
 deep paths.
 
+### URL-Synced Filter State
+
+`useBookFilters` (in `features/books/hooks/useBookFilters.ts`) owns search/filter
+state for the catalog and keeps it synchronized with the URL:
+
+- **Draft vs. committed.** The controlled inputs (title/author/genre) read from a
+  `draft` state so typing is instant; the URL reflects only the *committed* value.
+  A 300ms debounce writes `draft` → URL via `buildSearchParams` with
+  `{ replace: true }`, and the committed value is parsed back from
+  `useSearchParams`.
+- **Derived query params.** `queryParams` is memoized from `committed`, giving a
+  stable object identity per URL state. Passing it to `useBooks` yields distinct
+  query keys (`["books", { title, author, genre }]`) per filter, so each filter
+  state is cached independently and refetching is emergent — no manual debounce
+  logic in the page.
+- **Back/forward sync.** `draft` is re-synced from `committed` when the URL changes
+  externally (browser back/forward). This uses the React-recommended "adjust state
+  during render" pattern — compare against a stored `previousCommitted` and set
+  state during render — which keeps the inputs consistent with the URL without a
+  `set-state-in-effect` lint violation. Because `setSearchParams` uses `replace`,
+  the debounce writes do not pollute history.
+- **Pure helpers.** All parsing/derivation (trim, omit-empty, parse, equality,
+  genre validation) lives in `features/books/utils/searchFilters.ts`, keeping the
+  hook declarative and unit-testable.
+
 ---
 
 # Styling Strategy

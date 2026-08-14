@@ -39,6 +39,17 @@ describe("BookTable", () => {
     expect(screen.queryByRole("table")).not.toBeInTheDocument();
   });
 
+  it("displays a contextual empty state when filters produce no matches", () => {
+    renderWithProviders(<BookTable books={[]} isFiltered />);
+
+    const emptyMessage = screen.getByText(
+      (_content, element) =>
+        element?.tagName === "P" && element.textContent?.includes("No volumes match the current search.") === true,
+    );
+    expect(emptyMessage).toBeInTheDocument();
+    expect(screen.queryByRole("table")).not.toBeInTheDocument();
+  });
+
   it("displays skeleton rows while loading", () => {
     renderWithProviders(<BookTable books={[]} isLoading />);
 

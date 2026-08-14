@@ -58,7 +58,13 @@ export interface BooksQueryParams {
   limit?: number;
   title?: string;
   author?: string;
-  genre?: string;
+  genre?: Genre;
+}
+
+export interface SearchFilters {
+  title: string;
+  author: string;
+  genre: Genre | "";
 }
 
 // The backend responds to a successful deletion with 204 No Content (no body).

@@ -7,3 +7,6 @@ export { default as BookTableSkeleton } from "./BookTableSkeleton";
 export { default as DeleteBookButton } from "./DeleteBookButton";
 export { default as EmptyState } from "./EmptyState";
 export { default as ErrorState } from "./ErrorState";
+export { default as FilterBar } from "./FilterBar";
+export { default as GenreFilter } from "./GenreFilter";
+export { default as SearchBar } from "./SearchBar";

@@ -152,6 +152,28 @@ Including sibling routes in the tree (not just the parametrized one) also makes
 `Link` navigation flows testable, e.g. "back to the list". See
 `src/pages/BookDetailsPage.test.tsx` for a reference implementation.
 
+### Testing URL-Synced Filter State
+
+The catalog filter feature (`useBookFilters` + `BooksPage`) is exercised with real
+`createMemoryRouter` instances so URL behavior is observable:
+
+- **URL sync.** Assert on `router.state.location.search` after an interaction:
+  `await waitFor(() => expect(router.state.location.search).toBe("?title=Whisper&genre=Horror"))`.
+- **Filters from URL on load.** Render with an initial entry such as
+  `{ route: "/books?genre=Horror" }` and assert the narrowed result set.
+- **Back/forward.** Drive the same router instance with `router.navigate(...)` and
+  `router.navigate(-1)`, then assert the controlled inputs re-sync, e.g.
+  `await waitFor(() => expect(screen.getByLabelText("Title")).toHaveValue("Whisper"))`.
+- **Loading during a filter change.** To prove the skeleton shows while a filtered
+  query is pending, `server.use` a handler that returns a never-resolving Promise,
+  then assert `getByRole("status")` / `aria-busy`.
+- **Combined positive+negative assertions.** When asserting a refetch, combine the
+  presence of the expected row and the absence of the filtered-out row in a single
+  `waitFor` callback. Asserting only the absence resolves too early while the
+  pending skeleton shows no rows.
+
+Reference: `src/pages/BooksPage.test.tsx`.
+
 ### Isolation Rules
 
 - **Fresh `QueryClient` per test.** `createTestQueryClient()` sets
