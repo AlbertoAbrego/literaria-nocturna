@@ -3,11 +3,17 @@ import { BookTable, FilterBar } from "@/features/books/components";
 import { useBookFilters } from "@/features/books/hooks/useBookFilters";
 import { useBooks } from "@/features/books/hooks/useBooks";
 import PageContainer from "@/shared/components/layout/PageContainer";
+import { Pagination } from "@/shared/components/ui";
 
 function BooksPage() {
   const filters = useBookFilters();
   const { data, isLoading, isError, error, refetch } = useBooks(filters.queryParams);
   const activeFilterCount = Object.keys(filters.queryParams).length;
+
+  const pagination = data?.pagination;
+  const start =
+    pagination && pagination.total > 0 ? (pagination.page - 1) * pagination.limit + 1 : 0;
+  const end = pagination ? Math.min(pagination.page * pagination.limit, pagination.total) : 0;
 
   return (
     <PageContainer>
@@ -47,6 +53,21 @@ function BooksPage() {
         isFiltered={filters.isFiltered}
         onRetry={refetch}
       />
+
+      {pagination && pagination.total > 0 && (
+        <div className="mt-8 flex flex-col items-center gap-4">
+          <p className="text-sm text-fog">
+            Showing {start}–{end} of {pagination.total}{" "}
+            {pagination.total === 1 ? "volume" : "volumes"}
+          </p>
+          <Pagination
+            currentPage={filters.page}
+            totalPages={pagination.totalPages}
+            onPageChange={filters.setPage}
+            isLoading={isLoading}
+          />
+        </div>
+      )}
     </PageContainer>
   );
 }
