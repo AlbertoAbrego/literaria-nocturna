@@ -246,4 +246,16 @@ describe("BooksPage", () => {
 
     await waitFor(() => expect(screen.getByText("2 active filters")).toBeInTheDocument());
   });
+
+  it("shows a loading state while a filter change is fetching", async () => {
+    renderWithProviders(<BooksPage />, { route: "/books" });
+    await waitFor(() => expect(screen.getByText("The Whisper of the Void")).toBeInTheDocument());
+
+    server.use(http.get("/api/books", () => new Promise<never>(() => {})));
+
+    await userEvent.type(screen.getByLabelText("Title"), "Whisper");
+
+    await waitFor(() => expect(screen.getByRole("status")).toHaveTextContent("Loading the catalog"));
+    expect(screen.getByRole("table")).toHaveAttribute("aria-busy", "true");
+  });
 });

@@ -44,6 +44,7 @@ function BooksPage() {
         isLoading={isLoading}
         isError={isError}
         error={error ?? undefined}
+        isFiltered={filters.isFiltered}
         onRetry={refetch}
       />
     </PageContainer>

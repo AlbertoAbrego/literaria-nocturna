@@ -17,18 +17,19 @@ interface BookTableProps {
   isLoading?: boolean;
   isError?: boolean;
   error?: Error;
+  isFiltered?: boolean;
   onRetry?: () => void;
 }
 
 const COLUMNS = ["Title", "Author", "Genre", "Synopsis", "Actions"] as const;
 
-function BookTable({ books, isLoading, isError, onRetry }: BookTableProps) {
+function BookTable({ books, isLoading, isError, isFiltered, onRetry }: BookTableProps) {
   if (isError) {
     return <ErrorState onRetry={onRetry} />;
   }
 
   if (!isLoading && books.length === 0) {
-    return <EmptyState />;
+    return <EmptyState filtered={isFiltered} />;
   }
 
   return (
