@@ -6,6 +6,7 @@ import {
   DEBOUNCE_MS,
   EMPTY_SEARCH_FILTERS,
   filtersEqual,
+  parsePage,
   parseSearchFilters,
   toBooksQueryParams,
 } from "@/features/books/utils/searchFilters";
@@ -13,6 +14,7 @@ import {
 export function useBookFilters() {
   const [searchParams, setSearchParams] = useSearchParams();
   const committed = useMemo(() => parseSearchFilters(searchParams), [searchParams]);
+  const page = useMemo(() => parsePage(searchParams), [searchParams]);
   const [draft, setDraft] = useState<SearchFilters>(committed);
   const [previousCommitted, setPreviousCommitted] = useState<SearchFilters>(committed);
 
@@ -45,7 +47,16 @@ export function useBookFilters() {
     setDraft(EMPTY_SEARCH_FILTERS);
   }
 
-  const queryParams = useMemo<BooksQueryParams>(() => toBooksQueryParams(committed), [committed]);
+  function setPage(next: number) {
+    const safe = Math.max(1, Math.floor(next));
+    if (safe === page) return;
+    setSearchParams(buildSearchParams(committed, safe), { replace: true });
+  }
+
+  const queryParams = useMemo<BooksQueryParams>(
+    () => toBooksQueryParams(committed, page),
+    [committed, page],
+  );
   const isFiltered = Boolean(committed.title || committed.author || committed.genre);
 
   return {
@@ -56,6 +67,8 @@ export function useBookFilters() {
     setAuthor,
     setGenre,
     resetFilters,
+    page,
+    setPage,
     queryParams,
     isFiltered,
   };
