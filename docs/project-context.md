@@ -338,14 +338,23 @@ npm run test:ci       # CI mode: --ci --coverage --maxWorkers=2
 
 ### CI/CD
 
-- GitHub Actions pipeline configured for backend
-- Trigger: push and pull_request to main
-- Node.js 22
-- npm dependency cache enabled
-- Pipeline order: lint → build → integration tests
-- `mongodb-memory-server` requires no external services
-- First run downloads the `mongod` binary
-- No coverage thresholds configured yet
+**Backend** (`.github/workflows/backend-ci.yml`):
+
+- Triggers: push, pull_request to `main`, workflow_dispatch
+- Path filters: `backend/**`, workflow file
+- Pipeline: checkout → setup-node (Node.js 22, npm cache) → install → lint → build → `test:ci`
+- `test:ci` runs `jest --ci --coverage --maxWorkers=2`
+- `mongodb-memory-server` requires no external services; first run downloads the `mongod` binary
+
+**Frontend** (`.github/workflows/frontend-ci.yml`):
+
+- Triggers: push, pull_request to `main`, workflow_dispatch
+- Path filters: `frontend/**`, workflow file
+- Pipeline: checkout → setup-node (Node.js 22, npm cache) → install → lint → build → `test:run`
+- `test:run` runs `vitest run` (non-watch mode)
+- Uses MSW for API mocking; no external services required
+
+Both pipelines use consistent Node.js 22, npm caching, and fail PRs on test/lint/build errors. No coverage thresholds configured yet.
 
 ## Git Workflow
 
@@ -373,7 +382,7 @@ npm run test:ci       # CI mode: --ci --coverage --maxWorkers=2
 
 ## Current Project State
 
-### Implemented (Stories 1–10)
+### Implemented (Stories 1–21)
 
 - Project setup (TS, Express, ESLint, Prettier, Jest, MongoDB)
 - Health endpoint (`GET /api/health`, `GET /`)
@@ -389,12 +398,16 @@ npm run test:ci       # CI mode: --ci --coverage --maxWorkers=2
   - Standardized error response format (`message`, `code`, optional `details`) via `ErrorCodes`/`AppError`
   - Field-level Mongoose validation details for 400 responses
   - Logging cleanup (only 5xx logged)
-  - OpenAPI/Swagger documentation (`GET /api/docs`, `GET /api/docs/swagger.json`)
+  - OpenAPI/Swagger documentation (`GET /api/docs`, `/api/docs/swagger.json`)
   - Tests updated for `code` field + Swagger integration tests
+- Story 21 — CI/CD standardization and frontend test integration:
+  - Frontend CI runs complete Vitest suite (`test:run`) on every PR
+  - Backend CI uses `test:ci` script (`jest --ci --coverage --maxWorkers=2`)
+  - Both pipelines use Node.js 22 with npm caching
+  - Workflow dispatch enabled for manual triggering
 
-### Planned (Story 11+)
+### Planned (Story 22+)
 
-- CI/CD with GitHub Actions
 - Members module
 - Readings module
 
