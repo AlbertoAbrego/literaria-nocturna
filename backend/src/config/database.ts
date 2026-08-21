@@ -3,7 +3,10 @@ import mongoose from "mongoose";
 export async function connectDatabase(): Promise<void> {
   const mongodbUri = process.env.MONGODB_URI;
   if (!mongodbUri) {
-    throw new Error("Database URI is not provided");
+    throw new Error(
+      "MONGODB_URI environment variable is required. " +
+        "Copy .env.example to .env and configure your MongoDB connection string.",
+    );
   }
   try {
     await mongoose.connect(mongodbUri);

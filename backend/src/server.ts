@@ -3,7 +3,7 @@ import app from "./app";
 import { connectDatabase } from "./config/database";
 
 dotenv.config();
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 3000;
 
 async function startServer() {
   try {
