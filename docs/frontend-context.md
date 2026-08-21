@@ -343,8 +343,10 @@ Use Vite environment variables.
 Example:
 
 ```text
-VITE_API_URL=http://localhost:3000/api
+VITE_API_URL=/api
 ```
+
+In development, the Vite dev server proxies `/api` requests to the backend at `http://localhost:3000`. In production, set the full backend URL (e.g., `https://api.example.com/api`).
 
 Do not hardcode API URLs.
 
