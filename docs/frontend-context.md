@@ -378,6 +378,30 @@ The frontend is tested with Vitest, React Testing Library, and Mock Service Work
 
 The complete testing setup, utilities, and conventions are documented in [frontend-testing.md](./frontend-testing.md).
 
+## Contract-Driven MSW Strategy
+
+MSW handlers are synchronized with the backend OpenAPI contract through a
+contract layer in `src/test/contract/`. This ensures frontend tests exercise
+a faithful representation of the API.
+
+**Source of truth:** `scripts/contract/openapi.json` — a static OpenAPI 3.0 spec
+derived from the backend's `swagger.ts` config and JSDoc annotations.
+
+**Flow:**
+1. `npm run contract:extract` reads the OpenAPI spec and generates
+   `openapi-types.ts` (TypeScript interfaces) and `endpoints.ts` (endpoint
+   definitions) in `src/test/contract/`.
+2. MSW handlers in `handlers/books.ts` import validators from
+   `contract/validators.ts` and error messages from
+   `contract/error-messages.ts`, ensuring identical behavior.
+3. `npm run contract:verify` compares handler registration against the OpenAPI
+   spec and fails if any endpoint is missing.
+4. `msw-contract.test.ts` (32 tests) validates runtime behavior: status codes,
+   response shapes, error messages, pagination, and sorting.
+
+**CI integration:** The `contract:check` script runs in the frontend CI pipeline
+between lint and build, catching drift before deployment.
+
 ---
 
 # Import Conventions
