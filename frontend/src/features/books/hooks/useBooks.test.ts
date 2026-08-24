@@ -32,7 +32,7 @@ describe("useBooks", () => {
 
     expect(result.current.data?.pagination).toEqual({ page: 1, limit: 10, total: 5, totalPages: 1 });
     expect(result.current.data?.data).toHaveLength(5);
-    expect(result.current.data?.data[0].title).toBe("The Whisper of the Void");
+    expect(result.current.data?.data[0].title).toBe("Atlas of Forgotten Stars");
   });
 
   it("surfaces API errors as ApiError instances", async () => {

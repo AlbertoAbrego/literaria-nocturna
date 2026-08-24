@@ -113,7 +113,7 @@ describe("DeleteBookButton", () => {
 
     await userEvent.click(screen.getByRole("button", { name: "Delete" }));
 
-    expect(await screen.findByRole("alert")).toHaveTextContent("Internal server error");
+    expect(await screen.findByRole("alert")).toHaveTextContent("Internal Server Error");
     expect(screen.getByRole("dialog")).toBeInTheDocument();
   });
 

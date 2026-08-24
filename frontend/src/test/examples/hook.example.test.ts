@@ -50,7 +50,7 @@ describe("hook example", () => {
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(result.current.data?.pagination.total).toBe(5);
-    expect(result.current.data?.data[0].title).toBe("The Whisper of the Void");
+    expect(result.current.data?.data[0].title).toBe("Atlas of Forgotten Stars");
   });
 
   it("surfaces API errors as ApiError instances", async () => {
