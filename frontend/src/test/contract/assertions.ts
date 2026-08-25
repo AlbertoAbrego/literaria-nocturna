@@ -1,15 +1,20 @@
-import type { ApiResponse } from "msw";
+import type { DefaultBodyType, HttpResponse } from "msw";
 import type { ApiErrorResponse } from "./types";
 
-function getBody<T>(response: ApiResponse<T>): T | undefined {
-  return "body" in response ? (response as { body: T }).body : undefined;
+async function getBody<T extends DefaultBodyType>(response: HttpResponse<T>): Promise<T | undefined> {
+  if (response.bodyUsed) return undefined;
+  try {
+    return (await response.clone().json()) as T;
+  } catch {
+    return undefined;
+  }
 }
 
-export async function expectContractResponse<T>(
-  response: ApiResponse<T>,
+export async function expectContractResponse<T extends DefaultBodyType>(
+  response: HttpResponse<T>,
   expectedStatus: number,
 ): Promise<T> {
-  const body = getBody(response);
+  const body = await getBody(response);
   if (response.status !== expectedStatus) {
     throw new Error(
       `Expected status ${expectedStatus} but received ${response.status}. Body: ${JSON.stringify(body)}`,
@@ -19,20 +24,20 @@ export async function expectContractResponse<T>(
 }
 
 export async function expectValidationError(
-  response: ApiResponse<ApiErrorResponse>,
+  response: HttpResponse<ApiErrorResponse>,
   expectedMessage: string,
   expectedDetails?: Record<string, string>,
 ): Promise<void> {
   if (response.status !== 400) {
     throw new Error(
-      `Expected status 400 but received ${response.status}. Body: ${JSON.stringify(getBody(response))}`,
+      `Expected status 400 but received ${response.status}. Body: ${JSON.stringify(await getBody(response))}`,
     );
   }
 
-  const body = getBody(response) as ApiErrorResponse;
-  if (body.code !== "VALIDATION_ERROR") {
+  const body = (await getBody(response)) as ApiErrorResponse;
+  if (body?.code !== "VALIDATION_ERROR") {
     throw new Error(
-      `Expected error code "VALIDATION_ERROR" but received "${body.code}". Message: "${body.message}"`,
+      `Expected error code "VALIDATION_ERROR" but received "${body?.code}". Message: "${body?.message}"`,
     );
   }
 
@@ -50,19 +55,19 @@ export async function expectValidationError(
 }
 
 export async function expectNotFoundError(
-  response: ApiResponse<ApiErrorResponse>,
+  response: HttpResponse<ApiErrorResponse>,
   expectedMessage = "Book not found",
 ): Promise<void> {
   if (response.status !== 404) {
     throw new Error(
-      `Expected status 404 but received ${response.status}. Body: ${JSON.stringify(getBody(response))}`,
+      `Expected status 404 but received ${response.status}. Body: ${JSON.stringify(await getBody(response))}`,
     );
   }
 
-  const body = getBody(response) as ApiErrorResponse;
-  if (body.code !== "NOT_FOUND") {
+  const body = (await getBody(response)) as ApiErrorResponse;
+  if (body?.code !== "NOT_FOUND") {
     throw new Error(
-      `Expected error code "NOT_FOUND" but received "${body.code}". Message: "${body.message}"`,
+      `Expected error code "NOT_FOUND" but received "${body?.code}". Message: "${body?.message}"`,
     );
   }
 
@@ -74,19 +79,19 @@ export async function expectNotFoundError(
 }
 
 export async function expectConflictError(
-  response: ApiResponse<ApiErrorResponse>,
+  response: HttpResponse<ApiErrorResponse>,
   expectedMessage = "Book already exists.",
 ): Promise<void> {
   if (response.status !== 409) {
     throw new Error(
-      `Expected status 409 but received ${response.status}. Body: ${JSON.stringify(getBody(response))}`,
+      `Expected status 409 but received ${response.status}. Body: ${JSON.stringify(await getBody(response))}`,
     );
   }
 
-  const body = getBody(response) as ApiErrorResponse;
-  if (body.code !== "CONFLICT") {
+  const body = (await getBody(response)) as ApiErrorResponse;
+  if (body?.code !== "CONFLICT") {
     throw new Error(
-      `Expected error code "CONFLICT" but received "${body.code}". Message: "${body.message}"`,
+      `Expected error code "CONFLICT" but received "${body?.code}". Message: "${body?.message}"`,
     );
   }
 

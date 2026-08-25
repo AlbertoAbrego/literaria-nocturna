@@ -11,24 +11,24 @@ function error(status: number, code: string, message: string, details?: Record<s
 }
 
 export function validationError(
-  message = ERROR_MESSAGES.VALIDATION_FAILED,
+  message: string = ERROR_MESSAGES.VALIDATION_FAILED,
   details?: Record<string, string>,
 ) {
   return error(400, "VALIDATION_ERROR", message, details);
 }
 
-export function unauthorizedError(message = "Unauthorized") {
+export function unauthorizedError(message: string = "Unauthorized") {
   return error(401, "UNAUTHORIZED", message);
 }
 
-export function notFoundError(message = ERROR_MESSAGES.BOOK_NOT_FOUND) {
+export function notFoundError(message: string = ERROR_MESSAGES.BOOK_NOT_FOUND) {
   return error(404, "NOT_FOUND", message);
 }
 
-export function conflictError(message = ERROR_MESSAGES.BOOK_EXISTS) {
+export function conflictError(message: string = ERROR_MESSAGES.BOOK_EXISTS) {
   return error(409, "CONFLICT", message);
 }
 
-export function internalError(message = ERROR_MESSAGES.INTERNAL_SERVER_ERROR) {
+export function internalError(message: string = ERROR_MESSAGES.INTERNAL_SERVER_ERROR) {
   return error(500, "INTERNAL_ERROR", message);
 }

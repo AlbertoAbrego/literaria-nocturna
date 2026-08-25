@@ -67,9 +67,11 @@ export const ENDPOINTS: EndpointDefinition[] = [
                 "description": "Paginated list of books"
           },
           "400": {
+                "description": "Validation failed",
                 "ref": "#/components/responses/ValidationError"
           },
           "500": {
+                "description": "Unexpected server error",
                 "ref": "#/components/responses/InternalError"
           }
     },
@@ -85,12 +87,15 @@ export const ENDPOINTS: EndpointDefinition[] = [
                 "description": "Book created successfully"
           },
           "400": {
+                "description": "Validation failed",
                 "ref": "#/components/responses/ValidationError"
           },
           "409": {
+                "description": "Conflict with existing resource",
                 "ref": "#/components/responses/ConflictError"
           },
           "500": {
+                "description": "Unexpected server error",
                 "ref": "#/components/responses/InternalError"
           }
     },
@@ -114,12 +119,15 @@ export const ENDPOINTS: EndpointDefinition[] = [
                 "description": "Book found"
           },
           "400": {
+                "description": "Validation failed",
                 "ref": "#/components/responses/ValidationError"
           },
           "404": {
+                "description": "Resource not found",
                 "ref": "#/components/responses/NotFoundError"
           },
           "500": {
+                "description": "Unexpected server error",
                 "ref": "#/components/responses/InternalError"
           }
     },
@@ -144,15 +152,19 @@ export const ENDPOINTS: EndpointDefinition[] = [
                 "description": "Book updated successfully"
           },
           "400": {
+                "description": "Validation failed",
                 "ref": "#/components/responses/ValidationError"
           },
           "404": {
+                "description": "Resource not found",
                 "ref": "#/components/responses/NotFoundError"
           },
           "409": {
+                "description": "Conflict with existing resource",
                 "ref": "#/components/responses/ConflictError"
           },
           "500": {
+                "description": "Unexpected server error",
                 "ref": "#/components/responses/InternalError"
           }
     },
@@ -176,12 +188,15 @@ export const ENDPOINTS: EndpointDefinition[] = [
                 "description": "Book deleted successfully"
           },
           "400": {
+                "description": "Validation failed",
                 "ref": "#/components/responses/ValidationError"
           },
           "404": {
+                "description": "Resource not found",
                 "ref": "#/components/responses/NotFoundError"
           },
           "500": {
+                "description": "Unexpected server error",
                 "ref": "#/components/responses/InternalError"
           }
     },
