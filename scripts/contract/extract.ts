@@ -207,10 +207,17 @@ function generateEndpoints(spec: OpenAPISpec): string {
 
       const responses: Record<string, { description: string; ref?: string }> = {};
       for (const [status, resp] of Object.entries(endpoint.responses)) {
-        responses[status] = {
-          description: resp.description,
-          ...("$ref" in resp ? { ref: resp.$ref } : {}),
-        };
+        if ("$ref" in resp) {
+          const resolved = resolveRef(resp.$ref, spec) as { description?: string };
+          responses[status] = {
+            description: resolved.description ?? resp.$ref.split("/").pop() ?? "",
+            ref: resp.$ref,
+          };
+        } else {
+          responses[status] = {
+            description: resp.description,
+          };
+        }
       }
 
       lines.push("  {");
