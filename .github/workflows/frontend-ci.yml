@@ -40,6 +40,9 @@ jobs:
       - name: Run ESLint
         run: npm run lint
 
+      - name: Verify MSW contract
+        run: npm run contract:check
+
       - name: Build frontend
         run: npm run build
 

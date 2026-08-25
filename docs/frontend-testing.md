@@ -19,12 +19,15 @@ Reference implementations for every pattern described below are in
 
 ## Test Scripts
 
-| Script              | Purpose                          |
-| ------------------- | -------------------------------- |
-| `npm run test`      | Watch mode                       |
-| `npm run test:ui`   | Vitest UI dashboard              |
-| `npm run test:run`  | Run once (CI)                    |
-| `npm run test:coverage` | Run once with v8 coverage report |
+| Script                  | Purpose                                    |
+| ----------------------- | ------------------------------------------ |
+| `npm run test`          | Watch mode                                 |
+| `npm run test:ui`       | Vitest UI dashboard                        |
+| `npm run test:run`      | Run once (CI)                              |
+| `npm run test:coverage` | Run once with v8 coverage report           |
+| `npm run contract:check`   | Extract + verify MSW against OpenAPI spec |
+| `npm run contract:extract` | Regenerate contract types/endpoints       |
+| `npm run contract:verify`  | Verify handlers match OpenAPI contract    |
 
 ---
 
@@ -40,6 +43,14 @@ src/test/
 ├── handlers/
 │   ├── books.ts              # Feature handlers + in-memory seed DB
 │   └── errors.ts             # Standardized error response helpers
+├── contract/
+│   ├── types.ts              # Contract types (re-exports + ApiErrorResponse)
+│   ├── validators.ts         # Backend-mirroring pure validation functions
+│   ├── error-messages.ts     # Exact error message constants from backend
+│   ├── assertions.ts         # Contract test helpers
+│   ├── openapi-types.ts      # Auto-generated from OpenAPI spec
+│   ├── endpoints.ts          # Auto-generated endpoint definitions
+│   └── msw-contract.test.ts  # Comprehensive contract verification (32 tests)
 ├── utils/
 │   ├── render.tsx            # renderWithProviders + re-exported RTL utilities
 │   ├── query-client.ts       # createTestQueryClient
@@ -65,8 +76,10 @@ Runs before every test file:
   `handlers.ts`. New features add a handler module and append it to the
   composition root.
 - `handlers/books.ts` implements CRUD matching the backend contract:
-  filtering, pagination, conflict detection (409), and 404s. State is an
-  in-memory seed DB with deterministic ids.
+  filtering, pagination, sorting (title ascending), conflict detection (409),
+  and 404s. Validation uses contract validators from `contract/validators.ts`
+  that mirror backend behavior exactly. State is an in-memory seed DB with
+  deterministic ids.
 - **Unhandled requests fail tests** (`onUnhandledRequest: "error"`). If a test
   makes a request no handler covers, the test fails instead of silently
   hanging or hitting the network.
@@ -220,6 +233,35 @@ rendered roles and keyboard behavior, not implementation details:
 - Tab cycling can be asserted with `userEvent.tab()` / `userEvent.tab({ shift: true })`.
 
 Reference: `src/shared/components/ui/Modal.test.tsx`.
+
+### Contract-Driven MSW Verification
+
+The `src/test/contract/` directory contains infrastructure for verifying that
+MSW handlers match the backend OpenAPI contract:
+
+- **`contract/validators.ts`** — Pure validation functions (`validateObjectId`,
+  `validateGenre`, `validatePage`, `validateLimit`, `validateRequiredBody`,
+  `validateEmptyBody`) that produce identical pass/fail results as the backend
+  controllers. Used by MSW handlers in Phase 2+.
+- **`contract/error-messages.ts`** — Exact error message strings from the backend.
+  Handlers import these instead of hardcoding messages.
+- **`contract/openapi-types.ts`** and **`contract/endpoints.ts`** — Auto-generated
+  from `scripts/contract/openapi.json` by `npm run contract:extract`.
+- **`contract/msw-contract.test.ts`** — 32 test cases exercising every endpoint
+  scenario: success responses, validation errors (400), not found (404),
+  conflict (409), server errors (500), pagination, and sorting.
+
+Run contract verification:
+
+```bash
+npm run contract:check    # extract + verify
+npm run contract:extract  # regenerate types/endpoints only
+npm run contract:verify   # compare handlers against OpenAPI
+```
+
+The verify script checks that every OpenAPI endpoint has a matching MSW handler.
+The comprehensive test suite in `msw-contract.test.ts` validates response shapes,
+status codes, error messages, and pagination behavior at runtime.
 
 ---
 

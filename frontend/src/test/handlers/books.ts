@@ -1,5 +1,14 @@
 import { http, HttpResponse, type HttpHandler } from "msw";
-import { GENRES, type Book } from "@/test/utils/factories/book.factory";
+import type { Book } from "@/test/utils/factories/book.factory";
+import {
+  validateObjectId,
+  validateGenre,
+  validatePage,
+  validateLimit,
+  validateRequiredBody,
+  validateEmptyBody,
+} from "@/test/contract/validators";
+import { ERROR_MESSAGES } from "@/test/contract/error-messages";
 import { conflictError, notFoundError, validationError } from "./errors";
 
 function seedBooks(): Book[] {
@@ -84,8 +93,25 @@ export const bookHandlers: HttpHandler[] = [
     const genre = url.searchParams.get("genre");
     const author = url.searchParams.get("author");
     const title = url.searchParams.get("title");
-    const page = Math.max(1, Number(url.searchParams.get("page")) || 1);
-    const limit = Math.min(100, Number(url.searchParams.get("limit")) || 10);
+    const pageParam = url.searchParams.get("page");
+    const limitParam = url.searchParams.get("limit");
+
+    const pageValidation = validatePage(pageParam);
+    if (!pageValidation.valid) {
+      return validationError(ERROR_MESSAGES.INVALID_PAGE);
+    }
+
+    const limitValidation = validateLimit(limitParam);
+    if (!limitValidation.valid) {
+      return validationError(ERROR_MESSAGES.INVALID_LIMIT);
+    }
+
+    if (genre && !validateGenre(genre)) {
+      return validationError(ERROR_MESSAGES.INVALID_GENRE);
+    }
+
+    const page = pageParam ? Number(pageParam) : 1;
+    const limit = limitParam ? Number(limitParam) : 10;
 
     const filtered = books.filter((book) => {
       if (genre && book.genre !== genre) return false;
@@ -93,6 +119,8 @@ export const bookHandlers: HttpHandler[] = [
       if (title && !book.title.toLowerCase().includes(title.toLowerCase())) return false;
       return true;
     });
+
+    filtered.sort((a, b) => a.title.localeCompare(b.title));
 
     const total = filtered.length;
     const start = (page - 1) * limit;
@@ -109,38 +137,58 @@ export const bookHandlers: HttpHandler[] = [
   }),
 
   http.get("/api/books/:id", ({ params }) => {
+    if (!validateObjectId(params.id as string)) {
+      return validationError(ERROR_MESSAGES.INVALID_ID);
+    }
+
     const book = books.find((candidate) => candidate._id === params.id);
     if (!book) {
-      return notFoundError("Book not found");
+      return notFoundError(ERROR_MESSAGES.BOOK_NOT_FOUND);
     }
     return HttpResponse.json(book);
   }),
 
   http.post("/api/books", async ({ request }) => {
-    const body = (await request.json()) as Partial<Book>;
-    if (!body.title || !body.author || !body.genre || !body.synopsis) {
-      return validationError("Validation failed", {
-        body: "title, author, genre and synopsis are required",
-      });
+    let body: Partial<Book>;
+    try {
+      body = (await request.json()) as Partial<Book>;
+    } catch {
+      return validationError(ERROR_MESSAGES.MISSING_BODY);
     }
-    if (!GENRES.includes(body.genre)) {
-      return validationError("Validation failed", { genre: "Invalid genre" });
+
+    const bodyValidation = validateRequiredBody(body);
+    if (!bodyValidation.valid) {
+      return validationError(bodyValidation.error!);
+    }
+
+    const fieldErrors: Record<string, string> = {};
+    if (!body.title) fieldErrors.title = "title is required";
+    if (!body.author) fieldErrors.author = "author is required";
+    if (!body.genre) fieldErrors.genre = "genre is required";
+    if (!body.synopsis) fieldErrors.synopsis = "synopsis is required";
+
+    if (Object.keys(fieldErrors).length > 0) {
+      return validationError(ERROR_MESSAGES.VALIDATION_FAILED, fieldErrors);
+    }
+
+    if (!validateGenre(body.genre!)) {
+      return validationError(ERROR_MESSAGES.VALIDATION_FAILED, { genre: ERROR_MESSAGES.INVALID_GENRE });
     }
 
     const duplicated = books.some(
       (book) => book.title === body.title && book.author === body.author,
     );
     if (duplicated) {
-      return conflictError("Book already exists.");
+      return conflictError(ERROR_MESSAGES.BOOK_EXISTS);
     }
 
     const now = new Date().toISOString();
     const book: Book = {
       _id: randomId(),
-      title: body.title,
-      author: body.author,
-      genre: body.genre,
-      synopsis: body.synopsis,
+      title: body.title!,
+      author: body.author!,
+      genre: body.genre!,
+      synopsis: body.synopsis!,
       createdAt: now,
       updatedAt: now,
       __v: 0,
@@ -151,17 +199,29 @@ export const bookHandlers: HttpHandler[] = [
   }),
 
   http.patch("/api/books/:id", async ({ request, params }) => {
-    const book = books.find((candidate) => candidate._id === params.id);
-    if (!book) {
-      return notFoundError("Book not found");
+    if (!validateObjectId(params.id as string)) {
+      return validationError(ERROR_MESSAGES.INVALID_ID);
     }
 
-    const body = (await request.json()) as Partial<Book>;
-    if (Object.keys(body).length === 0) {
-      return validationError("Validation failed", { body: "Update body is required" });
+    const book = books.find((candidate) => candidate._id === params.id);
+    if (!book) {
+      return notFoundError(ERROR_MESSAGES.BOOK_NOT_FOUND);
     }
-    if (body.genre !== undefined && !GENRES.includes(body.genre)) {
-      return validationError("Validation failed", { genre: "Invalid genre" });
+
+    let body: Partial<Book>;
+    try {
+      body = (await request.json()) as Partial<Book>;
+    } catch {
+      return validationError(ERROR_MESSAGES.MISSING_BODY);
+    }
+
+    const bodyValidation = validateEmptyBody(body);
+    if (!bodyValidation.valid) {
+      return validationError(bodyValidation.error!);
+    }
+
+    if (body.genre !== undefined && !validateGenre(body.genre)) {
+      return validationError(ERROR_MESSAGES.VALIDATION_FAILED, { genre: ERROR_MESSAGES.INVALID_GENRE });
     }
 
     const title = body.title ?? book.title;
@@ -171,7 +231,7 @@ export const bookHandlers: HttpHandler[] = [
         candidate._id !== book._id && candidate.title === title && candidate.author === author,
     );
     if (duplicated) {
-      return conflictError("Book already exists.");
+      return conflictError(ERROR_MESSAGES.BOOK_EXISTS);
     }
 
     const updated = { ...book, ...body, title, author, updatedAt: new Date().toISOString() };
@@ -181,9 +241,13 @@ export const bookHandlers: HttpHandler[] = [
   }),
 
   http.delete("/api/books/:id", ({ params }) => {
+    if (!validateObjectId(params.id as string)) {
+      return validationError(ERROR_MESSAGES.INVALID_ID);
+    }
+
     const index = books.findIndex((candidate) => candidate._id === params.id);
     if (index === -1) {
-      return notFoundError("Book not found");
+      return notFoundError(ERROR_MESSAGES.BOOK_NOT_FOUND);
     }
     books.splice(index, 1);
     return new HttpResponse(null, { status: 204 });
