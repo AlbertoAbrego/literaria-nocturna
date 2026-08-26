@@ -116,6 +116,164 @@ describe("GET /api/books", () => {
     jest.restoreAllMocks();
   });
 
+  describe("search special characters", () => {
+    const specialChars = [
+      ".",
+      "-",
+      "?",
+      "(",
+      ")",
+      "[",
+      "]",
+      "{",
+      "}",
+      "|",
+      "^",
+      "$",
+      "\\",
+    ];
+
+    beforeEach(async () => {
+      await seedBooks([
+        createBookModel({ title: "Test.Book", author: "Author-One" }),
+        createBookModel({ title: "Another (Book)", author: "Author.Two" }),
+        createBookModel({ title: "Book[1]", author: "Author|Three" }),
+        createBookModel({ title: "Normal Title", author: "Normal Author" }),
+      ]);
+    });
+
+    it.each(specialChars)(
+      "TC-H8-008: search with special character '%s' does not break request",
+      async (char) => {
+        const res = await testRequest.get("/api/books").query({ title: char });
+
+        expect(res.status).toBe(200);
+        expect(Array.isArray(res.body.data)).toBe(true);
+      },
+    );
+
+    it("TC-H8-009: search with special characters maintains partial matching", async () => {
+      const res = await testRequest.get("/api/books").query({ title: "Test" });
+
+      expect(res.status).toBe(200);
+      expect(res.body.data.length).toBeGreaterThan(0);
+      expect(res.body.data.some((b: { title: string }) => b.title.includes("Test"))).toBe(true);
+    });
+
+    it("TC-H8-010: search with special characters maintains case-insensitive matching", async () => {
+      const res = await testRequest.get("/api/books").query({ title: "test.book" });
+
+      expect(res.status).toBe(200);
+      expect(res.body.data.length).toBeGreaterThan(0);
+      expect(res.body.data.some((b: { title: string }) => b.title.toLowerCase().includes("test"))).toBe(true);
+    });
+
+    it("TC-H8-011: normal text searches work correctly", async () => {
+      const res = await testRequest.get("/api/books").query({ title: "Normal" });
+
+      expect(res.status).toBe(200);
+      expect(res.body.data).toHaveLength(1);
+      expect(res.body.data[0].title).toBe("Normal Title");
+    });
+  });
+
+  describe("pagination with filters", () => {
+    it("TC-H9-010: pagination metadata is correct with active genre filter", async () => {
+      await seedBooks([
+        createBookModel({ title: "A", genre: Genre.Horror }),
+        createBookModel({ title: "B", genre: Genre.Horror }),
+        createBookModel({ title: "C", genre: Genre.Fantasy }),
+        createBookModel({ title: "D", genre: Genre.Fantasy }),
+        createBookModel({ title: "E", genre: Genre.Fantasy }),
+      ]);
+
+      const res = await testRequest.get("/api/books").query({ genre: Genre.Horror, page: 1, limit: 2 });
+
+      expect(res.status).toBe(200);
+      expect(res.body.pagination).toEqual({
+        page: 1,
+        limit: 2,
+        total: 2,
+        totalPages: 1,
+      });
+    });
+
+    it("TC-H9-011: pagination metadata is correct with active author filter", async () => {
+      await seedBooks([
+        createBookModel({ title: "A", author: "Author One" }),
+        createBookModel({ title: "B", author: "Author One" }),
+        createBookModel({ title: "C", author: "Author Two" }),
+      ]);
+
+      const res = await testRequest.get("/api/books").query({ author: "Author One", page: 1, limit: 2 });
+
+      expect(res.status).toBe(200);
+      expect(res.body.pagination).toEqual({
+        page: 1,
+        limit: 2,
+        total: 2,
+        totalPages: 1,
+      });
+    });
+
+    it("TC-H9-012: pagination metadata is correct with active title filter", async () => {
+      await seedBooks([
+        createBookModel({ title: "Book Alpha" }),
+        createBookModel({ title: "Book Beta" }),
+        createBookModel({ title: "Other Gamma" }),
+      ]);
+
+      const res = await testRequest.get("/api/books").query({ title: "Book", page: 1, limit: 2 });
+
+      expect(res.status).toBe(200);
+      expect(res.body.pagination).toEqual({
+        page: 1,
+        limit: 2,
+        total: 2,
+        totalPages: 1,
+      });
+    });
+
+    it("TC-H9-013: pagination metadata correct with combined filters", async () => {
+      await seedBooks([
+        createBookModel({ title: "Book A", author: "Author X", genre: Genre.Horror }),
+        createBookModel({ title: "Book B", author: "Author X", genre: Genre.Horror }),
+        createBookModel({ title: "Book C", author: "Author Y", genre: Genre.Horror }),
+        createBookModel({ title: "Book D", author: "Author X", genre: Genre.Fantasy }),
+      ]);
+
+      const res = await testRequest
+        .get("/api/books")
+        .query({ genre: Genre.Horror, author: "Author X", page: 1, limit: 2 });
+
+      expect(res.status).toBe(200);
+      expect(res.body.pagination).toEqual({
+        page: 1,
+        limit: 2,
+        total: 2,
+        totalPages: 1,
+      });
+    });
+
+    it("TC-H9-014: empty page beyond totalPages returns correct metadata with filters", async () => {
+      await seedBooks([
+        createBookModel({ title: "A", genre: Genre.Horror }),
+        createBookModel({ title: "B", genre: Genre.Horror }),
+      ]);
+
+      const res = await testRequest.get("/api/books").query({ genre: Genre.Horror, page: 10, limit: 2 });
+
+      expect(res.status).toBe(200);
+      expect(res.body.data).toEqual([]);
+      expect(res.body.pagination).toEqual({
+        page: 10,
+        limit: 2,
+        total: 2,
+        totalPages: 1,
+      });
+    });
+  });
+
   describe("TC-H9-001: pagination", () => {
     it("retrieve the first page", async () => {
       await seedBooks([
