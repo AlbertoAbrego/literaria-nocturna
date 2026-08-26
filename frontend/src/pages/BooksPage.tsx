@@ -1,4 +1,5 @@
-import { Link } from "react-router";
+import { Link, useLocation } from "react-router";
+import { useRef } from "react";
 import { BookTable, FilterBar } from "@/features/books/components";
 import { useBookFilters } from "@/features/books/hooks/useBookFilters";
 import { useBooks } from "@/features/books/hooks/useBooks";
@@ -9,10 +10,24 @@ function BooksPage() {
   const filters = useBookFilters();
   const { data, isLoading, isError, error, refetch } = useBooks(filters.queryParams);
   const activeFilterCount = Object.keys(filters.queryParams).length;
+  const location = useLocation();
 
   const pagination = data?.pagination;
   const start = pagination ? (pagination.page - 1) * pagination.limit + 1 : 0;
   const end = pagination ? Math.min(pagination.page * pagination.limit, pagination.total) : 0;
+
+  // Adjust page after deletion if current page no longer exists
+  // Uses the "adjust state during render" pattern (compare against ref, set during render)
+  // Only run when on the books list route to avoid interfering with other routes
+  const previousTotalPagesRef = useRef<number | null>(null);
+  if (location.pathname === "/books" && pagination && filters.page > pagination.totalPages && pagination.totalPages > 0) {
+    if (previousTotalPagesRef.current !== pagination.totalPages) {
+      previousTotalPagesRef.current = pagination.totalPages;
+      filters.adjustPageAfterDeletion(pagination.totalPages);
+    }
+  } else if (location.pathname === "/books") {
+    previousTotalPagesRef.current = pagination?.totalPages ?? null;
+  }
 
   return (
     <PageContainer>
@@ -53,18 +68,37 @@ function BooksPage() {
         onRetry={refetch}
       />
 
-      {data && data.data.length > 0 && pagination && (
+      {pagination && (
         <div className="mt-8 flex flex-col items-center gap-4">
-          <p className="text-sm text-fog">
-            Showing {start}–{end} of {pagination.total}{" "}
-            {pagination.total === 1 ? "volume" : "volumes"}
-          </p>
-          <Pagination
-            currentPage={filters.page}
-            totalPages={pagination.totalPages}
-            onPageChange={filters.setPage}
-            isLoading={isLoading}
-          />
+          {data && data.data.length > 0 ? (
+            <>
+              <p className="text-sm text-fog">
+                Showing {start}–{end} of {pagination.total}{" "}
+                {pagination.total === 1 ? "volume" : "volumes"}
+              </p>
+              <Pagination
+                currentPage={filters.page}
+                totalPages={pagination.totalPages}
+                onPageChange={filters.setPage}
+                isLoading={isLoading}
+              />
+            </>
+          ) : pagination.total > 0 ? (
+            <>
+              <p className="text-sm text-fog">
+                Showing 0–0 of {pagination.total}{" "}
+                {pagination.total === 1 ? "volume" : "volumes"}
+              </p>
+              {pagination.totalPages > 1 && (
+                <Pagination
+                  currentPage={filters.page}
+                  totalPages={pagination.totalPages}
+                  onPageChange={filters.setPage}
+                  isLoading={isLoading}
+                />
+              )}
+            </>
+          ) : null}
         </div>
       )}
     </PageContainer>
