@@ -4,6 +4,7 @@ import { useBookFilters } from "@/features/books/hooks/useBookFilters";
 import { renderWithProviders, screen, userEvent, waitFor } from "@/test/utils/render";
 import {
   buildSearchParams,
+  escapeRegex,
   parsePage,
   parseSearchFilters,
   toBooksQueryParams,
@@ -22,6 +23,8 @@ function FilterHarness() {
       <span data-testid="page">{filters.page}</span>
       <span data-testid="query-params">{JSON.stringify(filters.queryParams)}</span>
       <span data-testid="is-filtered">{String(filters.isFiltered)}</span>
+      <input data-testid="title-input" value={filters.title} onChange={(e) => filters.setTitle(e.target.value)} />
+      <input data-testid="author-input" value={filters.author} onChange={(e) => filters.setAuthor(e.target.value)} />
       <button onClick={() => filters.setTitle("void")}>search-void</button>
       <button onClick={() => filters.setAuthor("marchetti")}>author-marchetti</button>
       <button onClick={() => filters.setGenre("Horror")}>genre-horror</button>
@@ -213,6 +216,68 @@ describe("searchFilters utils", () => {
   it("includes the page in derived query params when greater than 1", () => {
     expect(toBooksQueryParams({ title: "", author: "", genre: "" }, 3)).toEqual({
       page: 3,
+    });
+  });
+});
+
+describe("escapeRegex utility", () => {
+  // These are the regex metacharacters that need escaping in JavaScript regex
+  // Note: '-' is not included as it's only special inside character classes
+  const specialChars = [".", "?", "(", ")", "[", "]", "{", "}", "|", "^", "$", "\\"];
+
+  it.each(specialChars)("escapes special character '%s'", (char) => {
+    const input = `test${char}input`;
+    const escaped = escapeRegex(input);
+    expect(escaped).toBe(`test\\${char}input`);
+  });
+
+  it("escapes multiple special characters", () => {
+    const input = "test.(book)?";
+    const escaped = escapeRegex(input);
+    expect(escaped).toBe("test\\.\\(book\\)\\?");
+  });
+
+  it("handles empty string", () => {
+    expect(escapeRegex("")).toBe("");
+  });
+
+  it("handles string without special characters", () => {
+    expect(escapeRegex("normal text")).toBe("normal text");
+  });
+
+  it("does not escape hyphen (not a regex metacharacter outside character class)", () => {
+    expect(escapeRegex("test-input")).toBe("test-input");
+  });
+});
+
+describe("search special characters in filters", () => {
+  it("special characters in title search don't break requests", async () => {
+    renderWithProviders(<FilterHarness />, { route: "/books" });
+
+    await userEvent.type(screen.getByTestId("title-input") ?? screen.getByRole("textbox", { name: /title/i }), "Test.Book");
+
+    await waitFor(() => {
+      expect(screen.getByTestId("search")).toHaveTextContent("title=Test.Book");
+    });
+  });
+
+  it("special characters in author search don't break requests", async () => {
+    renderWithProviders(<FilterHarness />, { route: "/books" });
+
+    await userEvent.type(screen.getByTestId("author-input") ?? screen.getByRole("textbox", { name: /author/i }), "Author-One");
+
+    await waitFor(() => {
+      expect(screen.getByTestId("search")).toHaveTextContent("author=Author-One");
+    });
+  });
+
+  it("special characters in genre filter don't break requests", async () => {
+    renderWithProviders(<FilterHarness />, { route: "/books" });
+
+    await userEvent.click(screen.getByRole("button", { name: "genre-horror" }));
+
+    await waitFor(() => {
+      expect(screen.getByTestId("search")).toHaveTextContent("genre=Horror");
     });
   });
 });

@@ -4,7 +4,7 @@ interface EmptyStateProps {
 
 function EmptyState({ filtered = false }: EmptyStateProps) {
   return (
-    <div className="flex flex-col items-center justify-center gap-4 px-6 py-16 text-center">
+    <div data-testid="empty-state" className="flex flex-col items-center justify-center gap-4 px-6 py-16 text-center">
       <svg
         aria-hidden="true"
         className="h-12 w-12 text-ash"
