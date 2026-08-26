@@ -10,6 +10,7 @@ import {
 } from "@/test/contract/validators";
 import { ERROR_MESSAGES } from "@/test/contract/error-messages";
 import { conflictError, notFoundError, validationError } from "./errors";
+import { escapeRegex } from "@/features/books/utils/searchFilters";
 
 function seedBooks(): Book[] {
   return [
@@ -113,10 +114,14 @@ export const bookHandlers: HttpHandler[] = [
     const page = pageParam ? Number(pageParam) : 1;
     const limit = limitParam ? Number(limitParam) : 10;
 
+    // Escape regex metacharacters to match backend behavior
+    const safeAuthor = author ? escapeRegex(author) : "";
+    const safeTitle = title ? escapeRegex(title) : "";
+
     const filtered = books.filter((book) => {
       if (genre && book.genre !== genre) return false;
-      if (author && !book.author.toLowerCase().includes(author.toLowerCase())) return false;
-      if (title && !book.title.toLowerCase().includes(title.toLowerCase())) return false;
+      if (safeAuthor && !book.author.toLowerCase().includes(safeAuthor.toLowerCase())) return false;
+      if (safeTitle && !book.title.toLowerCase().includes(safeTitle.toLowerCase())) return false;
       return true;
     });
 
