@@ -53,6 +53,13 @@ export function useBookFilters() {
     setSearchParams(buildSearchParams(committed, safe), { replace: true });
   }
 
+  function adjustPageAfterDeletion(totalPages: number) {
+    const safePage = Math.min(page, Math.max(1, totalPages));
+    if (safePage !== page) {
+      setSearchParams(buildSearchParams(committed, safePage), { replace: true });
+    }
+  }
+
   const queryParams = useMemo<BooksQueryParams>(
     () => toBooksQueryParams(committed, page),
     [committed, page],
@@ -69,6 +76,7 @@ export function useBookFilters() {
     resetFilters,
     page,
     setPage,
+    adjustPageAfterDeletion,
     queryParams,
     isFiltered,
   };

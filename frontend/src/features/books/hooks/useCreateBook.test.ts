@@ -169,4 +169,92 @@ describe("useCreateBook", () => {
       second.result.current.data?.data.some((book) => book.title === "The Mutation Grimoire"),
     ).toBe(false);
   });
+
+  describe("data integrity - unique constraint (title, author)", () => {
+    it("same title with different author succeeds", async () => {
+      const { result } = renderHook(() => useCreateBook(), {
+        wrapper: createQueryClientWrapper(createTestQueryClient()),
+      });
+
+      await act(async () => {
+        result.current.mutate(createBookFormData({ title: "Same Title", author: "Author One" }));
+      });
+      await waitFor(() => expect(result.current.isSuccess).toBe(true));
+      expect(result.current.data?.title).toBe("Same Title");
+      expect(result.current.data?.author).toBe("Author One");
+
+      await act(async () => {
+        result.current.mutate(createBookFormData({ title: "Same Title", author: "Author Two" }));
+      });
+      await waitFor(() => expect(result.current.isSuccess).toBe(true));
+      expect(result.current.data?.title).toBe("Same Title");
+      expect(result.current.data?.author).toBe("Author Two");
+    });
+
+    it("same author with different title succeeds", async () => {
+      const { result } = renderHook(() => useCreateBook(), {
+        wrapper: createQueryClientWrapper(createTestQueryClient()),
+      });
+
+      await act(async () => {
+        result.current.mutate(createBookFormData({ title: "Title One", author: "Same Author" }));
+      });
+      await waitFor(() => expect(result.current.isSuccess).toBe(true));
+      expect(result.current.data?.title).toBe("Title One");
+      expect(result.current.data?.author).toBe("Same Author");
+
+      await act(async () => {
+        result.current.mutate(createBookFormData({ title: "Title Two", author: "Same Author" }));
+      });
+      await waitFor(() => expect(result.current.isSuccess).toBe(true));
+      expect(result.current.data?.title).toBe("Title Two");
+      expect(result.current.data?.author).toBe("Same Author");
+    });
+
+    it("duplicate title + author returns 409 CONFLICT", async () => {
+      const { result } = renderHook(() => useCreateBook(), {
+        wrapper: createQueryClientWrapper(createTestQueryClient()),
+      });
+
+      await act(async () => {
+        result.current.mutate(createBookFormData({ title: "Duplicate Title", author: "Duplicate Author" }));
+      });
+      await waitFor(() => expect(result.current.isSuccess).toBe(true));
+
+      await act(async () => {
+        result.current.mutate(createBookFormData({ title: "Duplicate Title", author: "Duplicate Author" }));
+      });
+      await waitFor(() => expect(result.current.isError).toBe(true));
+      expect(result.current.error).toBeInstanceOf(ApiError);
+      expect(result.current.error).toMatchObject({ status: 409, code: "CONFLICT" });
+    });
+
+    it("concurrent duplicate creation returns 409 for second request", async () => {
+      const client = createTestQueryClient();
+
+      const first = renderHook(() => useCreateBook(), {
+        wrapper: createQueryClientWrapper(client),
+      });
+
+      const second = renderHook(() => useCreateBook(), {
+        wrapper: createQueryClientWrapper(createTestQueryClient()),
+      });
+
+      const dto = createBookFormData({ title: "Concurrent Title", author: "Concurrent Author" });
+
+      await Promise.all([
+        act(async () => {
+          first.result.current.mutate(dto);
+        }),
+        act(async () => {
+          second.result.current.mutate(dto);
+        }),
+      ]);
+
+      await waitFor(() => expect(first.result.current.isSuccess).toBe(true));
+      await waitFor(() => expect(second.result.current.isError).toBe(true));
+      expect(second.result.current.error).toBeInstanceOf(ApiError);
+      expect(second.result.current.error).toMatchObject({ status: 409, code: "CONFLICT" });
+    });
+  });
 });

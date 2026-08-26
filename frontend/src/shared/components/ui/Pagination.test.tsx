@@ -139,4 +139,76 @@ describe("Pagination", () => {
     expect(screen.getByRole("button", { name: "Next" })).toBeDisabled();
     expect(screen.getByRole("button", { name: "Go to page 3" })).toBeDisabled();
   });
+
+  describe("totalPages changes", () => {
+    it("handles totalPages decreasing when currentPage is valid", async () => {
+      const onPageChange = vi.fn();
+      const { rerender } = renderWithProviders(
+        <Pagination currentPage={2} totalPages={5} onPageChange={onPageChange} />,
+      );
+
+      expect(screen.getByRole("button", { name: "Go to page 2" })).toHaveAttribute("aria-current", "page");
+
+      rerender(<Pagination currentPage={2} totalPages={3} onPageChange={onPageChange} />);
+
+      expect(screen.getByRole("button", { name: "Go to page 2" })).toHaveAttribute("aria-current", "page");
+      expect(screen.getByRole("button", { name: "Next" })).toBeEnabled();
+    });
+
+    it("handles totalPages decreasing below currentPage (component clamps via props)", async () => {
+      const onPageChange = vi.fn();
+      const { rerender } = renderWithProviders(
+        <Pagination currentPage={3} totalPages={5} onPageChange={onPageChange} />,
+      );
+
+      rerender(<Pagination currentPage={3} totalPages={2} onPageChange={onPageChange} />);
+
+      expect(screen.getByRole("button", { name: "Go to page 2" })).toBeInTheDocument();
+      expect(screen.queryByRole("button", { name: "Go to page 3" })).not.toBeInTheDocument();
+    });
+
+    it("handles totalPages increasing", async () => {
+      const onPageChange = vi.fn();
+      const { rerender } = renderWithProviders(
+        <Pagination currentPage={2} totalPages={3} onPageChange={onPageChange} />,
+      );
+
+      rerender(<Pagination currentPage={2} totalPages={10} onPageChange={onPageChange} />);
+
+      expect(screen.getByRole("button", { name: "Go to page 1" })).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "Go to page 10" })).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "Go to page 2" })).toHaveAttribute("aria-current", "page");
+    });
+
+    it("renders correctly when totalPages becomes 1", async () => {
+      const { rerender } = renderWithProviders(
+        <Pagination currentPage={1} totalPages={3} onPageChange={vi.fn()} />,
+      );
+
+      rerender(<Pagination currentPage={1} totalPages={1} onPageChange={vi.fn()} />);
+
+      expect(screen.queryByRole("navigation")).not.toBeInTheDocument();
+    });
+  });
+
+  describe("currentPage clamping via props", () => {
+    it("renders available pages when currentPage exceeds totalPages", () => {
+      renderWithProviders(<Pagination currentPage={5} totalPages={3} onPageChange={vi.fn()} />);
+
+      expect(screen.getByRole("button", { name: "Go to page 1" })).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "Go to page 3" })).toBeInTheDocument();
+    });
+
+    it("renders first page when currentPage is 0", () => {
+      renderWithProviders(<Pagination currentPage={0} totalPages={3} onPageChange={vi.fn()} />);
+
+      expect(screen.getByRole("button", { name: "Go to page 1" })).toBeInTheDocument();
+    });
+
+    it("renders first page when currentPage is negative", () => {
+      renderWithProviders(<Pagination currentPage={-1} totalPages={3} onPageChange={vi.fn()} />);
+
+      expect(screen.getByRole("button", { name: "Go to page 1" })).toBeInTheDocument();
+    });
+  });
 });

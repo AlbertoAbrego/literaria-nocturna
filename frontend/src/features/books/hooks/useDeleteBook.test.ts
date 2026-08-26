@@ -19,8 +19,9 @@ type BookListResponse = {
   pagination: { page: number; limit: number; total: number; totalPages: number };
 };
 
-function getCachedList(queryClient: ReturnType<typeof createTestQueryClient>) {
-  return queryClient.getQueryData<BookListResponse>(["books", undefined]);
+function getCachedList(queryClient: ReturnType<typeof createTestQueryClient>, queryKey?: unknown[]) {
+  const key = queryKey ?? ["books", undefined];
+  return queryClient.getQueryData<BookListResponse>(key);
 }
 
 describe("useDeleteBook", () => {
@@ -192,5 +193,137 @@ describe("useDeleteBook", () => {
     });
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
+  });
+
+  describe("pagination edge cases", () => {
+    it("recalculates totalPages correctly after deletion", async () => {
+      const queryClient = createTestQueryClient();
+      const queryKey = ["books", { page: 1, limit: 2 }];
+      const list = renderHook(() => useBooks({ page: 1, limit: 2 }), {
+        wrapper: createQueryClientWrapper(queryClient),
+      });
+      await waitFor(() => expect(list.result.current.isSuccess).toBe(true));
+
+      const cached = getCachedList(queryClient, queryKey);
+      expect(cached?.pagination.total).toBe(5);
+      expect(cached?.pagination.totalPages).toBe(3);
+
+      const deleteBook = renderHook(() => useDeleteBook(), {
+        wrapper: createQueryClientWrapper(queryClient),
+      });
+
+      await act(async () => {
+        deleteBook.result.current.mutate(SEED_BOOK_ID);
+      });
+
+      const cachedAfterDelete = getCachedList(queryClient, queryKey);
+      expect(cachedAfterDelete?.pagination.total).toBe(4);
+      expect(cachedAfterDelete?.pagination.totalPages).toBe(2);
+    });
+
+    it("recalculates totalPages when deleting last item on page (page 3 -> totalPages becomes 2)", async () => {
+      const queryClient = createTestQueryClient();
+      const queryKey = ["books", { page: 3, limit: 2 }];
+      const list = renderHook(() => useBooks({ page: 3, limit: 2 }), {
+        wrapper: createQueryClientWrapper(queryClient),
+      });
+      await waitFor(() => expect(list.result.current.isSuccess).toBe(true));
+
+      const cached = getCachedList(queryClient, queryKey);
+      expect(cached?.pagination.page).toBe(3);
+      expect(cached?.pagination.totalPages).toBe(3);
+
+      const deleteBook = renderHook(() => useDeleteBook(), {
+        wrapper: createQueryClientWrapper(queryClient),
+      });
+
+      await act(async () => {
+        deleteBook.result.current.mutate(SEED_BOOK_ID);
+      });
+
+      const cachedAfterDelete = getCachedList(queryClient, queryKey);
+      expect(cachedAfterDelete?.pagination.total).toBe(4);
+      expect(cachedAfterDelete?.pagination.totalPages).toBe(2);
+      // Note: page is NOT adjusted in optimistic update; that happens in BooksPage component
+      expect(cachedAfterDelete?.pagination.page).toBe(3);
+    });
+
+    it("resets to page 1 when deleting only item on page 1 with limit > total", async () => {
+      const queryClient = createTestQueryClient();
+      const queryKey = ["books", { page: 1, limit: 10 }];
+      const list = renderHook(() => useBooks({ page: 1, limit: 10 }), {
+        wrapper: createQueryClientWrapper(queryClient),
+      });
+      await waitFor(() => expect(list.result.current.isSuccess).toBe(true));
+
+      const cached = getCachedList(queryClient, queryKey);
+      expect(cached?.pagination.total).toBe(5);
+      expect(cached?.pagination.totalPages).toBe(1);
+
+      const deleteBook = renderHook(() => useDeleteBook(), {
+        wrapper: createQueryClientWrapper(queryClient),
+      });
+
+      await act(async () => {
+        deleteBook.result.current.mutate(SEED_BOOK_ID);
+      });
+
+      const cachedAfterDelete = getCachedList(queryClient, queryKey);
+      expect(cachedAfterDelete?.pagination.total).toBe(4);
+      expect(cachedAfterDelete?.pagination.totalPages).toBe(1);
+      expect(cachedAfterDelete?.pagination.page).toBe(1);
+    });
+
+    it("navigate after deletion shows correct page", async () => {
+      const queryClient = createTestQueryClient();
+      const list = renderHook(() => useBooks({ page: 3, limit: 2 }), {
+        wrapper: createQueryClientWrapper(queryClient),
+      });
+      await waitFor(() => expect(list.result.current.isSuccess).toBe(true));
+
+      const deleteBook = renderHook(() => useDeleteBook(), {
+        wrapper: createQueryClientWrapper(queryClient),
+      });
+
+      await act(async () => {
+        deleteBook.result.current.mutate(SEED_BOOK_ID);
+      });
+
+      await waitFor(() => expect(deleteBook.result.current.isSuccess).toBe(true));
+
+      const refetched = renderHook(() => useBooks({ page: 2, limit: 2 }), {
+        wrapper: createQueryClientWrapper(queryClient),
+      });
+      await waitFor(() => expect(refetched.result.current.isSuccess).toBe(true));
+
+      const refetchedData = refetched.result.current.data;
+      expect(refetchedData?.pagination.page).toBe(2);
+      expect(refetchedData?.pagination.totalPages).toBe(2);
+    });
+
+    it("verifies total, totalPages, currentPage consistency after deletion", async () => {
+      const queryClient = createTestQueryClient();
+      const queryKey = ["books", { page: 2, limit: 2 }];
+      const list = renderHook(() => useBooks({ page: 2, limit: 2 }), {
+        wrapper: createQueryClientWrapper(queryClient),
+      });
+      await waitFor(() => expect(list.result.current.isSuccess).toBe(true));
+
+      const cachedBefore = getCachedList(queryClient, queryKey);
+      const expectedTotalBefore = cachedBefore?.pagination.total ?? 0;
+
+      const deleteBook = renderHook(() => useDeleteBook(), {
+        wrapper: createQueryClientWrapper(queryClient),
+      });
+
+      await act(async () => {
+        deleteBook.result.current.mutate(SEED_BOOK_ID);
+      });
+
+      const cachedAfter = getCachedList(queryClient, queryKey);
+      expect(cachedAfter?.pagination.total).toBe(expectedTotalBefore - 1);
+      expect(cachedAfter?.pagination.totalPages).toBe(Math.ceil((expectedTotalBefore - 1) / 2));
+      expect(cachedAfter?.pagination.page).toBe(2);
+    });
   });
 });

@@ -25,6 +25,10 @@ export const EMPTY_SEARCH_FILTERS: SearchFilters = {
 
 export const DEBOUNCE_MS = 300;
 
+export function escapeRegex(input: string): string {
+  return input.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
 export function isGenre(value: string): value is Genre {
   return (GENRES as readonly string[]).includes(value);
 }

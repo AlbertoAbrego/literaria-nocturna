@@ -45,12 +45,15 @@ function removeBookFromList(
   if (!current) {
     return current;
   }
+  const newTotal = Math.max(0, current.pagination.total - 1);
+  const newTotalPages = Math.ceil(newTotal / current.pagination.limit);
   return {
     ...current,
     data: current.data.filter((book) => book._id !== id),
     pagination: {
       ...current.pagination,
-      total: Math.max(0, current.pagination.total - 1),
+      total: newTotal,
+      totalPages: newTotalPages,
     },
   };
 }

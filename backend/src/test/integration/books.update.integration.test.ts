@@ -75,7 +75,8 @@ describe("PATCH /api/books/:id", () => {
   });
 
   it("TC-H6-007: reject a duplicate title + author with 409 Conflict", async () => {
-    const [bookA, bookB] = await seedBooks([createBookModel(), createBookModel()]);
+    const [bookA] = await seedBooks([createBookModel({ title: "Unique Title", author: "Unique Author" })]);
+    const [bookB] = await seedBooks([createBookModel({ title: "Different Title", author: "Different Author" })]);
 
     const res = await testRequest
       .patch(`/api/books/${bookB._id}`)
