@@ -4,7 +4,8 @@ import { createMemoryRouter, RouterProvider } from "react-router";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import BooksPage from "@/pages/BooksPage";
 import { server } from "@/test/server";
-import { internalError } from "@/test/handlers/errors";
+import { internalError, notFoundError } from "@/test/handlers/errors";
+import { ERROR_MESSAGES } from "@/test/contract/error-messages";
 import { createBookList } from "@/test/utils/factories/book.factory";
 import { renderWithProviders, screen, userEvent, waitFor, fireEvent } from "@/test/utils/render";
 
