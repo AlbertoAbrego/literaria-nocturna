@@ -414,7 +414,7 @@ describe("BooksPage", () => {
 
   describe("Phase 5 integration tests", () => {
     it("full delete flow with page adjustment: delete last item on page 3 adjusts to page 2", async () => {
-      let allBooks = [
+      const allBooks = [
         ...createBookList(2),
         ...createBookList(2),
         { _id: "id-5", title: "Page Three Book", author: "Author Five", genre: "Horror", synopsis: "Synopsis", createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(), __v: 0 },
@@ -458,7 +458,7 @@ describe("BooksPage", () => {
     });
 
     it("full delete flow with page adjustment: delete only item on page 1 adjusts to page 1", async () => {
-      let testBooks = [{ _id: "test-id-1", title: "Only Book", author: "Test Author", genre: "Horror", synopsis: "Synopsis", createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(), __v: 0 }];
+      const testBooks = [{ _id: "test-id-1", title: "Only Book", author: "Test Author", genre: "Horror", synopsis: "Synopsis", createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(), __v: 0 }];
       server.use(
         http.get("/api/books", ({ request }) => {
           const url = new URL(request.url);
@@ -491,7 +491,7 @@ describe("BooksPage", () => {
     });
 
     it("delete with filters active maintains correct counts", async () => {
-      let filteredBooks = [
+      const filteredBooks = [
         { _id: "id-1", title: "Whisper Book One", author: "Author One", genre: "Horror", synopsis: "Synopsis 1", createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(), __v: 0 },
         { _id: "id-2", title: "Whisper Book Two", author: "Author Two", genre: "Horror", synopsis: "Synopsis 2", createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(), __v: 0 },
         { _id: "id-3", title: "Whisper Book Three", author: "Author Three", genre: "Horror", synopsis: "Synopsis 3", createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(), __v: 0 },

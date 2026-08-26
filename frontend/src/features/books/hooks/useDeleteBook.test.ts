@@ -276,7 +276,6 @@ describe("useDeleteBook", () => {
 
     it("navigate after deletion shows correct page", async () => {
       const queryClient = createTestQueryClient();
-      const queryKey = ["books", { page: 3, limit: 2 }];
       const list = renderHook(() => useBooks({ page: 3, limit: 2 }), {
         wrapper: createQueryClientWrapper(queryClient),
       });

@@ -25,8 +25,6 @@ function BooksPage() {
       previousTotalPagesRef.current = pagination.totalPages;
       filters.adjustPageAfterDeletion(pagination.totalPages);
     }
-  } else if (location.pathname === "/books") {
-    previousTotalPagesRef.current = pagination?.totalPages ?? null;
   }
 
   return (

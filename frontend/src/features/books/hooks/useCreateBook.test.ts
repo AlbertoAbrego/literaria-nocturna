@@ -242,7 +242,7 @@ describe("useCreateBook", () => {
 
       const dto = createBookFormData({ title: "Concurrent Title", author: "Concurrent Author" });
 
-      const [firstPromise, secondPromise] = await Promise.all([
+      await Promise.all([
         act(async () => {
           first.result.current.mutate(dto);
         }),
