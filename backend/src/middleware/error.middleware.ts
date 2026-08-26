@@ -28,6 +28,14 @@ export const errorHandler: ErrorRequestHandler = (err, _req, res, next) => {
   }
   // Mongoose schema validation is always a client error → 400 with field details.
 
+  if (err instanceof mongoose.mongo.MongoServerError && err.code === 11000) {
+    // Duplicate key error from unique index → 409 CONFLICT
+    return res.status(409).json({
+      message: "Book already exists.",
+      code: ErrorCodes.CONFLICT,
+    });
+  }
+
   if (err instanceof AppError) {
     if (err.statusCode >= 500) {
       console.error(`[Error ${err.statusCode}]`, err);
