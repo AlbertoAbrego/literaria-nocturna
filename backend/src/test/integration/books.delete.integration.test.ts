@@ -11,6 +11,7 @@ describe("DELETE /api/books/:id", () => {
     const res = await testRequest.delete(`/api/books/${book._id}`);
 
     expect(res.status).toBe(204);
+    expect(res.text).toBe("");
   });
 
   it("TC-H7-002: reject an invalid ObjectId with 400 Bad Request", async () => {

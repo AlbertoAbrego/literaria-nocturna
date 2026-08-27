@@ -87,12 +87,15 @@ describe("useUpdateBook", () => {
     });
 
     act(() => {
-      result.current.mutate({});
+      result.current.mutate({ genre: "Invalid" as never });
     });
 
     await waitFor(() => expect(result.current.isError).toBe(true));
-    expect(result.current.error).toBeInstanceOf(ApiError);
-    expect(result.current.error).toMatchObject({ status: 400, code: "VALIDATION_ERROR" });
+    const error = result.current.error as ApiError;
+    expect(error).toBeInstanceOf(ApiError);
+    expect(error).toMatchObject({ status: 400, code: "VALIDATION_ERROR" });
+    expect(error.details).toBeDefined();
+    expect(error.details).toHaveProperty("genre");
   });
 
   it("surfaces not-found errors and sets isNotFound", async () => {
