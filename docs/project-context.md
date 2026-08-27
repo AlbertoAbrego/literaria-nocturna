@@ -31,6 +31,11 @@ src/
 ├── config/
 │   ├── database.ts           # MongoDB connection
 │   └── swagger.ts            # OpenAPI spec generation (swagger-jsdoc)
+├── constants/
+│   └── genres.ts             # Single source of truth for Genre enum + GENRES array
+├── utils/
+│   ├── validation.ts         # Shared validators (ObjectId, Genre, Page, Limit)
+│   └── dto-validation.ts     # DTO-level validation (CreateBookDto, UpdateBookDto, BookQueryDto)
 ├── controllers/              # HTTP layer (request/response handling)
 │   ├── health.controller.ts
 │   └── book.controller.ts
@@ -135,9 +140,9 @@ HTTP Request
 | Update   | All fields optional (`?`), same types as create                   | `UpdateBookDto`                                              |
 | Query    | Optional filters + `page`/`limit`; exports constants for defaults | `BookQueryDto`, `DEFAULT_PAGE`, `DEFAULT_LIMIT`, `MAX_LIMIT` |
 
-- DTOs import enums from models (`Genre` from `book.model.ts`)
+- DTOs import `Genre` type from `constants/genres.ts` (single source of truth)
 - No class-validator, no Zod, no runtime validation libraries
-- Request body validation delegated to Mongoose (`runValidators: true` on updates)
+- Runtime DTO validation centralized in `src/utils/dto-validation.ts` (consumed by controllers)
 
 ## Controller Conventions
 
@@ -146,9 +151,8 @@ HTTP Request
 - Explicit generic types on `Request<Params, ResBody, ReqBody, ReqQuery>`
 - Parameter validation:
   - `mongoose.Types.ObjectId.isValid(id)` for `:id` params → 400 if invalid
-  - Enum validation for query params (e.g., `genre`) → 400 if invalid
-  - Pagination bounds checking (`page >= 1`, `1 <= limit <= MAX_LIMIT`) → 400 if invalid
-- Empty body check for `POST`/`PATCH` → 400 if missing/empty
+  - DTO validation via `validateCreateBookDto()`, `validateUpdateBookDto()`, `validateBookQueryDto()` from `dto-validation.ts`
+  - Returns 400 with `{ message: "Validation failed", code: "VALIDATION_ERROR", details: { field: "error" } }` on failure
 - Call service in `try/catch`, forward errors with `next(error)`
 - Response status codes:
   - `201` for creation
@@ -210,16 +214,16 @@ Every error response follows the shape:
 
 ## Validation Conventions
 
-| Layer               | What is Validated                      | How                                       |
-| ------------------- | -------------------------------------- | ----------------------------------------- |
-| Controller (params) | ObjectId format                        | `mongoose.Types.ObjectId.isValid()`       |
-| Controller (query)  | Enum values (genre), pagination bounds | Manual checks                             |
-| Controller (body)   | Presence (non-empty)                   | `Object.keys(req.body).length === 0`      |
-| Mongoose (schema)   | Required fields, types, enum values    | Schema definition + `runValidators: true` |
-| Service             | Business uniqueness (title+author)     | Manual query + `AppError(409)`            |
+| Layer               | What is Validated                                  | How                                                          |
+| ------------------- | -------------------------------------------------- | ------------------------------------------------------------ |
+| Controller (params) | ObjectId format                                    | `mongoose.Types.ObjectId.isValid()`                          |
+| Controller (body)   | Required fields, genre, empty body                 | `validateCreateBookDto()`, `validateUpdateBookDto()`          |
+| Controller (query)  | Genre enum, page/limit bounds                      | `validateBookQueryDto()`                                     |
+| Mongoose (schema)   | Required fields, types, enum values (defense in depth) | Schema definition + `runValidators: true`                |
+| Service             | Business uniqueness (title+author)                 | Manual query + `AppError(409)`                               |
 
-- No separate validation middleware or libraries
-- Mongoose validation errors return `"Validation failed"` with field-level `details` (e.g. `{ title: "Path `title` is required." }`)
+- Validation functions live in `src/utils/dto-validation.ts` (DTO-level) and `src/utils/validation.ts` (primitives)
+- Both controller-level and Mongoose-level validation produce the same error format: `{ message: "Validation failed", code: "VALIDATION_ERROR", details: { field: "error message" } }`
 
 ## Query, Filtering and Pagination Conventions
 
