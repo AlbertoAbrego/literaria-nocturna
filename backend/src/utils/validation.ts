@@ -1,5 +1,4 @@
-import type { Genre } from "./openapi-types";
-import { GENRES } from "@/features/books/types";
+import { GENRES } from "../constants/genres";
 
 const ObjectIdPattern = /^[0-9a-fA-F]{24}$/;
 
@@ -7,7 +6,7 @@ export function validateObjectId(id: string): boolean {
   return typeof id === "string" && ObjectIdPattern.test(id);
 }
 
-export function validateGenre(genre: string): genre is Genre {
+export function validateGenre(genre: string): boolean {
   return (GENRES as readonly string[]).includes(genre);
 }
 

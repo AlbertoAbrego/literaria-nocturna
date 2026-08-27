@@ -1,4 +1,5 @@
 import swaggerJsdoc from "swagger-jsdoc";
+import { GENRES } from "../constants/genres";
 
 const options: swaggerJsdoc.Options = {
   definition: {
@@ -13,23 +14,7 @@ const options: swaggerJsdoc.Options = {
       schemas: {
         Genre: {
           type: "string",
-          enum: [
-            "Romance",
-            "Thriller",
-            "Fantasy",
-            "Science Fiction",
-            "Dystopia",
-            "Historical Fiction",
-            "Adventure",
-            "Self Help",
-            "Popular Science",
-            "Horror",
-            "Young Adult",
-            "Children",
-            "Health",
-            "Sports",
-            "Cooking",
-          ],
+          enum: [...GENRES],
         },
         Book: {
           type: "object",

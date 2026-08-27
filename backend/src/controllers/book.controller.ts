@@ -10,7 +10,8 @@ import { CreateBookDto } from "../dto/book/create-book.dto";
 import { UpdateBookDto } from "../dto/book/update-book.dto";
 import { AppError, ErrorCodes } from "../errors/AppError";
 import mongoose from "mongoose";
-import { Genre } from "../models/book.model";
+import { GENRES } from "../constants/genres";
+import type { Genre } from "../constants/genres";
 
 /**
  * @openapi
@@ -107,7 +108,7 @@ export async function getAllBooks(
 ) {
   const { genre, author, title, page, limit } = req.query;
 
-  if (genre && !Object.values(Genre).includes(genre as Genre)) {
+  if (genre && !(GENRES as readonly string[]).includes(genre)) {
     return next(new AppError("Invalid genre", 400, ErrorCodes.VALIDATION_ERROR));
   }
 

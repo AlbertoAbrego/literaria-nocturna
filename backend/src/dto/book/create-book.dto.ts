@@ -1,4 +1,4 @@
-import { Genre } from "../../models/book.model";
+import { Genre } from "../../constants/genres";
 
 export type CreateBookDto = {
   title: string;

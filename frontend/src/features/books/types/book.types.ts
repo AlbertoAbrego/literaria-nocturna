@@ -1,4 +1,8 @@
-export const GENRES = [
+import type { Genre as ContractGenre } from "@/test/contract/openapi-types";
+
+export type Genre = ContractGenre;
+
+export const GENRES: readonly Genre[] = [
   "Romance",
   "Thriller",
   "Fantasy",
@@ -14,9 +18,7 @@ export const GENRES = [
   "Health",
   "Sports",
   "Cooking",
-] as const;
-
-export type Genre = (typeof GENRES)[number];
+];
 
 export interface Book {
   _id: string;
