@@ -97,18 +97,24 @@ export const bookHandlers: HttpHandler[] = [
     const pageParam = url.searchParams.get("page");
     const limitParam = url.searchParams.get("limit");
 
+    const queryDetails: Record<string, string> = {};
+
     const pageValidation = validatePage(pageParam);
     if (!pageValidation.valid) {
-      return validationError(ERROR_MESSAGES.INVALID_PAGE);
+      queryDetails.page = pageValidation.error!;
     }
 
     const limitValidation = validateLimit(limitParam);
     if (!limitValidation.valid) {
-      return validationError(ERROR_MESSAGES.INVALID_LIMIT);
+      queryDetails.limit = limitValidation.error!;
     }
 
     if (genre && !validateGenre(genre)) {
-      return validationError(ERROR_MESSAGES.INVALID_GENRE);
+      queryDetails.genre = ERROR_MESSAGES.INVALID_GENRE;
+    }
+
+    if (Object.keys(queryDetails).length > 0) {
+      return validationError(ERROR_MESSAGES.VALIDATION_FAILED, queryDetails);
     }
 
     const page = pageParam ? Number(pageParam) : 1;

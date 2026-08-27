@@ -137,10 +137,11 @@ describe("MSW contract verification", () => {
         await http.get("/books", { params: { genre: "InvalidGenre" } });
         expect.fail("Should have thrown");
       } catch (error: unknown) {
-        const apiError = error as { status: number; message: string; code: string };
+        const apiError = error as { status: number; message: string; code: string; details?: Record<string, string> };
         expect(apiError.status).toBe(400);
         expect(apiError.code).toBe("VALIDATION_ERROR");
-        expect(apiError.message).toBe("Invalid genre");
+        expect(apiError.message).toBe("Validation failed");
+        expect(apiError.details).toEqual({ genre: "Invalid genre" });
       }
     });
 
@@ -149,10 +150,11 @@ describe("MSW contract verification", () => {
         await http.get("/books", { params: { page: 0 } });
         expect.fail("Should have thrown");
       } catch (error: unknown) {
-        const apiError = error as { status: number; message: string; code: string };
+        const apiError = error as { status: number; message: string; code: string; details?: Record<string, string> };
         expect(apiError.status).toBe(400);
         expect(apiError.code).toBe("VALIDATION_ERROR");
-        expect(apiError.message).toBe("Invalid page value");
+        expect(apiError.message).toBe("Validation failed");
+        expect(apiError.details).toEqual({ page: "Invalid page value" });
       }
     });
 
@@ -161,10 +163,11 @@ describe("MSW contract verification", () => {
         await http.get("/books", { params: { page: -1 } });
         expect.fail("Should have thrown");
       } catch (error: unknown) {
-        const apiError = error as { status: number; message: string; code: string };
+        const apiError = error as { status: number; message: string; code: string; details?: Record<string, string> };
         expect(apiError.status).toBe(400);
         expect(apiError.code).toBe("VALIDATION_ERROR");
-        expect(apiError.message).toBe("Invalid page value");
+        expect(apiError.message).toBe("Validation failed");
+        expect(apiError.details).toEqual({ page: "Invalid page value" });
       }
     });
 
@@ -173,10 +176,11 @@ describe("MSW contract verification", () => {
         await http.get("/books", { params: { limit: 101 } });
         expect.fail("Should have thrown");
       } catch (error: unknown) {
-        const apiError = error as { status: number; message: string; code: string };
+        const apiError = error as { status: number; message: string; code: string; details?: Record<string, string> };
         expect(apiError.status).toBe(400);
         expect(apiError.code).toBe("VALIDATION_ERROR");
-        expect(apiError.message).toBe("Invalid limit value");
+        expect(apiError.message).toBe("Validation failed");
+        expect(apiError.details).toEqual({ limit: "Invalid limit value" });
       }
     });
 
@@ -185,10 +189,11 @@ describe("MSW contract verification", () => {
         await http.get("/books", { params: { limit: 0 } });
         expect.fail("Should have thrown");
       } catch (error: unknown) {
-        const apiError = error as { status: number; message: string; code: string };
+        const apiError = error as { status: number; message: string; code: string; details?: Record<string, string> };
         expect(apiError.status).toBe(400);
         expect(apiError.code).toBe("VALIDATION_ERROR");
-        expect(apiError.message).toBe("Invalid limit value");
+        expect(apiError.message).toBe("Validation failed");
+        expect(apiError.details).toEqual({ limit: "Invalid limit value" });
       }
     });
 

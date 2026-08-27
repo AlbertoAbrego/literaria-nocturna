@@ -94,8 +94,9 @@ describe("GET /api/books", () => {
 
     expect(res.status).toBe(400);
     expect(res.body).toMatchObject({
-      message: "Invalid genre",
+      message: "Validation failed",
       code: "VALIDATION_ERROR",
+      details: { genre: "Invalid genre" },
     });
   });
 
@@ -363,8 +364,9 @@ describe("GET /api/books", () => {
 
       expect(res.status).toBe(400);
       expect(res.body).toMatchObject({
-        message: "Invalid page value",
+        message: "Validation failed",
         code: "VALIDATION_ERROR",
+        details: { page: "Invalid page value" },
       });
     });
 
@@ -378,8 +380,9 @@ describe("GET /api/books", () => {
 
       expect(res.status).toBe(400);
       expect(res.body).toMatchObject({
-        message: "Invalid limit value",
+        message: "Validation failed",
         code: "VALIDATION_ERROR",
+        details: { limit: "Invalid limit value" },
       });
     });
 

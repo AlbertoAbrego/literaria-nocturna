@@ -101,7 +101,7 @@ const options: swaggerJsdoc.Options = {
               example: {
                 message: "Validation failed",
                 code: "VALIDATION_ERROR",
-                details: { title: "Path `title` is required." },
+                details: { title: "title is required", genre: "Invalid genre" },
               },
             },
           },

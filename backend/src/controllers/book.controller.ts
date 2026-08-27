@@ -4,14 +4,17 @@ import {
   BookQueryDto,
   DEFAULT_LIMIT,
   DEFAULT_PAGE,
-  MAX_LIMIT,
 } from "../dto/book/book-query.dto";
 import { CreateBookDto } from "../dto/book/create-book.dto";
 import { UpdateBookDto } from "../dto/book/update-book.dto";
 import { AppError, ErrorCodes } from "../errors/AppError";
 import mongoose from "mongoose";
-import { GENRES } from "../constants/genres";
 import type { Genre } from "../constants/genres";
+import {
+  validateCreateBookDto,
+  validateUpdateBookDto,
+  validateBookQueryDto,
+} from "../utils/dto-validation";
 
 /**
  * @openapi
@@ -44,8 +47,11 @@ export async function createBook(
   res: Response,
   next: NextFunction,
 ) {
-  if (!req.body) {
-    return next(new AppError("Request body is missing", 400, ErrorCodes.VALIDATION_ERROR));
+  const validation = validateCreateBookDto(req.body);
+  if (!validation.valid) {
+    return next(
+      new AppError("Validation failed", 400, ErrorCodes.VALIDATION_ERROR, validation.details),
+    );
   }
   try {
     const book = await BookService.createBook(req.body);
@@ -108,19 +114,15 @@ export async function getAllBooks(
 ) {
   const { genre, author, title, page, limit } = req.query;
 
-  if (genre && !(GENRES as readonly string[]).includes(genre)) {
-    return next(new AppError("Invalid genre", 400, ErrorCodes.VALIDATION_ERROR));
+  const validation = validateBookQueryDto({ genre, author, title, page, limit });
+  if (!validation.valid) {
+    return next(
+      new AppError("Validation failed", 400, ErrorCodes.VALIDATION_ERROR, validation.details),
+    );
   }
 
   const parsedPage = Number(page ?? DEFAULT_PAGE);
   const parsedLimit = Number(limit ?? DEFAULT_LIMIT);
-
-  if (!Number.isInteger(parsedPage) || parsedPage < 1) {
-    return next(new AppError("Invalid page value", 400, ErrorCodes.VALIDATION_ERROR));
-  }
-  if (!Number.isInteger(parsedLimit) || parsedLimit < 1 || parsedLimit > MAX_LIMIT) {
-    return next(new AppError("Invalid limit value", 400, ErrorCodes.VALIDATION_ERROR));
-  }
 
   const filters: BookQueryDto = {
     genre: genre as Genre | undefined,
@@ -233,8 +235,11 @@ export async function updateBook(
   res: Response,
   next: NextFunction,
 ) {
-  if (!req.body || Object.keys(req.body).length === 0) {
-    return next(new AppError("Request body is missing", 400, ErrorCodes.VALIDATION_ERROR));
+  const validation = validateUpdateBookDto(req.body);
+  if (!validation.valid) {
+    return next(
+      new AppError("Validation failed", 400, ErrorCodes.VALIDATION_ERROR, validation.details),
+    );
   }
   const { id } = req.params;
   if (!mongoose.Types.ObjectId.isValid(id)) {

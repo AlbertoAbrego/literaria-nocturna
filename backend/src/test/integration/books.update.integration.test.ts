@@ -61,8 +61,9 @@ describe("PATCH /api/books/:id", () => {
 
     expect(res.status).toBe(400);
     expect(res.body).toMatchObject({
-      message: "Request body is missing",
+      message: "Validation failed",
       code: "VALIDATION_ERROR",
+      details: { body: "Request body is missing" },
     });
   });
 
