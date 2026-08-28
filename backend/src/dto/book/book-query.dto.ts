@@ -1,4 +1,4 @@
-import { Genre } from "../../models/book.model";
+import { Genre } from "../../constants/genres";
 
 export const DEFAULT_PAGE = 1;
 export const DEFAULT_LIMIT = 10;

@@ -89,8 +89,11 @@ describe("useCreateBook", () => {
     });
 
     await waitFor(() => expect(result.current.isError).toBe(true));
-    expect(result.current.error).toBeInstanceOf(ApiError);
-    expect(result.current.error).toMatchObject({ status: 400, code: "VALIDATION_ERROR" });
+    const error = result.current.error as ApiError;
+    expect(error).toBeInstanceOf(ApiError);
+    expect(error).toMatchObject({ status: 400, code: "VALIDATION_ERROR" });
+    expect(error.details).toBeDefined();
+    expect(Object.keys(error.details!)).length.greaterThan(0);
   });
 
   it("surfaces conflict errors as ApiError instances", async () => {

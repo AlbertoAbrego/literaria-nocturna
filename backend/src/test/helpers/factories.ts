@@ -1,4 +1,3 @@
-import { Genre } from "../../models/book.model";
 import type { Book } from "../../models/book.model";
 import type { CreateBookDto } from "../../dto/book/create-book.dto";
 
@@ -17,7 +16,7 @@ export function createBookDto(overrides: Partial<CreateBookDto> = {}): CreateBoo
   return {
     title: nextTitle(),
     author: nextAuthor(),
-    genre: Genre.Fantasy,
+    genre: "Fantasy",
     synopsis: "Un piloto se encuentra a un pequeño príncipe en el desierto.",
     ...overrides,
   };

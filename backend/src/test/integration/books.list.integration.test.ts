@@ -2,7 +2,6 @@ import { testRequest } from "../helpers/request";
 import { seedBooks } from "../helpers/database";
 import { createBookModel } from "../helpers/factories";
 import { BookModel } from "../../models/book.model";
-import { Genre } from "../../models/book.model";
 
 describe("GET /api/books", () => {
   it("TC-H4-001: return 200 OK with the list of books", async () => {
@@ -26,12 +25,12 @@ describe("GET /api/books", () => {
 
   it("TC-H8-001: filter by genre", async () => {
     await seedBooks([
-      createBookModel({ title: "Cujo", genre: Genre.Horror }),
-      createBookModel({ title: "Dune", genre: Genre.ScienceFiction }),
-      createBookModel({ title: "El Principito", genre: Genre.Fantasy }),
+      createBookModel({ title: "Cujo", genre: "Horror" }),
+      createBookModel({ title: "Dune", genre: "Science Fiction" }),
+      createBookModel({ title: "El Principito", genre: "Fantasy" }),
     ]);
 
-    const res = await testRequest.get("/api/books").query({ genre: Genre.Horror });
+    const res = await testRequest.get("/api/books").query({ genre: "Horror" });
 
     expect(res.status).toBe(200);
     expect(res.body.data).toHaveLength(1);
@@ -66,14 +65,14 @@ describe("GET /api/books", () => {
 
   it("TC-H8-004: combine multiple filters", async () => {
     await seedBooks([
-      createBookModel({ title: "Dune", author: "Frank Herbert", genre: Genre.ScienceFiction }),
-      createBookModel({ title: "Dune Messiah", author: "Frank Herbert", genre: Genre.ScienceFiction }),
-      createBookModel({ title: "Dune", author: "Otro Autor", genre: Genre.ScienceFiction }),
+      createBookModel({ title: "Dune", author: "Frank Herbert", genre: "Science Fiction" }),
+      createBookModel({ title: "Dune Messiah", author: "Frank Herbert", genre: "Science Fiction" }),
+      createBookModel({ title: "Dune", author: "Otro Autor", genre: "Science Fiction" }),
     ]);
 
     const res = await testRequest
       .get("/api/books")
-      .query({ genre: Genre.ScienceFiction, author: "Frank Herbert", title: "dune" });
+      .query({ genre: "Science Fiction", author: "Frank Herbert", title: "dune" });
 
     expect(res.status).toBe(200);
     expect(res.body.data).toHaveLength(2);
@@ -81,7 +80,7 @@ describe("GET /api/books", () => {
 
   it("TC-H8-005: return an empty array when no books match the filters", async () => {
     await seedBooks([
-      createBookModel({ title: "Dune", author: "Frank Herbert", genre: Genre.ScienceFiction }),
+      createBookModel({ title: "Dune", author: "Frank Herbert", genre: "Science Fiction" }),
     ]);
 
     const res = await testRequest.get("/api/books").query({ title: "Inexistente" });
@@ -95,8 +94,9 @@ describe("GET /api/books", () => {
 
     expect(res.status).toBe(400);
     expect(res.body).toMatchObject({
-      message: "Invalid genre",
+      message: "Validation failed",
       code: "VALIDATION_ERROR",
+      details: { genre: "Invalid genre" },
     });
   });
 
@@ -180,14 +180,14 @@ describe("GET /api/books", () => {
   describe("pagination with filters", () => {
     it("TC-H9-010: pagination metadata is correct with active genre filter", async () => {
       await seedBooks([
-        createBookModel({ title: "A", genre: Genre.Horror }),
-        createBookModel({ title: "B", genre: Genre.Horror }),
-        createBookModel({ title: "C", genre: Genre.Fantasy }),
-        createBookModel({ title: "D", genre: Genre.Fantasy }),
-        createBookModel({ title: "E", genre: Genre.Fantasy }),
+        createBookModel({ title: "A", genre: "Horror" }),
+        createBookModel({ title: "B", genre: "Horror" }),
+        createBookModel({ title: "C", genre: "Fantasy" }),
+        createBookModel({ title: "D", genre: "Fantasy" }),
+        createBookModel({ title: "E", genre: "Fantasy" }),
       ]);
 
-      const res = await testRequest.get("/api/books").query({ genre: Genre.Horror, page: 1, limit: 2 });
+      const res = await testRequest.get("/api/books").query({ genre: "Horror", page: 1, limit: 2 });
 
       expect(res.status).toBe(200);
       expect(res.body.pagination).toEqual({
@@ -236,15 +236,15 @@ describe("GET /api/books", () => {
 
     it("TC-H9-013: pagination metadata correct with combined filters", async () => {
       await seedBooks([
-        createBookModel({ title: "Book A", author: "Author X", genre: Genre.Horror }),
-        createBookModel({ title: "Book B", author: "Author X", genre: Genre.Horror }),
-        createBookModel({ title: "Book C", author: "Author Y", genre: Genre.Horror }),
-        createBookModel({ title: "Book D", author: "Author X", genre: Genre.Fantasy }),
+        createBookModel({ title: "Book A", author: "Author X", genre: "Horror" }),
+        createBookModel({ title: "Book B", author: "Author X", genre: "Horror" }),
+        createBookModel({ title: "Book C", author: "Author Y", genre: "Horror" }),
+        createBookModel({ title: "Book D", author: "Author X", genre: "Fantasy" }),
       ]);
 
       const res = await testRequest
         .get("/api/books")
-        .query({ genre: Genre.Horror, author: "Author X", page: 1, limit: 2 });
+        .query({ genre: "Horror", author: "Author X", page: 1, limit: 2 });
 
       expect(res.status).toBe(200);
       expect(res.body.pagination).toEqual({
@@ -257,11 +257,11 @@ describe("GET /api/books", () => {
 
     it("TC-H9-014: empty page beyond totalPages returns correct metadata with filters", async () => {
       await seedBooks([
-        createBookModel({ title: "A", genre: Genre.Horror }),
-        createBookModel({ title: "B", genre: Genre.Horror }),
+        createBookModel({ title: "A", genre: "Horror" }),
+        createBookModel({ title: "B", genre: "Horror" }),
       ]);
 
-      const res = await testRequest.get("/api/books").query({ genre: Genre.Horror, page: 10, limit: 2 });
+      const res = await testRequest.get("/api/books").query({ genre: "Horror", page: 10, limit: 2 });
 
       expect(res.status).toBe(200);
       expect(res.body.data).toEqual([]);
@@ -364,8 +364,9 @@ describe("GET /api/books", () => {
 
       expect(res.status).toBe(400);
       expect(res.body).toMatchObject({
-        message: "Invalid page value",
+        message: "Validation failed",
         code: "VALIDATION_ERROR",
+        details: { page: "Invalid page value" },
       });
     });
 
@@ -379,8 +380,9 @@ describe("GET /api/books", () => {
 
       expect(res.status).toBe(400);
       expect(res.body).toMatchObject({
-        message: "Invalid limit value",
+        message: "Validation failed",
         code: "VALIDATION_ERROR",
+        details: { limit: "Invalid limit value" },
       });
     });
 
