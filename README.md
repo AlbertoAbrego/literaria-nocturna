@@ -210,15 +210,17 @@ Tests use MSW to mock API calls — no backend required. All API interactions ar
 
 ## CI/CD
 
-Both pipelines use GitHub Actions with Node.js 22, npm caching, and path filtering.
+Both pipelines use GitHub Actions with Node.js 22, npm caching, and path filtering. See [CI/CD Documentation](docs/ci-cd.md) for full details.
 
 **Backend CI** (`.github/workflows/backend-ci.yml`):
 - Triggers on push/PR to `main` (changes in `backend/`)
 - Pipeline: checkout → Node.js 22 → install → lint → build → integration tests
+- Uses mongodb-memory-server (no external services required)
 
 **Frontend CI** (`.github/workflows/frontend-ci.yml`):
 - Triggers on push/PR to `main` (changes in `frontend/`)
 - Pipeline: checkout → Node.js 22 → install → lint → contract check → build → tests
+- Uses MSW for API mocking (no external services required)
 
 Both pipelines support manual triggering via `workflow_dispatch`.
 
@@ -246,9 +248,10 @@ Both pipelines support manual triggering via `workflow_dispatch`.
 - [Frontend Context](docs/frontend-context.md) — Frontend architecture, patterns
 - [Design System](docs/design/design-system.md) — Colors, typography, spacing, tokens
 - [UI Components](docs/design/ui-components.md) — Component specs and variants
-- [Testing Guide](docs/testing.md) — Backend testing strategy and conventions
+- [Testing Guide](docs/testing.md) — Backend and frontend testing strategy
 - [Frontend Testing](docs/frontend-testing.md) — Frontend testing setup and patterns
 - [Test Cases](docs/tests.md) — Test case index
+- [CI/CD](docs/ci-cd.md) — GitHub Actions pipelines, triggers, troubleshooting
 - [Roadmap](docs/roadmap.md) — Project progress and upcoming stories
 - [Stories](docs/stories/) — Feature requirements
 
