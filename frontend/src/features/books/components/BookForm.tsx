@@ -3,7 +3,7 @@ import type { FormEvent } from "react";
 import { Link } from "react-router";
 import { useCreateBook } from "@/features/books/hooks/useCreateBook";
 import { useUpdateBook } from "@/features/books/hooks/useUpdateBook";
-import { GENRES } from "@/features/books/types";
+import { GENRES, type Genre } from "@/features/books/types";
 import {
   INITIAL_BOOK_FORM_VALUES,
   validateBookForm,
@@ -70,7 +70,7 @@ function BookForm({ id, initialValues, onCreated, onUpdated }: BookFormProps) {
     const input = {
       title: values.title.trim(),
       author: values.author.trim(),
-      genre: values.genre,
+      genre: values.genre as Genre,
       synopsis: values.synopsis.trim(),
     };
 

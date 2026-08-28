@@ -23,7 +23,6 @@ function seedBooks(): Book[] {
         "A scholar discovers that her university library is cataloging books that should not exist.",
       createdAt: "2024-09-01T10:00:00.000Z",
       updatedAt: "2024-09-01T10:00:00.000Z",
-      __v: 0,
     },
     {
       _id: "64f1c2e5a1b2c3d4e5f6a002",
@@ -34,7 +33,6 @@ function seedBooks(): Book[] {
         "A cartographer charts a constellation that moves in reverse, leading her toward a city that cannot be reached twice.",
       createdAt: "2024-09-02T10:00:00.000Z",
       updatedAt: "2024-09-02T10:00:00.000Z",
-      __v: 0,
     },
     {
       _id: "64f1c2e5a1b2c3d4e5f6a003",
@@ -45,7 +43,6 @@ function seedBooks(): Book[] {
         "In a sealed city where memory is rationed, a gardener preserves the last living rose.",
       createdAt: "2024-09-03T10:00:00.000Z",
       updatedAt: "2024-09-03T10:00:00.000Z",
-      __v: 0,
     },
     {
       _id: "64f1c2e5a1b2c3d4e5f6a004",
@@ -56,7 +53,6 @@ function seedBooks(): Book[] {
         "An epistolary account of a Victorian librarian who corresponded with readers who never existed.",
       createdAt: "2024-09-04T10:00:00.000Z",
       updatedAt: "2024-09-04T10:00:00.000Z",
-      __v: 0,
     },
     {
       _id: "64f1c2e5a1b2c3d4e5f6a005",
@@ -67,7 +63,6 @@ function seedBooks(): Book[] {
         "A young herbalist inherits an orchard that blooms only during eclipses and bears fruit that grants glimpses of the past.",
       createdAt: "2024-09-05T10:00:00.000Z",
       updatedAt: "2024-09-05T10:00:00.000Z",
-      __v: 0,
     },
   ];
 }
@@ -202,7 +197,6 @@ export const bookHandlers: HttpHandler[] = [
       synopsis: body.synopsis!,
       createdAt: now,
       updatedAt: now,
-      __v: 0,
     };
     books.unshift(book);
 

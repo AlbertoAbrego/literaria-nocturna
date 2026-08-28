@@ -1,6 +1,6 @@
-import type { Genre as ContractGenre } from "@/test/contract/openapi-types";
+import type { Genre } from "@/test/contract/openapi-types";
 
-export type Genre = ContractGenre;
+export type { Genre };
 
 export const GENRES: readonly Genre[] = [
   "Romance",
@@ -24,24 +24,23 @@ export interface Book {
   _id: string;
   title: string;
   author: string;
-  genre: string;
+  genre: Genre;
   synopsis: string;
   createdAt: string;
   updatedAt: string;
-  __v: number;
 }
 
 export interface CreateBookInput {
   title: string;
   author: string;
-  genre: string;
+  genre: Genre;
   synopsis: string;
 }
 
 export interface UpdateBookInput {
   title?: string;
   author?: string;
-  genre?: string;
+  genre?: Genre;
   synopsis?: string;
 }
 

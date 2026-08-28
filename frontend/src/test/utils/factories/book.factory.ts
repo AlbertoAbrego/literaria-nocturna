@@ -10,7 +10,6 @@ export type Book = {
   synopsis: string;
   createdAt: string;
   updatedAt: string;
-  __v: number;
 };
 
 export type CreateBookInput = {
@@ -37,7 +36,6 @@ export function createBook(overrides: Partial<Book> = {}): Book {
     synopsis: "A volume that should never have been cataloged.",
     createdAt: timestamp,
     updatedAt: timestamp,
-    __v: 0,
     ...overrides,
   };
 }
