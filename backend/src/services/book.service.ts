@@ -1,8 +1,4 @@
-import {
-  BookQueryDto,
-  DEFAULT_LIMIT,
-  DEFAULT_PAGE,
-} from "../dto/book/book-query.dto";
+import { BookQueryDto, DEFAULT_LIMIT, DEFAULT_PAGE } from "../dto/book/book-query.dto";
 import { CreateBookDto } from "../dto/book/create-book.dto";
 import { UpdateBookDto } from "../dto/book/update-book.dto";
 import { AppError } from "../errors/AppError";
@@ -28,8 +24,10 @@ export async function getAllBooks(filters?: BookQueryDto) {
   const query: Record<string, unknown> = {};
 
   if (filters?.genre) query.genre = filters.genre;
-  if (filters?.author && filters.author.trim()) query.author = { $regex: escapeRegex(filters.author), $options: "i" };
-  if (filters?.title && filters.title.trim()) query.title = { $regex: escapeRegex(filters.title), $options: "i" };
+  if (filters?.author && filters.author.trim())
+    query.author = { $regex: escapeRegex(filters.author), $options: "i" };
+  if (filters?.title && filters.title.trim())
+    query.title = { $regex: escapeRegex(filters.title), $options: "i" };
 
   const page = filters?.page ?? DEFAULT_PAGE;
   const limit = filters?.limit ?? DEFAULT_LIMIT;

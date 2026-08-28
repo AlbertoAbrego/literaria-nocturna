@@ -15,7 +15,8 @@ const UPDATED_BOOK = {
   title: "The Revised Whisper",
   author: "Isabella Marchetti",
   genre: "Horror",
-  synopsis: "A scholar discovers that her university library is cataloging books that should not exist.",
+  synopsis:
+    "A scholar discovers that her university library is cataloging books that should not exist.",
 };
 
 function renderEditApp(initialEntry: string) {
@@ -63,7 +64,9 @@ describe("EditBookPage", () => {
     await submitUpdate(UPDATED_BOOK.title);
 
     await waitFor(() =>
-      expect(screen.getByRole("heading", { level: 1, name: UPDATED_BOOK.title })).toBeInTheDocument(),
+      expect(
+        screen.getByRole("heading", { level: 1, name: UPDATED_BOOK.title }),
+      ).toBeInTheDocument(),
     );
 
     await userEvent.click(screen.getByRole("link", { name: /back to catalog/i }));
@@ -102,7 +105,9 @@ describe("EditBookPage", () => {
     await submitUpdate(UPDATED_BOOK.title);
 
     await waitFor(() =>
-      expect(screen.getByRole("heading", { level: 1, name: UPDATED_BOOK.title })).toBeInTheDocument(),
+      expect(
+        screen.getByRole("heading", { level: 1, name: UPDATED_BOOK.title }),
+      ).toBeInTheDocument(),
     );
 
     await act(async () => {
@@ -170,7 +175,9 @@ describe("EditBookPage", () => {
     renderEditApp(`/books/${SEED_ID}`);
 
     await waitFor(() =>
-      expect(screen.getByRole("heading", { level: 1, name: "The Whisper of the Void" })).toBeInTheDocument(),
+      expect(
+        screen.getByRole("heading", { level: 1, name: "The Whisper of the Void" }),
+      ).toBeInTheDocument(),
     );
 
     await userEvent.click(screen.getByRole("link", { name: /edit this volume/i }));

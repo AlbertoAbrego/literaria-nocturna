@@ -20,7 +20,12 @@ function BooksPage() {
   // Uses the "adjust state during render" pattern (compare against ref, set during render)
   // Only run when on the books list route to avoid interfering with other routes
   const previousTotalPagesRef = useRef<number | null>(null);
-  if (location.pathname === "/books" && pagination && filters.page > pagination.totalPages && pagination.totalPages > 0) {
+  if (
+    location.pathname === "/books" &&
+    pagination &&
+    filters.page > pagination.totalPages &&
+    pagination.totalPages > 0
+  ) {
     if (previousTotalPagesRef.current !== pagination.totalPages) {
       previousTotalPagesRef.current = pagination.totalPages;
       filters.adjustPageAfterDeletion(pagination.totalPages);
@@ -84,8 +89,7 @@ function BooksPage() {
           ) : pagination.total > 0 ? (
             <>
               <p className="text-sm text-fog">
-                Showing 0–0 of {pagination.total}{" "}
-                {pagination.total === 1 ? "volume" : "volumes"}
+                Showing 0–0 of {pagination.total} {pagination.total === 1 ? "volume" : "volumes"}
               </p>
               {pagination.totalPages > 1 && (
                 <Pagination

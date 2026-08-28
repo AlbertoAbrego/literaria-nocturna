@@ -178,7 +178,9 @@ export const bookHandlers: HttpHandler[] = [
     }
 
     if (!validateGenre(body.genre!)) {
-      return validationError(ERROR_MESSAGES.VALIDATION_FAILED, { genre: ERROR_MESSAGES.INVALID_GENRE });
+      return validationError(ERROR_MESSAGES.VALIDATION_FAILED, {
+        genre: ERROR_MESSAGES.INVALID_GENRE,
+      });
     }
 
     const duplicated = books.some(
@@ -226,7 +228,9 @@ export const bookHandlers: HttpHandler[] = [
     }
 
     if (body.genre !== undefined && !validateGenre(body.genre)) {
-      return validationError(ERROR_MESSAGES.VALIDATION_FAILED, { genre: ERROR_MESSAGES.INVALID_GENRE });
+      return validationError(ERROR_MESSAGES.VALIDATION_FAILED, {
+        genre: ERROR_MESSAGES.INVALID_GENRE,
+      });
     }
 
     const title = body.title ?? book.title;

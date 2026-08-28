@@ -30,7 +30,9 @@ describe("BookDetailsPage", () => {
     renderBookDetailsApp(`/books/${SEED_ID}`);
 
     await waitFor(() =>
-      expect(screen.getByRole("heading", { level: 1, name: "The Whisper of the Void" })).toBeInTheDocument(),
+      expect(
+        screen.getByRole("heading", { level: 1, name: "The Whisper of the Void" }),
+      ).toBeInTheDocument(),
     );
     expect(screen.getByText("by Isabella Marchetti")).toBeInTheDocument();
     expect(screen.getByText("Horror")).toBeInTheDocument();
@@ -59,7 +61,9 @@ describe("BookDetailsPage", () => {
     await userEvent.click(screen.getByRole("button", { name: "Retry" }));
 
     await waitFor(() =>
-      expect(screen.getByRole("heading", { level: 1, name: "The Whisper of the Void" })).toBeInTheDocument(),
+      expect(
+        screen.getByRole("heading", { level: 1, name: "The Whisper of the Void" }),
+      ).toBeInTheDocument(),
     );
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
   });
@@ -68,11 +72,15 @@ describe("BookDetailsPage", () => {
     renderBookDetailsApp(`/books/${SEED_ID}`);
 
     await waitFor(() =>
-      expect(screen.getByRole("heading", { level: 1, name: "The Whisper of the Void" })).toBeInTheDocument(),
+      expect(
+        screen.getByRole("heading", { level: 1, name: "The Whisper of the Void" }),
+      ).toBeInTheDocument(),
     );
 
     await userEvent.click(screen.getByRole("link", { name: /back to catalog/i }));
 
-    await waitFor(() => expect(screen.getByRole("heading", { name: "Catalog" })).toBeInTheDocument());
+    await waitFor(() =>
+      expect(screen.getByRole("heading", { name: "Catalog" })).toBeInTheDocument(),
+    );
   });
 });

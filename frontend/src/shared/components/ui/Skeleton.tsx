@@ -13,7 +13,10 @@ const VARIANTS: Record<SkeletonVariant, string> = {
 
 function Skeleton({ variant = "text", className = "" }: SkeletonProps) {
   return (
-    <div aria-hidden="true" className={`animate-pulse bg-graphite ${VARIANTS[variant]} ${className}`} />
+    <div
+      aria-hidden="true"
+      className={`animate-pulse bg-graphite ${VARIANTS[variant]} ${className}`}
+    />
   );
 }
 

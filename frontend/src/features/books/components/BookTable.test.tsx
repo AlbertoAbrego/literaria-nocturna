@@ -33,7 +33,8 @@ describe("BookTable", () => {
 
     const emptyMessage = screen.getByText(
       (_content, element) =>
-        element?.tagName === "P" && element.textContent?.includes("No volumes have been cataloged yet.") === true,
+        element?.tagName === "P" &&
+        element.textContent?.includes("No volumes have been cataloged yet.") === true,
     );
     expect(emptyMessage).toBeInTheDocument();
     expect(screen.queryByRole("table")).not.toBeInTheDocument();
@@ -44,7 +45,8 @@ describe("BookTable", () => {
 
     const emptyMessage = screen.getByText(
       (_content, element) =>
-        element?.tagName === "P" && element.textContent?.includes("No volumes match the current search.") === true,
+        element?.tagName === "P" &&
+        element.textContent?.includes("No volumes match the current search.") === true,
     );
     expect(emptyMessage).toBeInTheDocument();
     expect(screen.queryByRole("table")).not.toBeInTheDocument();

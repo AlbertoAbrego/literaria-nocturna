@@ -18,7 +18,8 @@ export function validateBookForm(values: BookFormValues): BookFormErrors {
   if (!values.title.trim()) errors.title = "Title is required.";
   if (!values.author.trim()) errors.author = "Author is required.";
   if (!values.genre) errors.genre = "Select a genre.";
-  else if (!(GENRES as readonly string[]).includes(values.genre)) errors.genre = "Select a valid genre.";
+  else if (!(GENRES as readonly string[]).includes(values.genre))
+    errors.genre = "Select a valid genre.";
   if (!values.synopsis.trim()) errors.synopsis = "Synopsis is required.";
   return errors;
 }

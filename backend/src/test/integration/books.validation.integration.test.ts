@@ -50,9 +50,7 @@ describe("Validation integration — field-level details", () => {
       const res = await testRequest.post("/api/books").send({ title: "Only Title" });
       expectValidationError(res);
       const details = res.body.details as Record<string, string>;
-      expect(Object.keys(details)).toEqual(
-        expect.arrayContaining(["author", "genre", "synopsis"]),
-      );
+      expect(Object.keys(details)).toEqual(expect.arrayContaining(["author", "genre", "synopsis"]));
       expect(details).not.toHaveProperty("title");
     });
 
@@ -120,9 +118,7 @@ describe("Validation integration — field-level details", () => {
     });
 
     it("reject invalid genre with details.genre", async () => {
-      const res = await testRequest
-        .patch(`/api/books/${bookId}`)
-        .send({ genre: "Invalid" });
+      const res = await testRequest.patch(`/api/books/${bookId}`).send({ genre: "Invalid" });
       expectValidationError(res);
       expect(res.body.details).toEqual({ genre: "Invalid genre" });
     });
@@ -168,9 +164,7 @@ describe("Validation integration — field-level details", () => {
       const res = await testRequest.get("/api/books?genre=Nope&page=-1&limit=abc");
       expectValidationError(res);
       const details = res.body.details as Record<string, string>;
-      expect(Object.keys(details)).toEqual(
-        expect.arrayContaining(["genre", "page", "limit"]),
-      );
+      expect(Object.keys(details)).toEqual(expect.arrayContaining(["genre", "page", "limit"]));
     });
 
     it("accept valid params without error", async () => {
@@ -243,9 +237,7 @@ describe("Validation integration — field-level details", () => {
 
   describe("PATCH /api/books/:id — ObjectId validation", () => {
     it("reject invalid ObjectId format with 400", async () => {
-      const res = await testRequest
-        .patch("/api/books/not-valid")
-        .send({ title: "Test" });
+      const res = await testRequest.patch("/api/books/not-valid").send({ title: "Test" });
       expect(res.status).toBe(400);
       expect(res.body).toMatchObject({
         message: "Invalid ID",

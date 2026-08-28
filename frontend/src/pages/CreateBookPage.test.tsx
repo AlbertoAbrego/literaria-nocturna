@@ -47,7 +47,9 @@ describe("CreateBookPage", () => {
     const user = await fillNewBookForm();
     await user.click(screen.getByRole("button", { name: "Catalog the Book" }));
 
-    await waitFor(() => expect(screen.getByRole("heading", { name: "Catalog" })).toBeInTheDocument());
+    await waitFor(() =>
+      expect(screen.getByRole("heading", { name: "Catalog" })).toBeInTheDocument(),
+    );
     await waitFor(() => expect(screen.getByText(NEW_BOOK.title)).toBeInTheDocument());
   });
 
@@ -66,7 +68,9 @@ describe("CreateBookPage", () => {
 
   it("shows a form-level error and stays on the page when a duplicate is created", async () => {
     server.use(
-      http.post("/api/books", () => conflictError("A volume by this name and author already exists.")),
+      http.post("/api/books", () =>
+        conflictError("A volume by this name and author already exists."),
+      ),
     );
 
     renderCreateApp("/books/create");

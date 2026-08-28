@@ -17,7 +17,12 @@ describe("SearchBar", () => {
 
   it("reflects the provided filter values", () => {
     renderWithProviders(
-      <SearchBar title="void" author="marchetti" onTitleChange={vi.fn()} onAuthorChange={vi.fn()} />,
+      <SearchBar
+        title="void"
+        author="marchetti"
+        onTitleChange={vi.fn()}
+        onAuthorChange={vi.fn()}
+      />,
     );
 
     expect(screen.getByLabelText("Title")).toHaveValue("void");

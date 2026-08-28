@@ -4,17 +4,13 @@ import Pagination from "./Pagination";
 
 describe("Pagination", () => {
   it("does not render when there is only one page", () => {
-    renderWithProviders(
-      <Pagination currentPage={1} totalPages={1} onPageChange={vi.fn()} />,
-    );
+    renderWithProviders(<Pagination currentPage={1} totalPages={1} onPageChange={vi.fn()} />);
 
     expect(screen.queryByRole("navigation")).not.toBeInTheDocument();
   });
 
   it("renders page numbers and navigation buttons", () => {
-    renderWithProviders(
-      <Pagination currentPage={3} totalPages={5} onPageChange={vi.fn()} />,
-    );
+    renderWithProviders(<Pagination currentPage={3} totalPages={5} onPageChange={vi.fn()} />);
 
     expect(screen.getByRole("navigation", { name: "Pagination" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Previous" })).toBeInTheDocument();
@@ -25,9 +21,7 @@ describe("Pagination", () => {
   });
 
   it("marks the current page with aria-current", () => {
-    renderWithProviders(
-      <Pagination currentPage={3} totalPages={5} onPageChange={vi.fn()} />,
-    );
+    renderWithProviders(<Pagination currentPage={3} totalPages={5} onPageChange={vi.fn()} />);
 
     const current = screen.getByRole("button", { name: "Go to page 3" });
     expect(current).toHaveAttribute("aria-current", "page");
@@ -37,27 +31,21 @@ describe("Pagination", () => {
   });
 
   it("disables the previous button on the first page", () => {
-    renderWithProviders(
-      <Pagination currentPage={1} totalPages={5} onPageChange={vi.fn()} />,
-    );
+    renderWithProviders(<Pagination currentPage={1} totalPages={5} onPageChange={vi.fn()} />);
 
     expect(screen.getByRole("button", { name: "Previous" })).toBeDisabled();
     expect(screen.getByRole("button", { name: "Next" })).toBeEnabled();
   });
 
   it("disables the next button on the last page", () => {
-    renderWithProviders(
-      <Pagination currentPage={5} totalPages={5} onPageChange={vi.fn()} />,
-    );
+    renderWithProviders(<Pagination currentPage={5} totalPages={5} onPageChange={vi.fn()} />);
 
     expect(screen.getByRole("button", { name: "Next" })).toBeDisabled();
     expect(screen.getByRole("button", { name: "Previous" })).toBeEnabled();
   });
 
   it("collapses page ranges with ellipses when there are many pages", () => {
-    renderWithProviders(
-      <Pagination currentPage={5} totalPages={10} onPageChange={vi.fn()} />,
-    );
+    renderWithProviders(<Pagination currentPage={5} totalPages={10} onPageChange={vi.fn()} />);
 
     expect(screen.getByRole("button", { name: "Go to page 1" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Go to page 10" })).toBeInTheDocument();
@@ -67,9 +55,7 @@ describe("Pagination", () => {
 
   it("calls onPageChange with the clicked page number", async () => {
     const onPageChange = vi.fn();
-    renderWithProviders(
-      <Pagination currentPage={1} totalPages={5} onPageChange={onPageChange} />,
-    );
+    renderWithProviders(<Pagination currentPage={1} totalPages={5} onPageChange={onPageChange} />);
 
     await userEvent.click(screen.getByRole("button", { name: "Go to page 4" }));
 
@@ -79,9 +65,7 @@ describe("Pagination", () => {
 
   it("calls onPageChange when navigating to the previous page", async () => {
     const onPageChange = vi.fn();
-    renderWithProviders(
-      <Pagination currentPage={3} totalPages={5} onPageChange={onPageChange} />,
-    );
+    renderWithProviders(<Pagination currentPage={3} totalPages={5} onPageChange={onPageChange} />);
 
     await userEvent.click(screen.getByRole("button", { name: "Previous" }));
 
@@ -90,9 +74,7 @@ describe("Pagination", () => {
 
   it("calls onPageChange when navigating to the next page", async () => {
     const onPageChange = vi.fn();
-    renderWithProviders(
-      <Pagination currentPage={3} totalPages={5} onPageChange={onPageChange} />,
-    );
+    renderWithProviders(<Pagination currentPage={3} totalPages={5} onPageChange={onPageChange} />);
 
     await userEvent.click(screen.getByRole("button", { name: "Next" }));
 
@@ -101,9 +83,7 @@ describe("Pagination", () => {
 
   it("triggers onPageChange when the focused page button is activated with the keyboard", async () => {
     const onPageChange = vi.fn();
-    renderWithProviders(
-      <Pagination currentPage={1} totalPages={5} onPageChange={onPageChange} />,
-    );
+    renderWithProviders(<Pagination currentPage={1} totalPages={5} onPageChange={onPageChange} />);
 
     const pageTwo = screen.getByRole("button", { name: "Go to page 2" });
     pageTwo.focus();
@@ -113,9 +93,7 @@ describe("Pagination", () => {
   });
 
   it("moves focus between controls with the arrow keys", async () => {
-    renderWithProviders(
-      <Pagination currentPage={3} totalPages={5} onPageChange={vi.fn()} />,
-    );
+    renderWithProviders(<Pagination currentPage={3} totalPages={5} onPageChange={vi.fn()} />);
 
     const pageTwo = screen.getByRole("button", { name: "Go to page 2" });
     pageTwo.focus();
@@ -147,11 +125,17 @@ describe("Pagination", () => {
         <Pagination currentPage={2} totalPages={5} onPageChange={onPageChange} />,
       );
 
-      expect(screen.getByRole("button", { name: "Go to page 2" })).toHaveAttribute("aria-current", "page");
+      expect(screen.getByRole("button", { name: "Go to page 2" })).toHaveAttribute(
+        "aria-current",
+        "page",
+      );
 
       rerender(<Pagination currentPage={2} totalPages={3} onPageChange={onPageChange} />);
 
-      expect(screen.getByRole("button", { name: "Go to page 2" })).toHaveAttribute("aria-current", "page");
+      expect(screen.getByRole("button", { name: "Go to page 2" })).toHaveAttribute(
+        "aria-current",
+        "page",
+      );
       expect(screen.getByRole("button", { name: "Next" })).toBeEnabled();
     });
 
@@ -177,7 +161,10 @@ describe("Pagination", () => {
 
       expect(screen.getByRole("button", { name: "Go to page 1" })).toBeInTheDocument();
       expect(screen.getByRole("button", { name: "Go to page 10" })).toBeInTheDocument();
-      expect(screen.getByRole("button", { name: "Go to page 2" })).toHaveAttribute("aria-current", "page");
+      expect(screen.getByRole("button", { name: "Go to page 2" })).toHaveAttribute(
+        "aria-current",
+        "page",
+      );
     });
 
     it("renders correctly when totalPages becomes 1", async () => {

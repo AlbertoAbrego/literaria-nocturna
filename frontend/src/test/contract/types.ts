@@ -1,4 +1,9 @@
-import type { Book, CreateBookInput, UpdateBookInput, PaginatedResponse } from "@/features/books/types";
+import type {
+  Book,
+  CreateBookInput,
+  UpdateBookInput,
+  PaginatedResponse,
+} from "@/features/books/types";
 import type { Genre } from "./openapi-types";
 
 export type { Book, Genre, CreateBookInput, UpdateBookInput, PaginatedResponse };

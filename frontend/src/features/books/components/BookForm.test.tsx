@@ -20,7 +20,8 @@ const EDIT_INITIAL_VALUES = {
   title: "The Whisper of the Void",
   author: "Isabella Marchetti",
   genre: "Horror",
-  synopsis: "A scholar discovers that her university library is cataloging books that should not exist.",
+  synopsis:
+    "A scholar discovers that her university library is cataloging books that should not exist.",
 };
 
 async function fillValidForm() {
@@ -80,10 +81,12 @@ describe("BookForm", () => {
   it("shows a pending state on the submit button while the mutation is in flight", async () => {
     let resolveRequest: (value: HttpResponse<typeof VALID_INPUT>) => void;
     server.use(
-      http.post("/api/books", () =>
-        new Promise<HttpResponse<typeof VALID_INPUT>>((resolve) => {
-          resolveRequest = resolve;
-        }),
+      http.post(
+        "/api/books",
+        () =>
+          new Promise<HttpResponse<typeof VALID_INPUT>>((resolve) => {
+            resolveRequest = resolve;
+          }),
       ),
     );
 
@@ -129,16 +132,16 @@ describe("BookForm", () => {
 
     await user.click(screen.getByRole("button", { name: "Catalog the Book" }));
 
-    expect(
-      await screen.findByText("A book with this title already exists"),
-    ).toBeInTheDocument();
+    expect(await screen.findByText("A book with this title already exists")).toBeInTheDocument();
     expect(screen.getByText("Author is required")).toBeInTheDocument();
     expect(screen.getByLabelText("Title")).toHaveAttribute("aria-invalid", "true");
   });
 
   it("shows form-level API errors through an alert", async () => {
     server.use(
-      http.post("/api/books", () => conflictError("A volume by this name and author already exists.")),
+      http.post("/api/books", () =>
+        conflictError("A volume by this name and author already exists."),
+      ),
     );
 
     renderWithProviders(<BookForm />, { route: "/books/create" });
@@ -153,10 +156,7 @@ describe("BookForm", () => {
   it("renders a back link to the catalog", () => {
     renderWithProviders(<BookForm />, { route: "/books/create" });
 
-    expect(screen.getByRole("link", { name: /Back to catalog/ })).toHaveAttribute(
-      "href",
-      "/books",
-    );
+    expect(screen.getByRole("link", { name: /Back to catalog/ })).toHaveAttribute("href", "/books");
   });
 
   it("exposes accessible form semantics", async () => {
@@ -200,10 +200,12 @@ describe("BookForm in edit mode", () => {
   it("shows a pending state on the submit button while the update is in flight", async () => {
     let resolveRequest: (value: HttpResponse<Book>) => void;
     server.use(
-      http.patch("/api/books/:id", () =>
-        new Promise<HttpResponse<Book>>((resolve) => {
-          resolveRequest = resolve;
-        }),
+      http.patch(
+        "/api/books/:id",
+        () =>
+          new Promise<HttpResponse<Book>>((resolve) => {
+            resolveRequest = resolve;
+          }),
       ),
     );
 
@@ -255,9 +257,7 @@ describe("BookForm in edit mode", () => {
 
     await user.click(screen.getByRole("button", { name: "Update the Book" }));
 
-    expect(
-      await screen.findByText("A book with this title already exists"),
-    ).toBeInTheDocument();
+    expect(await screen.findByText("A book with this title already exists")).toBeInTheDocument();
     expect(screen.getByLabelText("Title")).toHaveAttribute("aria-invalid", "true");
   });
 

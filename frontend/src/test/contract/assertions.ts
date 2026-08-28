@@ -1,7 +1,9 @@
 import type { DefaultBodyType, HttpResponse } from "msw";
 import type { ApiErrorResponse } from "./types";
 
-async function getBody<T extends DefaultBodyType>(response: HttpResponse<T>): Promise<T | undefined> {
+async function getBody<T extends DefaultBodyType>(
+  response: HttpResponse<T>,
+): Promise<T | undefined> {
   if (response.bodyUsed) return undefined;
   try {
     return (await response.clone().json()) as T;
@@ -42,9 +44,7 @@ export async function expectValidationError(
   }
 
   if (body.message !== expectedMessage) {
-    throw new Error(
-      `Expected error message "${expectedMessage}" but received "${body.message}"`,
-    );
+    throw new Error(`Expected error message "${expectedMessage}" but received "${body.message}"`);
   }
 
   if (expectedDetails && JSON.stringify(body.details) !== JSON.stringify(expectedDetails)) {
@@ -72,9 +72,7 @@ export async function expectNotFoundError(
   }
 
   if (body.message !== expectedMessage) {
-    throw new Error(
-      `Expected error message "${expectedMessage}" but received "${body.message}"`,
-    );
+    throw new Error(`Expected error message "${expectedMessage}" but received "${body.message}"`);
   }
 }
 
@@ -96,8 +94,6 @@ export async function expectConflictError(
   }
 
   if (body.message !== expectedMessage) {
-    throw new Error(
-      `Expected error message "${expectedMessage}" but received "${body.message}"`,
-    );
+    throw new Error(`Expected error message "${expectedMessage}" but received "${body.message}"`);
   }
 }

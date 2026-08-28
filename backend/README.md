@@ -23,10 +23,10 @@ Copy `.env.example` to `.env` and configure:
 cp .env.example .env
 ```
 
-| Variable | Required | Default | Description |
-|----------|----------|---------|-------------|
-| `PORT` | No | `3000` | Port the server listens on |
-| `MONGODB_URI` | Yes | — | MongoDB connection string |
+| Variable      | Required | Default | Description                |
+| ------------- | -------- | ------- | -------------------------- |
+| `PORT`        | No       | `3000`  | Port the server listens on |
+| `MONGODB_URI` | Yes      | —       | MongoDB connection string  |
 
 ### Local MongoDB
 
@@ -67,25 +67,25 @@ npm run seed:books
 
 ## API Endpoints
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `GET` | `/api/health` | Health check |
-| `POST` | `/api/books` | Create a book |
-| `GET` | `/api/books` | List books (filters + pagination) |
-| `GET` | `/api/books/:id` | Get book by ID |
-| `PATCH` | `/api/books/:id` | Update a book |
-| `DELETE` | `/api/books/:id` | Delete a book |
-| `GET` | `/api/docs` | Swagger UI |
+| Method   | Endpoint         | Description                       |
+| -------- | ---------------- | --------------------------------- |
+| `GET`    | `/api/health`    | Health check                      |
+| `POST`   | `/api/books`     | Create a book                     |
+| `GET`    | `/api/books`     | List books (filters + pagination) |
+| `GET`    | `/api/books/:id` | Get book by ID                    |
+| `PATCH`  | `/api/books/:id` | Update a book                     |
+| `DELETE` | `/api/books/:id` | Delete a book                     |
+| `GET`    | `/api/docs`      | Swagger UI                        |
 
 ### Query Parameters
 
-| Param | Type | Default | Description |
-|-------|------|---------|-------------|
-| `title` | string | — | Case-insensitive partial match |
-| `author` | string | — | Case-insensitive partial match |
-| `genre` | enum | — | Exact match (Fantasy, Horror, Science Fiction, Thriller, Romance) |
-| `page` | number | `1` | Page number (≥ 1) |
-| `limit` | number | `10` | Items per page (1–100) |
+| Param    | Type   | Default | Description                                                       |
+| -------- | ------ | ------- | ----------------------------------------------------------------- |
+| `title`  | string | —       | Case-insensitive partial match                                    |
+| `author` | string | —       | Case-insensitive partial match                                    |
+| `genre`  | enum   | —       | Exact match (Fantasy, Horror, Science Fiction, Thriller, Romance) |
+| `page`   | number | `1`     | Page number (≥ 1)                                                 |
+| `limit`  | number | `10`    | Items per page (1–100)                                            |
 
 ## Testing
 
