@@ -57,8 +57,10 @@ describe("Validation integration — field-level details", () => {
     });
 
     it("reject invalid genre with details.genre", async () => {
-      const dto = createBookDto({ genre: "Misterio" });
-      const res = await testRequest.post("/api/books").send(dto);
+      const res = await testRequest.post("/api/books").send({
+        ...createBookDto(),
+        genre: "Misterio",
+      });
       expectValidationError(res);
       expect(res.body.details).toEqual({ genre: "Invalid genre" });
     });
@@ -78,8 +80,10 @@ describe("Validation integration — field-level details", () => {
     });
 
     it("reject empty string genre with details.genre", async () => {
-      const dto = createBookDto({ genre: "" });
-      const res = await testRequest.post("/api/books").send(dto);
+      const res = await testRequest.post("/api/books").send({
+        ...createBookDto(),
+        genre: "",
+      });
       expectValidationError(res);
       expect(res.body.details).toEqual({ genre: "genre is required" });
     });
