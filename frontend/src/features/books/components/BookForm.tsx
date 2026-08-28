@@ -40,7 +40,6 @@ function BookForm({ id, initialValues, onCreated, onUpdated }: BookFormProps) {
   }
 
   function handleSuccess() {
-    setValues(initialValues ?? INITIAL_BOOK_FORM_VALUES);
     if (isEditing) {
       onUpdated?.();
     } else {

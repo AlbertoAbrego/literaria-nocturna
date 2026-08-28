@@ -49,7 +49,6 @@ export const errorHandler: ErrorRequestHandler = (err, _req, res, next) => {
     if (err.details) {
       body.details = err.details;
     }
-    // `details` only appears when explicitly attached to the AppError.
 
     return res.status(err.statusCode).json(body);
   }
