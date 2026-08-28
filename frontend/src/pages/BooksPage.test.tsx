@@ -418,7 +418,7 @@ describe("BooksPage", () => {
       const allBooks = [
         ...createBookList(2),
         ...createBookList(2),
-        { _id: "id-5", title: "Page Three Book", author: "Author Five", genre: "Horror", synopsis: "Synopsis", createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(), __v: 0 },
+        { _id: "id-5", title: "Page Three Book", author: "Author Five", genre: "Horror", synopsis: "Synopsis", createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
       ];
       server.use(
         http.get("/api/books", ({ request }) => {
@@ -459,7 +459,7 @@ describe("BooksPage", () => {
     });
 
     it("full delete flow with page adjustment: delete only item on page 1 adjusts to page 1", async () => {
-      const testBooks = [{ _id: "test-id-1", title: "Only Book", author: "Test Author", genre: "Horror", synopsis: "Synopsis", createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(), __v: 0 }];
+      const testBooks = [{ _id: "test-id-1", title: "Only Book", author: "Test Author", genre: "Horror", synopsis: "Synopsis", createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() }];
       server.use(
         http.get("/api/books", ({ request }) => {
           const url = new URL(request.url);
@@ -493,11 +493,11 @@ describe("BooksPage", () => {
 
     it("delete with filters active maintains correct counts", async () => {
       const filteredBooks = [
-        { _id: "id-1", title: "Whisper Book One", author: "Author One", genre: "Horror", synopsis: "Synopsis 1", createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(), __v: 0 },
-        { _id: "id-2", title: "Whisper Book Two", author: "Author Two", genre: "Horror", synopsis: "Synopsis 2", createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(), __v: 0 },
-        { _id: "id-3", title: "Whisper Book Three", author: "Author Three", genre: "Horror", synopsis: "Synopsis 3", createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(), __v: 0 },
-        { _id: "id-4", title: "Whisper Book Four", author: "Author Four", genre: "Horror", synopsis: "Synopsis 4", createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(), __v: 0 },
-        { _id: "id-5", title: "Whisper Book Five", author: "Author Five", genre: "Horror", synopsis: "Synopsis 5", createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(), __v: 0 },
+        { _id: "id-1", title: "Whisper Book One", author: "Author One", genre: "Horror", synopsis: "Synopsis 1", createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+        { _id: "id-2", title: "Whisper Book Two", author: "Author Two", genre: "Horror", synopsis: "Synopsis 2", createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+        { _id: "id-3", title: "Whisper Book Three", author: "Author Three", genre: "Horror", synopsis: "Synopsis 3", createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+        { _id: "id-4", title: "Whisper Book Four", author: "Author Four", genre: "Horror", synopsis: "Synopsis 4", createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+        { _id: "id-5", title: "Whisper Book Five", author: "Author Five", genre: "Horror", synopsis: "Synopsis 5", createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
       ];
       server.use(
         http.get("/api/books", ({ request }) => {

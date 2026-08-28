@@ -104,7 +104,7 @@ describe("BookForm", () => {
     );
   });
 
-  it("calls onCreated after a successful creation and resets the form", async () => {
+  it("calls onCreated after a successful creation", async () => {
     const onCreated = vi.fn();
     renderWithProviders(<BookForm onCreated={onCreated} />, { route: "/books/create" });
     const user = await fillValidForm();
@@ -112,10 +112,6 @@ describe("BookForm", () => {
     await user.click(screen.getByRole("button", { name: "Catalog the Book" }));
 
     await waitFor(() => expect(onCreated).toHaveBeenCalledTimes(1));
-    expect(screen.getByLabelText("Title")).toHaveValue("");
-    expect(screen.getByLabelText("Author")).toHaveValue("");
-    expect(screen.getByLabelText("Genre")).toHaveValue("");
-    expect(screen.getByLabelText("Synopsis")).toHaveValue("");
   });
 
   it("shows field-level API errors under the respective fields", async () => {

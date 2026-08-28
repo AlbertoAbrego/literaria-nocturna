@@ -85,7 +85,7 @@ describe("useCreateBook", () => {
     });
 
     act(() => {
-      result.current.mutate({ title: "", author: "", genre: "", synopsis: "" });
+      result.current.mutate({ title: "", author: "", genre: "", synopsis: "" } as unknown as CreateBookInput);
     });
 
     await waitFor(() => expect(result.current.isError).toBe(true));

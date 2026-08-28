@@ -2,10 +2,10 @@
     "name": "backend",
     "version": "1.0.0",
     "description": "",
-    "main": "index.js",
+    "main": "dist/server.js",
     "scripts": {
         "dev": "tsx watch src/server.ts",
-        "build": "tsc",
+        "build": "tsc -p tsconfig.build.json",
         "start": "node dist/server.js",
         "lint": "eslint .",
         "format": "prettier . --write",

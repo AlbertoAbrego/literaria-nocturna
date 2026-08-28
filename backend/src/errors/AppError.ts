@@ -21,7 +21,6 @@ export function deriveCodeFromStatus(statusCode: number): ErrorCode {
 
 export class AppError extends Error {
   public readonly statusCode: number;
-  // `readonly` prevents the status from being mutated after construction.
   public readonly code: ErrorCode;
   public readonly details?: Record<string, string>;
   // `details` is optional and only populated when field-level validation messages exist.
