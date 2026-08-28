@@ -42,7 +42,9 @@ describe("useBook", () => {
   it("separates cache entries by book id", async () => {
     const queryClient = createTestQueryClient();
 
-    const first = renderHook(() => useBook(SEED_ID), { wrapper: createQueryClientWrapper(queryClient) });
+    const first = renderHook(() => useBook(SEED_ID), {
+      wrapper: createQueryClientWrapper(queryClient),
+    });
     await waitFor(() => expect(first.result.current.data).toBeDefined());
 
     const second = renderHook(() => useBook("64f1c2e5a1b2c3d4e5f6a002"), {

@@ -1,10 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import * as BookService from "../services/book.service";
-import {
-  BookQueryDto,
-  DEFAULT_LIMIT,
-  DEFAULT_PAGE,
-} from "../dto/book/book-query.dto";
+import { BookQueryDto, DEFAULT_LIMIT, DEFAULT_PAGE } from "../dto/book/book-query.dto";
 import { CreateBookDto } from "../dto/book/create-book.dto";
 import { UpdateBookDto } from "../dto/book/update-book.dto";
 import { AppError, ErrorCodes } from "../errors/AppError";
@@ -171,11 +167,7 @@ type GetBookParams = {
  *       "500":
  *         $ref: "#/components/responses/InternalError"
  */
-export async function getBookById(
-  req: Request<GetBookParams>,
-  res: Response,
-  next: NextFunction,
-) {
+export async function getBookById(req: Request<GetBookParams>, res: Response, next: NextFunction) {
   const { id } = req.params;
   if (!mongoose.Types.ObjectId.isValid(id)) {
     return next(new AppError("Invalid ID", 400, ErrorCodes.VALIDATION_ERROR));

@@ -1,15 +1,11 @@
 {
-    "extends": "./tsconfig.json",
+  "extends": "./tsconfig.json",
 
-    "compilerOptions": {
-        "declaration": true,
-        "declarationMap": true,
-        "sourceMap": true
-    },
+  "compilerOptions": {
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true
+  },
 
-    "exclude": [
-        "**/*.test.ts",
-        "src/test/**",
-        "src/scripts/**"
-    ]
+  "exclude": ["**/*.test.ts", "src/test/**", "src/scripts/**"]
 }

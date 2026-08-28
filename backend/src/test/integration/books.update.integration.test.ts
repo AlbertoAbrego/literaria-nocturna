@@ -47,9 +47,7 @@ describe("PATCH /api/books/:id", () => {
   it("TC-H6-004: reject an invalid genre with 400 Bad Request", async () => {
     const [book] = await seedBooks([createBookModel()]);
 
-    const res = await testRequest
-      .patch(`/api/books/${book._id}`)
-      .send({ genre: "Misterio" });
+    const res = await testRequest.patch(`/api/books/${book._id}`).send({ genre: "Misterio" });
 
     expectValidationError(res);
   });
@@ -76,8 +74,12 @@ describe("PATCH /api/books/:id", () => {
   });
 
   it("TC-H6-007: reject a duplicate title + author with 409 Conflict", async () => {
-    const [bookA] = await seedBooks([createBookModel({ title: "Unique Title", author: "Unique Author" })]);
-    const [bookB] = await seedBooks([createBookModel({ title: "Different Title", author: "Different Author" })]);
+    const [bookA] = await seedBooks([
+      createBookModel({ title: "Unique Title", author: "Unique Author" }),
+    ]);
+    const [bookB] = await seedBooks([
+      createBookModel({ title: "Different Title", author: "Different Author" }),
+    ]);
 
     const res = await testRequest
       .patch(`/api/books/${bookB._id}`)

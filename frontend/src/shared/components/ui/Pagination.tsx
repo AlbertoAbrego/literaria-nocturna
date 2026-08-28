@@ -56,9 +56,7 @@ function Pagination({ currentPage, totalPages, onPageChange, isLoading = false }
     if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
     const current = event.target as HTMLElement;
     if (current.tagName !== "BUTTON") return;
-    const buttons = Array.from(
-      navRef.current?.querySelectorAll<HTMLButtonElement>("button") ?? [],
-    );
+    const buttons = Array.from(navRef.current?.querySelectorAll<HTMLButtonElement>("button") ?? []);
     const index = buttons.indexOf(current as HTMLButtonElement);
     const nextIndex = event.key === "ArrowRight" ? index + 1 : index - 1;
     if (nextIndex >= 0 && nextIndex < buttons.length) {
@@ -85,11 +83,7 @@ function Pagination({ currentPage, totalPages, onPageChange, isLoading = false }
 
       {items.map((item, index) =>
         item === "ellipsis" ? (
-          <span
-            key={`ellipsis-${index}`}
-            aria-hidden="true"
-            className="px-1 text-sm text-ash"
-          >
+          <span key={`ellipsis-${index}`} aria-hidden="true" className="px-1 text-sm text-ash">
             …
           </span>
         ) : (

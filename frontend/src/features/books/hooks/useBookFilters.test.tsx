@@ -23,8 +23,16 @@ function FilterHarness() {
       <span data-testid="page">{filters.page}</span>
       <span data-testid="query-params">{JSON.stringify(filters.queryParams)}</span>
       <span data-testid="is-filtered">{String(filters.isFiltered)}</span>
-      <input data-testid="title-input" value={filters.title} onChange={(e) => filters.setTitle(e.target.value)} />
-      <input data-testid="author-input" value={filters.author} onChange={(e) => filters.setAuthor(e.target.value)} />
+      <input
+        data-testid="title-input"
+        value={filters.title}
+        onChange={(e) => filters.setTitle(e.target.value)}
+      />
+      <input
+        data-testid="author-input"
+        value={filters.author}
+        onChange={(e) => filters.setAuthor(e.target.value)}
+      />
       <button onClick={() => filters.setTitle("void")}>search-void</button>
       <button onClick={() => filters.setAuthor("marchetti")}>author-marchetti</button>
       <button onClick={() => filters.setGenre("Horror")}>genre-horror</button>
@@ -125,9 +133,7 @@ describe("useBookFilters", () => {
     renderWithProviders(<FilterHarness />, { route: "/books" });
 
     expect(screen.getByTestId("page")).toHaveTextContent("1");
-    expect(screen.getByTestId("query-params")).toHaveTextContent(
-      JSON.stringify({}),
-    );
+    expect(screen.getByTestId("query-params")).toHaveTextContent(JSON.stringify({}));
   });
 
   it("updates the URL immediately when the page changes", async () => {
@@ -137,9 +143,7 @@ describe("useBookFilters", () => {
 
     await waitFor(() => expect(screen.getByTestId("search")).toHaveTextContent("?page=3"));
     expect(screen.getByTestId("page")).toHaveTextContent("3");
-    expect(screen.getByTestId("query-params")).toHaveTextContent(
-      JSON.stringify({ page: 3 }),
-    );
+    expect(screen.getByTestId("query-params")).toHaveTextContent(JSON.stringify({ page: 3 }));
   });
 
   it("resets the page to 1 when a search filter is applied", async () => {
@@ -158,7 +162,9 @@ describe("useBookFilters", () => {
 
 describe("searchFilters utils", () => {
   it("parses URL params into search filters", () => {
-    expect(parseSearchFilters(new URLSearchParams("title=void&author=marchetti&genre=Horror"))).toEqual({
+    expect(
+      parseSearchFilters(new URLSearchParams("title=void&author=marchetti&genre=Horror")),
+    ).toEqual({
       title: "void",
       author: "marchetti",
       genre: "Horror",
@@ -254,7 +260,10 @@ describe("search special characters in filters", () => {
   it("special characters in title search don't break requests", async () => {
     renderWithProviders(<FilterHarness />, { route: "/books" });
 
-    await userEvent.type(screen.getByTestId("title-input") ?? screen.getByRole("textbox", { name: /title/i }), "Test.Book");
+    await userEvent.type(
+      screen.getByTestId("title-input") ?? screen.getByRole("textbox", { name: /title/i }),
+      "Test.Book",
+    );
 
     await waitFor(() => {
       expect(screen.getByTestId("search")).toHaveTextContent("title=Test.Book");
@@ -264,7 +273,10 @@ describe("search special characters in filters", () => {
   it("special characters in author search don't break requests", async () => {
     renderWithProviders(<FilterHarness />, { route: "/books" });
 
-    await userEvent.type(screen.getByTestId("author-input") ?? screen.getByRole("textbox", { name: /author/i }), "Author-One");
+    await userEvent.type(
+      screen.getByTestId("author-input") ?? screen.getByRole("textbox", { name: /author/i }),
+      "Author-One",
+    );
 
     await waitFor(() => {
       expect(screen.getByTestId("search")).toHaveTextContent("author=Author-One");

@@ -7,7 +7,11 @@ import { useBooks } from "@/features/books/hooks/useBooks";
 import { useCreateBook } from "@/features/books/hooks/useCreateBook";
 import { server } from "@/test/server";
 import { internalError } from "@/test/handlers/errors";
-import { createBookFormData, type Book, type CreateBookInput } from "@/test/utils/factories/book.factory";
+import {
+  createBookFormData,
+  type Book,
+  type CreateBookInput,
+} from "@/test/utils/factories/book.factory";
 import { createTestQueryClient } from "@/test/utils/query-client";
 import { createQueryClientWrapper } from "@/test/utils/render";
 
@@ -53,10 +57,12 @@ describe("useCreateBook", () => {
   it("reports the pending state while the mutation is in flight", async () => {
     let resolveRequest: (value: HttpResponse<CreateBookInput>) => void;
     server.use(
-      http.post("/api/books", () =>
-        new Promise<HttpResponse<CreateBookInput>>((resolve) => {
-          resolveRequest = resolve;
-        }),
+      http.post(
+        "/api/books",
+        () =>
+          new Promise<HttpResponse<CreateBookInput>>((resolve) => {
+            resolveRequest = resolve;
+          }),
       ),
     );
 
@@ -85,7 +91,12 @@ describe("useCreateBook", () => {
     });
 
     act(() => {
-      result.current.mutate({ title: "", author: "", genre: "", synopsis: "" } as unknown as CreateBookInput);
+      result.current.mutate({
+        title: "",
+        author: "",
+        genre: "",
+        synopsis: "",
+      } as unknown as CreateBookInput);
     });
 
     await waitFor(() => expect(result.current.isError).toBe(true));
@@ -220,12 +231,16 @@ describe("useCreateBook", () => {
       });
 
       await act(async () => {
-        result.current.mutate(createBookFormData({ title: "Duplicate Title", author: "Duplicate Author" }));
+        result.current.mutate(
+          createBookFormData({ title: "Duplicate Title", author: "Duplicate Author" }),
+        );
       });
       await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
       await act(async () => {
-        result.current.mutate(createBookFormData({ title: "Duplicate Title", author: "Duplicate Author" }));
+        result.current.mutate(
+          createBookFormData({ title: "Duplicate Title", author: "Duplicate Author" }),
+        );
       });
       await waitFor(() => expect(result.current.isError).toBe(true));
       expect(result.current.error).toBeInstanceOf(ApiError);

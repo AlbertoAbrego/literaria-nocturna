@@ -7,11 +7,7 @@ import { ApiError } from "@/shared/api/errors";
 import { http as apiHttp } from "@/shared/api/http";
 import { server } from "@/test/server";
 import { internalError } from "@/test/handlers/errors";
-import {
-  createBook,
-  updateBookFormData,
-  type Book,
-} from "@/test/utils/factories/book.factory";
+import { createBook, updateBookFormData, type Book } from "@/test/utils/factories/book.factory";
 import { createTestQueryClient } from "@/test/utils/query-client";
 import { createQueryClientWrapper } from "@/test/utils/render";
 
@@ -55,10 +51,12 @@ describe("useUpdateBook", () => {
   it("reports the pending state while the mutation is in flight", async () => {
     let resolveRequest: (value: HttpResponse<Book>) => void;
     server.use(
-      http.patch("/api/books/:id", () =>
-        new Promise<HttpResponse<Book>>((resolve) => {
-          resolveRequest = resolve;
-        }),
+      http.patch(
+        "/api/books/:id",
+        () =>
+          new Promise<HttpResponse<Book>>((resolve) => {
+            resolveRequest = resolve;
+          }),
       ),
     );
 

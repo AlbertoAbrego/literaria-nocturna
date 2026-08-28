@@ -19,7 +19,10 @@ type BookListResponse = {
   pagination: { page: number; limit: number; total: number; totalPages: number };
 };
 
-function getCachedList(queryClient: ReturnType<typeof createTestQueryClient>, queryKey?: unknown[]) {
+function getCachedList(
+  queryClient: ReturnType<typeof createTestQueryClient>,
+  queryKey?: unknown[],
+) {
   const key = queryKey ?? ["books", undefined];
   return queryClient.getQueryData<BookListResponse>(key);
 }
@@ -59,10 +62,12 @@ describe("useDeleteBook", () => {
   it("reports the pending state while the mutation is in flight", async () => {
     let resolveRequest: (value: HttpResponse<null>) => void;
     server.use(
-      http.delete("/api/books/:id", () =>
-        new Promise<HttpResponse<null>>((resolve) => {
-          resolveRequest = resolve;
-        }),
+      http.delete(
+        "/api/books/:id",
+        () =>
+          new Promise<HttpResponse<null>>((resolve) => {
+            resolveRequest = resolve;
+          }),
       ),
     );
 

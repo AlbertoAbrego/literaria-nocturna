@@ -100,7 +100,13 @@ function BookForm({ id, initialValues, onCreated, onUpdated }: BookFormProps) {
           />
         </FormField>
 
-        <FormField id="author" label="Author" error={fieldErrors.author} required disabled={isPending}>
+        <FormField
+          id="author"
+          label="Author"
+          error={fieldErrors.author}
+          required
+          disabled={isPending}
+        >
           <Input
             name="author"
             value={values.author}
@@ -123,7 +129,13 @@ function BookForm({ id, initialValues, onCreated, onUpdated }: BookFormProps) {
           </Select>
         </FormField>
 
-        <FormField id="synopsis" label="Synopsis" error={fieldErrors.synopsis} required disabled={isPending}>
+        <FormField
+          id="synopsis"
+          label="Synopsis"
+          error={fieldErrors.synopsis}
+          required
+          disabled={isPending}
+        >
           <Textarea
             name="synopsis"
             rows={5}

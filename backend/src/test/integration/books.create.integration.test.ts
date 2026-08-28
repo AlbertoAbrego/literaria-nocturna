@@ -36,7 +36,9 @@ describe("POST /api/books", () => {
     it("TC-H5-001: same title with different author succeeds", async () => {
       await seedBooks([createBookModel({ title: "Same Title", author: "Author One" })]);
 
-      const res = await testRequest.post("/api/books").send(createBookDto({ title: "Same Title", author: "Author Two" }));
+      const res = await testRequest
+        .post("/api/books")
+        .send(createBookDto({ title: "Same Title", author: "Author Two" }));
 
       expect(res.status).toBe(201);
       expect(res.body.title).toBe("Same Title");
@@ -46,7 +48,9 @@ describe("POST /api/books", () => {
     it("TC-H5-002: same author with different title succeeds", async () => {
       await seedBooks([createBookModel({ title: "Title One", author: "Same Author" })]);
 
-      const res = await testRequest.post("/api/books").send(createBookDto({ title: "Title Two", author: "Same Author" }));
+      const res = await testRequest
+        .post("/api/books")
+        .send(createBookDto({ title: "Title Two", author: "Same Author" }));
 
       expect(res.status).toBe(201);
       expect(res.body.title).toBe("Title Two");
@@ -56,7 +60,9 @@ describe("POST /api/books", () => {
     it("TC-H5-003: duplicate title + author returns 409 CONFLICT", async () => {
       await seedBooks([createBookModel({ title: "Duplicate Title", author: "Duplicate Author" })]);
 
-      const res = await testRequest.post("/api/books").send(createBookDto({ title: "Duplicate Title", author: "Duplicate Author" }));
+      const res = await testRequest
+        .post("/api/books")
+        .send(createBookDto({ title: "Duplicate Title", author: "Duplicate Author" }));
 
       expectConflictError(res);
     });

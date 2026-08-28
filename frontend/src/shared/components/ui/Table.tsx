@@ -1,14 +1,6 @@
-import type {
-  HTMLAttributes,
-  PropsWithChildren,
-  TdHTMLAttributes,
-  ThHTMLAttributes,
-} from "react";
+import type { HTMLAttributes, PropsWithChildren, TdHTMLAttributes, ThHTMLAttributes } from "react";
 
-export function Table({
-  children,
-  ...props
-}: PropsWithChildren<HTMLAttributes<HTMLTableElement>>) {
+export function Table({ children, ...props }: PropsWithChildren<HTMLAttributes<HTMLTableElement>>) {
   return (
     <div className="overflow-hidden rounded-card border border-parchment/8 bg-charcoal">
       <div className="overflow-x-auto">

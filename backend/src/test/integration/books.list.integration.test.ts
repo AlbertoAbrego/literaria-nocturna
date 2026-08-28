@@ -117,21 +117,7 @@ describe("GET /api/books", () => {
   });
 
   describe("search special characters", () => {
-    const specialChars = [
-      ".",
-      "-",
-      "?",
-      "(",
-      ")",
-      "[",
-      "]",
-      "{",
-      "}",
-      "|",
-      "^",
-      "$",
-      "\\",
-    ];
+    const specialChars = [".", "-", "?", "(", ")", "[", "]", "{", "}", "|", "^", "$", "\\"];
 
     beforeEach(async () => {
       await seedBooks([
@@ -165,7 +151,9 @@ describe("GET /api/books", () => {
 
       expect(res.status).toBe(200);
       expect(res.body.data.length).toBeGreaterThan(0);
-      expect(res.body.data.some((b: { title: string }) => b.title.toLowerCase().includes("test"))).toBe(true);
+      expect(
+        res.body.data.some((b: { title: string }) => b.title.toLowerCase().includes("test")),
+      ).toBe(true);
     });
 
     it("TC-H8-011: normal text searches work correctly", async () => {
@@ -205,7 +193,9 @@ describe("GET /api/books", () => {
         createBookModel({ title: "C", author: "Author Two" }),
       ]);
 
-      const res = await testRequest.get("/api/books").query({ author: "Author One", page: 1, limit: 2 });
+      const res = await testRequest
+        .get("/api/books")
+        .query({ author: "Author One", page: 1, limit: 2 });
 
       expect(res.status).toBe(200);
       expect(res.body.pagination).toEqual({
@@ -261,7 +251,9 @@ describe("GET /api/books", () => {
         createBookModel({ title: "B", genre: "Horror" }),
       ]);
 
-      const res = await testRequest.get("/api/books").query({ genre: "Horror", page: 10, limit: 2 });
+      const res = await testRequest
+        .get("/api/books")
+        .query({ genre: "Horror", page: 10, limit: 2 });
 
       expect(res.status).toBe(200);
       expect(res.body.data).toEqual([]);
@@ -321,10 +313,7 @@ describe("GET /api/books", () => {
     });
 
     it("TC-H9-004: retrieve an empty page beyond the total number of pages", async () => {
-      await seedBooks([
-        createBookModel({ title: "A" }),
-        createBookModel({ title: "B" }),
-      ]);
+      await seedBooks([createBookModel({ title: "A" }), createBookModel({ title: "B" })]);
 
       const res = await testRequest.get("/api/books").query({ page: 10, limit: 2 });
 

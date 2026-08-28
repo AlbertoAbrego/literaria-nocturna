@@ -21,7 +21,10 @@ describe("BookDetails", () => {
   });
 
   it("renders the cataloged and updated timestamps", () => {
-    const book = createBook({ createdAt: "2024-01-05T10:00:00.000Z", updatedAt: "2024-02-10T10:00:00.000Z" });
+    const book = createBook({
+      createdAt: "2024-01-05T10:00:00.000Z",
+      updatedAt: "2024-02-10T10:00:00.000Z",
+    });
 
     renderWithProviders(<BookDetails book={book} />, { route: "/books" });
 
@@ -36,7 +39,10 @@ describe("BookDetails", () => {
 
     renderWithProviders(<BookDetails book={book} />, { route: "/books" });
 
-    expect(screen.getByRole("link", { name: /back to catalog/i })).toHaveAttribute("href", "/books");
+    expect(screen.getByRole("link", { name: /back to catalog/i })).toHaveAttribute(
+      "href",
+      "/books",
+    );
   });
 
   it("provides a link to edit the volume", () => {
@@ -80,6 +86,9 @@ describe("BookDetailsNotFound", () => {
   it("provides a link back to the book list", () => {
     renderWithProviders(<BookDetailsNotFound />, { route: "/books" });
 
-    expect(screen.getByRole("link", { name: /back to the catalog/i })).toHaveAttribute("href", "/books");
+    expect(screen.getByRole("link", { name: /back to the catalog/i })).toHaveAttribute(
+      "href",
+      "/books",
+    );
   });
 });

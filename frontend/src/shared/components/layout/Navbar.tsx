@@ -8,7 +8,9 @@ function Navbar() {
           to="/"
           end
           className={({ isActive }) =>
-            isActive ? "font-medium text-parchment" : "text-ash transition-colors duration-200 hover:text-fog"
+            isActive
+              ? "font-medium text-parchment"
+              : "text-ash transition-colors duration-200 hover:text-fog"
           }
         >
           Home
@@ -16,7 +18,9 @@ function Navbar() {
         <NavLink
           to="/books"
           className={({ isActive }) =>
-            isActive ? "font-medium text-parchment" : "text-ash transition-colors duration-200 hover:text-fog"
+            isActive
+              ? "font-medium text-parchment"
+              : "text-ash transition-colors duration-200 hover:text-fog"
           }
         >
           Books

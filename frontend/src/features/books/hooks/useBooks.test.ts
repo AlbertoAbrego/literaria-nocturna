@@ -30,7 +30,12 @@ describe("useBooks", () => {
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
-    expect(result.current.data?.pagination).toEqual({ page: 1, limit: 10, total: 5, totalPages: 1 });
+    expect(result.current.data?.pagination).toEqual({
+      page: 1,
+      limit: 10,
+      total: 5,
+      totalPages: 1,
+    });
     expect(result.current.data?.data).toHaveLength(5);
     expect(result.current.data?.data[0].title).toBe("Atlas of Forgotten Stars");
   });
@@ -63,10 +68,12 @@ describe("useBooks", () => {
     expect(filtered.result.current.data?.data).toHaveLength(1);
     expect(filtered.result.current.data?.data[0].title).toBe("The Whisper of the Void");
 
-    expect(queryClient.getQueryData<PaginatedResponse<Book>>(["books", undefined])?.data).toHaveLength(5);
-    expect(queryClient.getQueryData<PaginatedResponse<Book>>(["books", { title: "whisper" }])?.data).toHaveLength(
-      1,
-    );
+    expect(
+      queryClient.getQueryData<PaginatedResponse<Book>>(["books", undefined])?.data,
+    ).toHaveLength(5);
+    expect(
+      queryClient.getQueryData<PaginatedResponse<Book>>(["books", { title: "whisper" }])?.data,
+    ).toHaveLength(1);
   });
 
   it("sends the page as a query parameter and separates cache entries by page", async () => {
@@ -95,7 +102,11 @@ describe("useBooks", () => {
 
     expect(pageOne.result.current.data?.data).toHaveLength(2);
     expect(pageTwo.result.current.data?.data).toHaveLength(1);
-    expect(queryClient.getQueryData<PaginatedResponse<Book>>(["books", { page: 1 }])?.data).toHaveLength(2);
-    expect(queryClient.getQueryData<PaginatedResponse<Book>>(["books", { page: 2 }])?.data).toHaveLength(1);
+    expect(
+      queryClient.getQueryData<PaginatedResponse<Book>>(["books", { page: 1 }])?.data,
+    ).toHaveLength(2);
+    expect(
+      queryClient.getQueryData<PaginatedResponse<Book>>(["books", { page: 2 }])?.data,
+    ).toHaveLength(1);
   });
 });

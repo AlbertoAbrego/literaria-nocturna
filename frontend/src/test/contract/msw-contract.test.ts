@@ -137,7 +137,12 @@ describe("MSW contract verification", () => {
         await http.get("/books", { params: { genre: "InvalidGenre" } });
         expect.fail("Should have thrown");
       } catch (error: unknown) {
-        const apiError = error as { status: number; message: string; code: string; details?: Record<string, string> };
+        const apiError = error as {
+          status: number;
+          message: string;
+          code: string;
+          details?: Record<string, string>;
+        };
         expect(apiError.status).toBe(400);
         expect(apiError.code).toBe("VALIDATION_ERROR");
         expect(apiError.message).toBe("Validation failed");
@@ -150,7 +155,12 @@ describe("MSW contract verification", () => {
         await http.get("/books", { params: { page: 0 } });
         expect.fail("Should have thrown");
       } catch (error: unknown) {
-        const apiError = error as { status: number; message: string; code: string; details?: Record<string, string> };
+        const apiError = error as {
+          status: number;
+          message: string;
+          code: string;
+          details?: Record<string, string>;
+        };
         expect(apiError.status).toBe(400);
         expect(apiError.code).toBe("VALIDATION_ERROR");
         expect(apiError.message).toBe("Validation failed");
@@ -163,7 +173,12 @@ describe("MSW contract verification", () => {
         await http.get("/books", { params: { page: -1 } });
         expect.fail("Should have thrown");
       } catch (error: unknown) {
-        const apiError = error as { status: number; message: string; code: string; details?: Record<string, string> };
+        const apiError = error as {
+          status: number;
+          message: string;
+          code: string;
+          details?: Record<string, string>;
+        };
         expect(apiError.status).toBe(400);
         expect(apiError.code).toBe("VALIDATION_ERROR");
         expect(apiError.message).toBe("Validation failed");
@@ -176,7 +191,12 @@ describe("MSW contract verification", () => {
         await http.get("/books", { params: { limit: 101 } });
         expect.fail("Should have thrown");
       } catch (error: unknown) {
-        const apiError = error as { status: number; message: string; code: string; details?: Record<string, string> };
+        const apiError = error as {
+          status: number;
+          message: string;
+          code: string;
+          details?: Record<string, string>;
+        };
         expect(apiError.status).toBe(400);
         expect(apiError.code).toBe("VALIDATION_ERROR");
         expect(apiError.message).toBe("Validation failed");
@@ -189,7 +209,12 @@ describe("MSW contract verification", () => {
         await http.get("/books", { params: { limit: 0 } });
         expect.fail("Should have thrown");
       } catch (error: unknown) {
-        const apiError = error as { status: number; message: string; code: string; details?: Record<string, string> };
+        const apiError = error as {
+          status: number;
+          message: string;
+          code: string;
+          details?: Record<string, string>;
+        };
         expect(apiError.status).toBe(400);
         expect(apiError.code).toBe("VALIDATION_ERROR");
         expect(apiError.message).toBe("Validation failed");

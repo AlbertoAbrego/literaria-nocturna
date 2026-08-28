@@ -14,9 +14,8 @@ export function useDeleteBook() {
         queryKey: ["books"],
       });
 
-      queryClient.setQueriesData<PaginatedResponse<Book>>(
-        { queryKey: ["books"] },
-        (current) => removeBookFromList(current, id),
+      queryClient.setQueriesData<PaginatedResponse<Book>>({ queryKey: ["books"] }, (current) =>
+        removeBookFromList(current, id),
       );
 
       return { previousLists };

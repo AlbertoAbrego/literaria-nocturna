@@ -47,7 +47,15 @@ describe("Swagger contract verification", () => {
       const schemas = (spec.components as Record<string, Record<string, unknown>>).schemas;
       const bookSchema = schemas.Book as Record<string, unknown>;
       expect(bookSchema.required).toEqual(
-        expect.arrayContaining(["_id", "title", "author", "genre", "synopsis", "createdAt", "updatedAt"]),
+        expect.arrayContaining([
+          "_id",
+          "title",
+          "author",
+          "genre",
+          "synopsis",
+          "createdAt",
+          "updatedAt",
+        ]),
       );
     });
 

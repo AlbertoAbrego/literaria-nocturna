@@ -79,6 +79,7 @@ Tailwind CSS v4 with design tokens wired as theme utilities.
 - **No hardcoded colors**: Components must use token utilities, not hex values or default Tailwind palette
 
 Design tokens and component specs are documented in:
+
 - [Design System](../docs/design/design-system.md) — Colors, typography, spacing, shadows, motion
 - [UI Components](../docs/design/ui-components.md) — Component variants and specs
 
@@ -87,18 +88,18 @@ Design tokens and component specs are documented in:
 Use `@/` for imports instead of relative paths:
 
 ```ts
-import { BookTable } from '@/features/books/components';
-import { Button } from '@/shared/components/ui';
-import { useBooks } from '@/features/books/hooks';
+import { BookTable } from "@/features/books/components";
+import { Button } from "@/shared/components/ui";
+import { useBooks } from "@/features/books/hooks";
 ```
 
 Configured in `tsconfig.json` and `vite.config.ts`.
 
 ## Environment Variables
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `VITE_API_URL` | `/api` | Base URL of the backend API |
+| Variable       | Default | Description                 |
+| -------------- | ------- | --------------------------- |
+| `VITE_API_URL` | `/api`  | Base URL of the backend API |
 
 ### How the API URL Works
 
@@ -117,20 +118,20 @@ VITE_API_URL=https://api.example.com/api
 
 ## Commands
 
-| Command | Description |
-|---------|-------------|
-| `npm run dev` | Start Vite dev server with HMR |
-| `npm run build` | Build for production (`tsc -b && vite build`) |
-| `npm run preview` | Preview production build locally |
-| `npm run test` | Run Vitest in watch mode |
-| `npm run test:run` | Run tests once |
-| `npm run test:ui` | Open Vitest UI dashboard |
-| `npm run test:coverage` | Run tests with coverage |
-| `npm run contract:extract` | Generate contract types from OpenAPI spec |
-| `npm run contract:verify` | Verify MSW handlers match OpenAPI spec |
-| `npm run contract:check` | Extract + verify contract |
-| `npm run lint` | ESLint check |
-| `npm run format` | Prettier format |
+| Command                    | Description                                   |
+| -------------------------- | --------------------------------------------- |
+| `npm run dev`              | Start Vite dev server with HMR                |
+| `npm run build`            | Build for production (`tsc -b && vite build`) |
+| `npm run preview`          | Preview production build locally              |
+| `npm run test`             | Run Vitest in watch mode                      |
+| `npm run test:run`         | Run tests once                                |
+| `npm run test:ui`          | Open Vitest UI dashboard                      |
+| `npm run test:coverage`    | Run tests with coverage                       |
+| `npm run contract:extract` | Generate contract types from OpenAPI spec     |
+| `npm run contract:verify`  | Verify MSW handlers match OpenAPI spec        |
+| `npm run contract:check`   | Extract + verify contract                     |
+| `npm run lint`             | ESLint check                                  |
+| `npm run format`           | Prettier format                               |
 
 ## Testing
 
@@ -138,12 +139,12 @@ Vitest + React Testing Library + MSW (Mock Service Worker). All API calls are mo
 
 ### Test Types
 
-| Type | Pattern | What It Tests |
-|------|---------|---------------|
-| **Component** | `*.test.tsx` | Rendering, user interactions, conditional UI, accessibility |
-| **Hook** | `*.test.ts` | Queries, mutations, loading/error states, derived state |
-| **Integration** | `*.test.tsx` | Full page rendering, routing, API interactions, cache invalidation |
-| **Contract** | `msw-contract.test.ts` | MSW handlers match OpenAPI spec (status codes, shapes, errors) |
+| Type            | Pattern                | What It Tests                                                      |
+| --------------- | ---------------------- | ------------------------------------------------------------------ |
+| **Component**   | `*.test.tsx`           | Rendering, user interactions, conditional UI, accessibility        |
+| **Hook**        | `*.test.ts`            | Queries, mutations, loading/error states, derived state            |
+| **Integration** | `*.test.tsx`           | Full page rendering, routing, API interactions, cache invalidation |
+| **Contract**    | `msw-contract.test.ts` | MSW handlers match OpenAPI spec (status codes, shapes, errors)     |
 
 ### Contract-Driven MSW
 
@@ -156,6 +157,7 @@ npm run contract:check     # Extract + verify (run in CI)
 ```
 
 **Flow:**
+
 1. `scripts/contract/openapi.json` — Static OpenAPI spec derived from backend Swagger config
 2. `contract:extract` generates `src/test/contract/openapi-types.ts` and `endpoints.ts`
 3. MSW handlers import validators from `contract/validators.ts` and error messages from `contract/error-messages.ts`
@@ -196,18 +198,20 @@ src/test/
 ### Test Examples
 
 **Component test:**
+
 ```tsx
-import { renderWithProviders, screen, userEvent } from '@/test/utils';
+import { renderWithProviders, screen, userEvent } from "@/test/utils";
 
 const view = renderWithProviders(<BookTable books={books} />);
-expect(screen.getByRole('table')).toBeInTheDocument();
+expect(screen.getByRole("table")).toBeInTheDocument();
 ```
 
 **Hook test:**
+
 ```ts
-import { renderHook, waitFor } from '@testing-library/react';
-import { createTestQueryClient } from '@/test/utils';
-import { useBooks } from '@/features/books/hooks';
+import { renderHook, waitFor } from "@testing-library/react";
+import { createTestQueryClient } from "@/test/utils";
+import { useBooks } from "@/features/books/hooks";
 
 const { result } = renderHook(() => useBooks({ page: 1 }), {
   wrapper: createQueryClientWrapper(createTestQueryClient()),
@@ -218,18 +222,18 @@ expect(result.current.data).toHaveLength(10);
 ```
 
 **Integration test:**
-```tsx
-import { renderWithProviders, screen, waitFor } from '@/test/utils';
-import { createMemoryRouter } from 'react-router';
-import { BooksPage } from '@/pages/BooksPage';
 
-const router = createMemoryRouter(
-  [{ path: '/', element: <BooksPage /> }],
-  { initialEntries: ['/'] }
-);
+```tsx
+import { renderWithProviders, screen, waitFor } from "@/test/utils";
+import { createMemoryRouter } from "react-router";
+import { BooksPage } from "@/pages/BooksPage";
+
+const router = createMemoryRouter([{ path: "/", element: <BooksPage /> }], {
+  initialEntries: ["/"],
+});
 
 renderWithProviders(<RouterProvider router={router} />);
-await waitFor(() => expect(screen.getByRole('table')).toBeInTheDocument());
+await waitFor(() => expect(screen.getByRole("table")).toBeInTheDocument());
 ```
 
 ## Development Workflow

@@ -13,20 +13,30 @@ async function openModal() {
 
 describe("DeleteBookButton", () => {
   it("renders a delete button with an accessible label", () => {
-    renderWithProviders(<DeleteBookButton bookId={SEED_BOOK_ID} bookTitle="The Whisper of the Void" />);
+    renderWithProviders(
+      <DeleteBookButton bookId={SEED_BOOK_ID} bookTitle="The Whisper of the Void" />,
+    );
 
-    expect(screen.getByRole("button", { name: "Delete The Whisper of the Void" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Delete The Whisper of the Void" }),
+    ).toBeInTheDocument();
   });
 
   it("opens the confirmation modal on click", async () => {
-    renderWithProviders(<DeleteBookButton bookId={SEED_BOOK_ID} bookTitle="The Whisper of the Void" />);
+    renderWithProviders(
+      <DeleteBookButton bookId={SEED_BOOK_ID} bookTitle="The Whisper of the Void" />,
+    );
     await openModal();
 
-    expect(screen.getByRole("dialog", { name: 'Delete "The Whisper of the Void"?' })).toBeInTheDocument();
+    expect(
+      screen.getByRole("dialog", { name: 'Delete "The Whisper of the Void"?' }),
+    ).toBeInTheDocument();
   });
 
   it("closes the modal when cancelled without deleting", async () => {
-    renderWithProviders(<DeleteBookButton bookId={SEED_BOOK_ID} bookTitle="The Whisper of the Void" />);
+    renderWithProviders(
+      <DeleteBookButton bookId={SEED_BOOK_ID} bookTitle="The Whisper of the Void" />,
+    );
     await openModal();
 
     await userEvent.click(screen.getByRole("button", { name: "Cancel" }));
@@ -35,7 +45,9 @@ describe("DeleteBookButton", () => {
   });
 
   it("closes the modal when the backdrop is clicked", async () => {
-    renderWithProviders(<DeleteBookButton bookId={SEED_BOOK_ID} bookTitle="The Whisper of the Void" />);
+    renderWithProviders(
+      <DeleteBookButton bookId={SEED_BOOK_ID} bookTitle="The Whisper of the Void" />,
+    );
     await openModal();
 
     await userEvent.click(screen.getByTestId("modal-overlay"));
@@ -44,7 +56,9 @@ describe("DeleteBookButton", () => {
   });
 
   it("closes the modal when Escape is pressed", async () => {
-    renderWithProviders(<DeleteBookButton bookId={SEED_BOOK_ID} bookTitle="The Whisper of the Void" />);
+    renderWithProviders(
+      <DeleteBookButton bookId={SEED_BOOK_ID} bookTitle="The Whisper of the Void" />,
+    );
     await openModal();
 
     await userEvent.keyboard("{Escape}");
@@ -53,7 +67,9 @@ describe("DeleteBookButton", () => {
   });
 
   it("restores focus to the trigger button after the modal closes", async () => {
-    renderWithProviders(<DeleteBookButton bookId={SEED_BOOK_ID} bookTitle="The Whisper of the Void" />);
+    renderWithProviders(
+      <DeleteBookButton bookId={SEED_BOOK_ID} bookTitle="The Whisper of the Void" />,
+    );
     const trigger = screen.getByRole("button", { name: "Delete The Whisper of the Void" });
 
     await userEvent.click(trigger);
@@ -70,7 +86,9 @@ describe("DeleteBookButton", () => {
   });
 
   it("deletes the book when the user confirms and closes the modal", async () => {
-    renderWithProviders(<DeleteBookButton bookId={SEED_BOOK_ID} bookTitle="The Whisper of the Void" />);
+    renderWithProviders(
+      <DeleteBookButton bookId={SEED_BOOK_ID} bookTitle="The Whisper of the Void" />,
+    );
     await openModal();
 
     await userEvent.click(screen.getByRole("button", { name: "Delete" }));
@@ -81,14 +99,18 @@ describe("DeleteBookButton", () => {
   it("disables the action buttons and shows a pending label during deletion", async () => {
     let resolveRequest: (value: HttpResponse<null>) => void;
     server.use(
-      http.delete("/api/books/:id", () =>
-        new Promise<HttpResponse<null>>((resolve) => {
-          resolveRequest = resolve;
-        }),
+      http.delete(
+        "/api/books/:id",
+        () =>
+          new Promise<HttpResponse<null>>((resolve) => {
+            resolveRequest = resolve;
+          }),
       ),
     );
 
-    renderWithProviders(<DeleteBookButton bookId={SEED_BOOK_ID} bookTitle="The Whisper of the Void" />);
+    renderWithProviders(
+      <DeleteBookButton bookId={SEED_BOOK_ID} bookTitle="The Whisper of the Void" />,
+    );
     await openModal();
 
     await userEvent.click(screen.getByRole("button", { name: "Delete" }));
@@ -108,7 +130,9 @@ describe("DeleteBookButton", () => {
     vi.spyOn(console, "error").mockImplementation(() => {});
     server.use(http.delete("/api/books/:id", () => internalError()));
 
-    renderWithProviders(<DeleteBookButton bookId={SEED_BOOK_ID} bookTitle="The Whisper of the Void" />);
+    renderWithProviders(
+      <DeleteBookButton bookId={SEED_BOOK_ID} bookTitle="The Whisper of the Void" />,
+    );
     await openModal();
 
     await userEvent.click(screen.getByRole("button", { name: "Delete" }));
@@ -118,7 +142,9 @@ describe("DeleteBookButton", () => {
   });
 
   it("shows a not-found message when the book is already gone", async () => {
-    renderWithProviders(<DeleteBookButton bookId="64f1c2e5a1b2c3d4e5f6a999" bookTitle="The Lost Volume" />);
+    renderWithProviders(
+      <DeleteBookButton bookId="64f1c2e5a1b2c3d4e5f6a999" bookTitle="The Lost Volume" />,
+    );
     await userEvent.click(screen.getByRole("button", { name: "Delete The Lost Volume" }));
     await userEvent.click(screen.getByRole("button", { name: "Delete" }));
 
