@@ -10,13 +10,13 @@ The backend is a TypeScript/Express application using MongoDB (via Mongoose) as 
 
 | Category       | Technology                                                |
 | -------------- | --------------------------------------------------------- |
-| Runtime        | Node.js (ES2022)                                          |
-| Language       | TypeScript (strict mode, NodeNext modules)                |
+| Runtime        | Node.js 22 (ES2022)                                       |
+| Language       | TypeScript 6 (strict mode, NodeNext modules)              |
 | Framework      | Express 5                                                 |
 | Database       | MongoDB                                                   |
-| ODM            | Mongoose 8                                                |
-| Testing        | Jest 29, ts-jest, supertest, mongodb-memory-server        |
-| Linting        | ESLint 9 + typescript-eslint + eslint-config-prettier     |
+| ODM            | Mongoose 9                                                |
+| Testing        | Jest 30, ts-jest, supertest, mongodb-memory-server        |
+| Linting        | ESLint 10 + typescript-eslint + eslint-config-prettier    |
 | Formatting     | Prettier                                                  |
 | Validation     | Manual in controllers + Mongoose schema validation        |
 | Error Handling | Custom `AppError` class + global Express error middleware |
@@ -354,7 +354,8 @@ npm run test:ci       # CI mode: --ci --coverage --maxWorkers=2
 
 - Triggers: push, pull_request to `main`, workflow_dispatch
 - Path filters: `frontend/**`, workflow file
-- Pipeline: checkout → setup-node (Node.js 22, npm cache) → install → lint → build → `test:run`
+- Pipeline: checkout → setup-node (Node.js 22, npm cache) → install → lint → `contract:check` → build → `test:run`
+- `contract:check` extracts OpenAPI types/endpoints and verifies MSW handlers match
 - `test:run` runs `vitest run` (non-watch mode)
 - Uses MSW for API mocking; no external services required
 
@@ -386,32 +387,57 @@ Both pipelines use consistent Node.js 22, npm caching, and fail PRs on test/lint
 
 ## Current Project State
 
-### Implemented (Stories 1–21)
+### Implemented (Stories 1–25)
 
-- Project setup (TS, Express, ESLint, Prettier, Jest, MongoDB)
-- Health endpoint (`GET /api/health`, `GET /`)
-- Book CRUD:
-  - `POST /api/books` — create (201), duplicate check (409), validation (400)
-  - `GET /api/books` — list with filters (genre, author, title) + pagination
-  - `GET /api/books/:id` — get by ID (404 if not found, 400 if invalid ID)
-  - `PATCH /api/books/:id` — partial update (400 empty body, 409 duplicate, 404 not found)
-  - `DELETE /api/books/:id` — delete (204, 404 not found)
-- Global error handling with `AppError` and middleware
-- Integration test suite with full isolation
-- Story 10 — API standardization and documentation:
-  - Standardized error response format (`message`, `code`, optional `details`) via `ErrorCodes`/`AppError`
+- **Story 1** — Project setup (TS, Express, ESLint, Prettier, Jest, MongoDB)
+- **Story 2** — Book creation (`POST /api/books`, 201, duplicate check 409, validation 400)
+- **Story 3** — Error handling (`AppError` class, global error middleware)
+- **Story 4** — Book listing (`GET /api/books`, filters: genre/author/title, pagination)
+- **Story 5** — Book by ID (`GET /api/books/:id`, 404/400 handling)
+- **Story 5.5** — Testing foundation (integration test infrastructure, helpers, factories)
+- **Story 6** — Book update (`PATCH /api/books/:id`, partial update, 400/409/404)
+- **Story 7** — Book deletion (`DELETE /api/books/:id`, 204, 404)
+- **Story 8** — Search and filter (case-insensitive partial matching, genre exact match)
+- **Story 9** — Pagination (configurable page/limit, metadata: total, totalPages)
+- **Story 10** — API standardization and documentation:
+  - Standardized error response format (`message`, `code`, optional `details`)
   - Field-level Mongoose validation details for 400 responses
   - Logging cleanup (only 5xx logged)
-  - OpenAPI/Swagger documentation (`GET /api/docs`, `/api/docs/swagger.json`)
-  - Tests updated for `code` field + Swagger integration tests
-- Story 21 — CI/CD standardization and frontend test integration:
+  - OpenAPI/Swagger documentation (`/api/docs`, `/api/docs/swagger.json`)
+- **Story 11** — CI/CD with GitHub Actions (backend pipeline)
+- **Story 12** — Frontend foundation (React, TypeScript, Vite, routing, TanStack Query)
+- **Story 12.5** — Frontend testing foundation (Vitest, React Testing Library, MSW)
+- **Story 13** — Books list page (BookTable, SearchBar, PaginationControls)
+- **Story 14** — Book details page (BookCard, not-found state, navigation)
+- **Story 15** — Create book form (BookForm, validation, optimistic UI)
+- **Story 16** — Update book form (edit mode, partial update, cache sync)
+- **Story 17** — Delete book (confirmation modal, cache-syncing mutation)
+- **Story 18** — Search and filter (URL-synchronized filter state, useBookFilters)
+- **Story 19** — Pagination (PaginationControls, page size, URL sync)
+- **Story 20** — Local dev environment standardization
+- **Story 21** — CI/CD standardization and frontend test integration:
   - Frontend CI runs complete Vitest suite (`test:run`) on every PR
   - Backend CI uses `test:ci` script (`jest --ci --coverage --maxWorkers=2`)
   - Both pipelines use Node.js 22 with npm caching
   - Workflow dispatch enabled for manual triggering
+- **Story 22** — MSW & API contract synchronization:
+  - Contract-driven MSW handlers (`src/test/contract/`)
+  - Automated extraction from OpenAPI spec (`contract:extract`)
+  - Contract verification (`contract:verify`, `contract:check`)
+  - 32 contract verification tests (`msw-contract.test.ts`)
+- **Story 23** — Pagination, search & data integrity fixes
+- **Story 24** — API contract, validation & Swagger hardening
+  - Runtime DTO validation for CreateBookDto, UpdateBookDto, BookQueryDto
+  - Consistent error format across all validation layers
+- **Story 25** — Build, types & repository hygiene
 
-### Planned (Story 22+)
+### Current (Story 26)
 
+- Documentation & project context consolidation
+
+### Planned (Story 27+)
+
+- Story 27 — Security, health coverage & final hardening
 - Members module
 - Readings module
 
