@@ -1,10 +1,9 @@
-import { createBrowserRouter } from "react-router";
+import { createBrowserRouter, Navigate } from "react-router";
 import AppLayout from "@/shared/components/layout/AppLayout";
 import BooksPage from "@/pages/BooksPage";
 import BookDetailsPage from "@/pages/BookDetailsPage";
 import CreateBookPage from "@/pages/CreateBookPage";
 import EditBookPage from "@/pages/EditBookPage";
-import HomePage from "@/pages/HomePage";
 
 const router = createBrowserRouter([
   {
@@ -13,7 +12,7 @@ const router = createBrowserRouter([
     children: [
       {
         index: true,
-        element: <HomePage />,
+        element: <Navigate to="/books" replace />,
       },
       {
         path: "books",
