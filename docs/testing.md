@@ -196,7 +196,7 @@ The `test:ci` script (`jest --ci --coverage --maxWorkers=2`) is the CI entry poi
 
 - `--ci` fails if there are modified snapshots that need updating.
 - `mongodb-memory-server` requires no external services, so the pipeline only needs to install dependencies and run `npm run test:ci`.
-- No coverage threshold is configured yet; `coverageThreshold` can be added to `jest.config.ts` once there is a defined goal.
+- Coverage thresholds are configured in `jest.config.ts` (global: statements ≥80%, branches ≥75%, functions ≥75%, lines ≥80%). CI fails if thresholds are not met.
 
 ---
 

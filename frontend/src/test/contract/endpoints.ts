@@ -3,7 +3,7 @@
 
 export interface EndpointParameter {
   name: string;
-  in: "path" | "query";
+  in: 'path' | 'query';
   required?: boolean;
   schema: { type: string; minimum?: number; maximum?: number; enum?: string[] };
 }
@@ -23,57 +23,57 @@ export const ENDPOINTS: EndpointDefinition[] = [
     path: "/books",
     summary: "List books with optional filters and pagination",
     parameters: [
-      {
-        name: "genre",
-        in: "query",
-        schema: {
-          type: "string",
-        },
-      },
-      {
-        name: "author",
-        in: "query",
-        schema: {
-          type: "string",
-        },
-      },
-      {
-        name: "title",
-        in: "query",
-        schema: {
-          type: "string",
-        },
-      },
-      {
-        name: "page",
-        in: "query",
-        schema: {
-          type: "integer",
-          minimum: 1,
-        },
-      },
-      {
-        name: "limit",
-        in: "query",
-        schema: {
-          type: "integer",
-          minimum: 1,
-          maximum: 100,
-        },
-      },
+          {
+                "name": "genre",
+                "in": "query",
+                "schema": {
+                      "type": "string"
+                }
+          },
+          {
+                "name": "author",
+                "in": "query",
+                "schema": {
+                      "type": "string"
+                }
+          },
+          {
+                "name": "title",
+                "in": "query",
+                "schema": {
+                      "type": "string"
+                }
+          },
+          {
+                "name": "page",
+                "in": "query",
+                "schema": {
+                      "type": "integer",
+                      "minimum": 1
+                }
+          },
+          {
+                "name": "limit",
+                "in": "query",
+                "schema": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 100
+                }
+          }
     ],
     responses: {
-      "200": {
-        description: "Paginated list of books",
-      },
-      "400": {
-        description: "Validation failed",
-        ref: "#/components/responses/ValidationError",
-      },
-      "500": {
-        description: "Unexpected server error",
-        ref: "#/components/responses/InternalError",
-      },
+          "200": {
+                "description": "Paginated list of books"
+          },
+          "400": {
+                "description": "Validation failed",
+                "ref": "#/components/responses/ValidationError"
+          },
+          "500": {
+                "description": "Unexpected server error",
+                "ref": "#/components/responses/InternalError"
+          }
     },
   },
   {
@@ -81,23 +81,23 @@ export const ENDPOINTS: EndpointDefinition[] = [
     path: "/books",
     summary: "Create a new book",
     parameters: [],
-    requestBody: { required: true, ref: "#/components/schemas/CreateBookDto" },
+    requestBody: {"required":true,"ref":"#/components/schemas/CreateBookDto"},
     responses: {
-      "201": {
-        description: "Book created successfully",
-      },
-      "400": {
-        description: "Validation failed",
-        ref: "#/components/responses/ValidationError",
-      },
-      "409": {
-        description: "Conflict with existing resource",
-        ref: "#/components/responses/ConflictError",
-      },
-      "500": {
-        description: "Unexpected server error",
-        ref: "#/components/responses/InternalError",
-      },
+          "201": {
+                "description": "Book created successfully"
+          },
+          "400": {
+                "description": "Validation failed",
+                "ref": "#/components/responses/ValidationError"
+          },
+          "409": {
+                "description": "Conflict with existing resource",
+                "ref": "#/components/responses/ConflictError"
+          },
+          "500": {
+                "description": "Unexpected server error",
+                "ref": "#/components/responses/InternalError"
+          }
     },
   },
   {
@@ -105,31 +105,31 @@ export const ENDPOINTS: EndpointDefinition[] = [
     path: "/books/{id}",
     summary: "Get a book by id",
     parameters: [
-      {
-        name: "id",
-        in: "path",
-        required: true,
-        schema: {
-          type: "string",
-        },
-      },
+          {
+                "name": "id",
+                "in": "path",
+                "required": true,
+                "schema": {
+                      "type": "string"
+                }
+          }
     ],
     responses: {
-      "200": {
-        description: "Book found",
-      },
-      "400": {
-        description: "Validation failed",
-        ref: "#/components/responses/ValidationError",
-      },
-      "404": {
-        description: "Resource not found",
-        ref: "#/components/responses/NotFoundError",
-      },
-      "500": {
-        description: "Unexpected server error",
-        ref: "#/components/responses/InternalError",
-      },
+          "200": {
+                "description": "Book found"
+          },
+          "400": {
+                "description": "Validation failed",
+                "ref": "#/components/responses/ValidationError"
+          },
+          "404": {
+                "description": "Resource not found",
+                "ref": "#/components/responses/NotFoundError"
+          },
+          "500": {
+                "description": "Unexpected server error",
+                "ref": "#/components/responses/InternalError"
+          }
     },
   },
   {
@@ -137,36 +137,36 @@ export const ENDPOINTS: EndpointDefinition[] = [
     path: "/books/{id}",
     summary: "Partially update a book",
     parameters: [
-      {
-        name: "id",
-        in: "path",
-        required: true,
-        schema: {
-          type: "string",
-        },
-      },
+          {
+                "name": "id",
+                "in": "path",
+                "required": true,
+                "schema": {
+                      "type": "string"
+                }
+          }
     ],
-    requestBody: { required: true, ref: "#/components/schemas/UpdateBookDto" },
+    requestBody: {"required":true,"ref":"#/components/schemas/UpdateBookDto"},
     responses: {
-      "200": {
-        description: "Book updated successfully",
-      },
-      "400": {
-        description: "Validation failed",
-        ref: "#/components/responses/ValidationError",
-      },
-      "404": {
-        description: "Resource not found",
-        ref: "#/components/responses/NotFoundError",
-      },
-      "409": {
-        description: "Conflict with existing resource",
-        ref: "#/components/responses/ConflictError",
-      },
-      "500": {
-        description: "Unexpected server error",
-        ref: "#/components/responses/InternalError",
-      },
+          "200": {
+                "description": "Book updated successfully"
+          },
+          "400": {
+                "description": "Validation failed",
+                "ref": "#/components/responses/ValidationError"
+          },
+          "404": {
+                "description": "Resource not found",
+                "ref": "#/components/responses/NotFoundError"
+          },
+          "409": {
+                "description": "Conflict with existing resource",
+                "ref": "#/components/responses/ConflictError"
+          },
+          "500": {
+                "description": "Unexpected server error",
+                "ref": "#/components/responses/InternalError"
+          }
     },
   },
   {
@@ -174,31 +174,31 @@ export const ENDPOINTS: EndpointDefinition[] = [
     path: "/books/{id}",
     summary: "Delete a book",
     parameters: [
-      {
-        name: "id",
-        in: "path",
-        required: true,
-        schema: {
-          type: "string",
-        },
-      },
+          {
+                "name": "id",
+                "in": "path",
+                "required": true,
+                "schema": {
+                      "type": "string"
+                }
+          }
     ],
     responses: {
-      "204": {
-        description: "Book deleted successfully",
-      },
-      "400": {
-        description: "Validation failed",
-        ref: "#/components/responses/ValidationError",
-      },
-      "404": {
-        description: "Resource not found",
-        ref: "#/components/responses/NotFoundError",
-      },
-      "500": {
-        description: "Unexpected server error",
-        ref: "#/components/responses/InternalError",
-      },
+          "204": {
+                "description": "Book deleted successfully"
+          },
+          "400": {
+                "description": "Validation failed",
+                "ref": "#/components/responses/ValidationError"
+          },
+          "404": {
+                "description": "Resource not found",
+                "ref": "#/components/responses/NotFoundError"
+          },
+          "500": {
+                "description": "Unexpected server error",
+                "ref": "#/components/responses/InternalError"
+          }
     },
   },
 ];

@@ -348,18 +348,20 @@ npm run test:ci       # CI mode: --ci --coverage --maxWorkers=2
 - Path filters: `backend/**`, workflow file
 - Pipeline: checkout → setup-node (Node.js 22, npm cache) → install → lint → build → `test:ci`
 - `test:ci` runs `jest --ci --coverage --maxWorkers=2`
+- Coverage thresholds: statements ≥80%, branches ≥75%, functions ≥75%, lines ≥80%
 - `mongodb-memory-server` requires no external services; first run downloads the `mongod` binary
 
 **Frontend** (`.github/workflows/frontend-ci.yml`):
 
 - Triggers: push, pull_request to `main`, workflow_dispatch
 - Path filters: `frontend/**`, workflow file
-- Pipeline: checkout → setup-node (Node.js 22, npm cache) → install → lint → `contract:check` → build → `test:run`
+- Pipeline: checkout → setup-node (Node.js 22, npm cache) → install → lint → `contract:check` → build → `test:coverage`
 - `contract:check` extracts OpenAPI types/endpoints and verifies MSW handlers match
-- `test:run` runs `vitest run` (non-watch mode)
+- `test:coverage` runs `vitest run --coverage` with threshold enforcement
+- Coverage thresholds: statements ≥90%, branches ≥85%, functions ≥90%, lines ≥90%
 - Uses MSW for API mocking; no external services required
 
-Both pipelines use consistent Node.js 22, npm caching, and fail PRs on test/lint/build errors. No coverage thresholds configured yet.
+Both pipelines use consistent Node.js 22, npm caching, and fail PRs on test/lint/build errors.
 
 ## Git Workflow
 
@@ -387,7 +389,7 @@ Both pipelines use consistent Node.js 22, npm caching, and fail PRs on test/lint
 
 ## Current Project State
 
-### Implemented (Stories 1–25)
+### Implemented (Stories 1–26)
 
 - **Story 1** — Project setup (TS, Express, ESLint, Prettier, Jest, MongoDB)
 - **Story 2** — Book creation (`POST /api/books`, 201, duplicate check 409, validation 400)
@@ -430,14 +432,22 @@ Both pipelines use consistent Node.js 22, npm caching, and fail PRs on test/lint
   - Runtime DTO validation for CreateBookDto, UpdateBookDto, BookQueryDto
   - Consistent error format across all validation layers
 - **Story 25** — Build, types & repository hygiene
+- **Story 26** — Documentation & project context consolidation
 
-### Current (Story 26)
+### Current (Story 27)
 
-- Documentation & project context consolidation
+- Security, health coverage & final hardening:
+  - Security middleware: Helmet, CORS allowlist, rate limiting, body size limits
+  - Health endpoints: `/api/health` (liveness), `/api/health/ready` (readiness with DB check)
+  - Version sourced from `package.json` (no hardcoded version)
+  - Coverage thresholds enforced: backend ≥80/75/75/80, frontend ≥90/85/90/90
+  - Example tests excluded from suite
+  - Frontend CI runs `test:coverage` with threshold enforcement
+  - Test layer strategy documented (4 layers: backend integration, frontend unit/component, frontend integration+MSW, Playwright E2E)
 
-### Planned (Story 27+)
+### Planned
 
-- Story 27 — Security, health coverage & final hardening
+- Playwright E2E implementation
 - Members module
 - Readings module
 
