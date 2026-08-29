@@ -1,7 +1,9 @@
 {
-  "name": "backend",
+  "name": "literaria-nocturna-backend",
   "version": "1.0.0",
-  "description": "",
+  "description": "REST API for managing a book club — Books CRUD with search, filtering, and pagination",
+  "author": "AlbertoAbrego",
+  "license": "MIT",
   "main": "dist/server.js",
   "scripts": {
     "dev": "tsx watch src/server.ts",
@@ -15,14 +17,14 @@
     "test:ci": "jest --ci --coverage --maxWorkers=2",
     "seed:books": "tsx src/scripts/seed-books.ts"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "keywords": ["book-club", "rest-api", "express", "mongodb"],
   "type": "commonjs",
   "dependencies": {
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
+    "express-rate-limit": "^8.7.0",
+    "helmet": "^8.3.0",
     "mongoose": "^9.7.4",
     "swagger-jsdoc": "^6.3.0",
     "swagger-ui-express": "^5.0.1"

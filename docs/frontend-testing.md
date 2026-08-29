@@ -23,8 +23,8 @@ Reference implementations for every pattern described below are in
 | ----------------------- | ------------------------------------------ |
 | `npm run test`          | Watch mode                                 |
 | `npm run test:ui`       | Vitest UI dashboard                        |
-| `npm run test:run`      | Run once (CI)                              |
-| `npm run test:coverage` | Run once with v8 coverage report           |
+| `npm run test:run`      | Run once without coverage                  |
+| `npm run test:coverage` | Run once with v8 coverage + thresholds (CI) |
 | `npm run contract:check`   | Extract + verify MSW against OpenAPI spec |
 | `npm run contract:extract` | Regenerate contract types/endpoints       |
 | `npm run contract:verify`  | Verify handlers match OpenAPI contract    |

@@ -31,17 +31,12 @@
 | 23 | Pagination, search & data integrity fixes |
 | 24 | API contract, validation & Swagger hardening |
 | 25 | Build, types & repository hygiene |
-
-## Current
-
-| Story | Name |
-|-------|------|
 | 26 | Documentation & project context consolidation |
+| 27 | Security, health coverage & final hardening |
 
 ## Upcoming
 
 | Story | Name |
 |-------|------|
-| 27 | Security, health coverage & final hardening |
 | 28 | Members module (planned) |
 | 29 | Readings module (planned) |
