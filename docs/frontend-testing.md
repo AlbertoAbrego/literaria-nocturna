@@ -19,15 +19,15 @@ Reference implementations for every pattern described below are in
 
 ## Test Scripts
 
-| Script                  | Purpose                                    |
-| ----------------------- | ------------------------------------------ |
-| `npm run test`          | Watch mode                                 |
-| `npm run test:ui`       | Vitest UI dashboard                        |
-| `npm run test:run`      | Run once without coverage                  |
-| `npm run test:coverage` | Run once with v8 coverage + thresholds (CI) |
-| `npm run contract:check`   | Extract + verify MSW against OpenAPI spec |
-| `npm run contract:extract` | Regenerate contract types/endpoints       |
-| `npm run contract:verify`  | Verify handlers match OpenAPI contract    |
+| Script                     | Purpose                                     |
+| -------------------------- | ------------------------------------------- |
+| `npm run test`             | Watch mode                                  |
+| `npm run test:ui`          | Vitest UI dashboard                         |
+| `npm run test:run`         | Run once without coverage                   |
+| `npm run test:coverage`    | Run once with v8 coverage + thresholds (CI) |
+| `npm run contract:check`   | Extract + verify MSW against OpenAPI spec   |
+| `npm run contract:extract` | Regenerate contract types/endpoints         |
+| `npm run contract:verify`  | Verify handlers match OpenAPI contract      |
 
 ---
 
@@ -95,10 +95,12 @@ server.use(http.get("/api/books", () => internalError()));
 ```ts
 let resolveRequest: (value: HttpResponse<CreateBookInput>) => void;
 server.use(
-  http.post("/api/books", () =>
-    new Promise<HttpResponse<CreateBookInput>>((resolve) => {
-      resolveRequest = resolve;
-    }),
+  http.post(
+    "/api/books",
+    () =>
+      new Promise<HttpResponse<CreateBookInput>>((resolve) => {
+        resolveRequest = resolve;
+      }),
   ),
 );
 // trigger the mutation/query...
@@ -108,9 +110,9 @@ await act(async () => {
 });
 ```
 
-  Note that MSW v2's `HttpResponse` is generic (`HttpResponse<BodyType>` with
-  no default), so referencing the response type explicitly requires the body
-  type argument.
+Note that MSW v2's `HttpResponse` is generic (`HttpResponse<BodyType>` with
+no default), so referencing the response type explicitly requires the body
+type argument.
 
 - Error responses follow the backend standardized format
   (`{ message, code, details }`), produced by helpers in `handlers/errors.ts`:
@@ -214,9 +216,9 @@ types and mock data. The factory types are the same ones used by the MSW
 handlers, so contracts cannot drift:
 
 ```ts
-createBook({ genre: "Horror" });       // single book, unique id and title
-createBookList(5);                     // array of 5 distinct books
-createBookFormData({ title: "..." });  // create-request body
+createBook({ genre: "Horror" }); // single book, unique id and title
+createBookList(5); // array of 5 distinct books
+createBookFormData({ title: "..." }); // create-request body
 ```
 
 ### Testing Focus-Managed Overlays (Modal)

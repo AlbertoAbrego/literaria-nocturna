@@ -9,7 +9,10 @@ const OPENAPI_PATH = resolve(__dirname, "openapi.json");
 
 interface OpenAPISpec {
   servers?: Array<{ url: string }>;
-  paths: Record<string, Record<string, { summary: string; responses: Record<string, unknown> }>>;
+  paths: Record<
+    string,
+    Record<string, { summary: string; responses: Record<string, unknown> }>
+  >;
 }
 
 interface EndpointInfo {
@@ -31,7 +34,10 @@ function getExpectedEndpoints(spec: OpenAPISpec): EndpointInfo[] {
         method: method.toUpperCase(),
         path: fullPath,
         summary: definition.summary,
-        responses: definition.responses as Record<string, { description: string; ref?: string }>,
+        responses: definition.responses as Record<
+          string,
+          { description: string; ref?: string }
+        >,
       });
     }
   }

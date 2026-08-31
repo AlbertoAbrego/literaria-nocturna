@@ -10,11 +10,11 @@ This document covers both backend and frontend testing strategies. See [tests.md
 
 **Integration tests only** — the real Express app is exercised against a real in-memory MongoDB.
 
-| Tool | Purpose |
-|------|---------|
-| `supertest` | Sends HTTP requests to the app (no port opened) |
-| `mongodb-memory-server` | Spawns isolated `mongod` per test run |
-| Jest | Test runner, assertions, lifecycle hooks |
+| Tool                    | Purpose                                         |
+| ----------------------- | ----------------------------------------------- |
+| `supertest`             | Sends HTTP requests to the app (no port opened) |
+| `mongodb-memory-server` | Spawns isolated `mongod` per test run           |
+| Jest                    | Test runner, assertions, lifecycle hooks        |
 
 **Trade-off accepted**: Slower than unit tests, but they verify the full Route → Controller → Service → Model contract.
 
@@ -72,16 +72,16 @@ src/test/
 
 ## Helpers
 
-| Helper | Usage |
-|--------|-------|
-| `testRequest` | `testRequest.get("/api/books")` — Supertest client with the configured app |
-| `clearDatabase()` | Empties `BookModel` |
-| `seedBooks([...])` | Inserts books and returns the created documents (with `_id`) |
-| `createBookDto(overrides?)` | Valid payload for `POST /api/books` with real defaults |
-| `createBookModel(overrides?)` | Complete `Book` document (with `createdAt`/`updatedAt`) |
-| `expectValidationError(res)` | Asserts 400 + `{ message: "Validation failed", code: "VALIDATION_ERROR" }` |
-| `expectConflictError(res)` | Asserts 409 + `{ message: "Book already exists.", code: "CONFLICT" }` |
-| `expectNotFoundError(res)` | Asserts 404 + `{ message: "Book not found", code: "NOT_FOUND" }` |
+| Helper                        | Usage                                                                      |
+| ----------------------------- | -------------------------------------------------------------------------- |
+| `testRequest`                 | `testRequest.get("/api/books")` — Supertest client with the configured app |
+| `clearDatabase()`             | Empties `BookModel`                                                        |
+| `seedBooks([...])`            | Inserts books and returns the created documents (with `_id`)               |
+| `createBookDto(overrides?)`   | Valid payload for `POST /api/books` with real defaults                     |
+| `createBookModel(overrides?)` | Complete `Book` document (with `createdAt`/`updatedAt`)                    |
+| `expectValidationError(res)`  | Asserts 400 + `{ message: "Validation failed", code: "VALIDATION_ERROR" }` |
+| `expectConflictError(res)`    | Asserts 409 + `{ message: "Book already exists.", code: "CONFLICT" }`      |
+| `expectNotFoundError(res)`    | Asserts 404 + `{ message: "Book not found", code: "NOT_FOUND" }`           |
 
 The error assertion helpers assert both the HTTP status and the standardized error body using `toMatchObject`, so they are safe to use across the whole API as long as the standardized `code` format is respected.
 
@@ -98,6 +98,7 @@ The error assertion helpers assert both the HTTP status and the standardized err
 ## Test Patterns
 
 ### Basic CRUD Test
+
 ```typescript
 it("TC-H2-001: create a valid book and respond with status 201 Created", async () => {
   const res = await testRequest.post("/api/books").send(createBookDto());
@@ -109,11 +110,15 @@ it("TC-H2-001: create a valid book and respond with status 201 Created", async (
 ```
 
 ### Filter Test
+
 ```typescript
 it("TC-H8-002: filter by author with partial and case-insensitive match", async () => {
   await seedBooks([
     createBookModel({ title: "Dune", author: "Frank Herbert" }),
-    createBookModel({ title: "El Principito", author: "Antoine de Saint-Exupéry" }),
+    createBookModel({
+      title: "El Principito",
+      author: "Antoine de Saint-Exupéry",
+    }),
   ]);
 
   const res = await testRequest.get("/api/books").query({ author: "herbert" });
@@ -125,6 +130,7 @@ it("TC-H8-002: filter by author with partial and case-insensitive match", async 
 ```
 
 ### Pagination Test
+
 ```typescript
 it("TC-H9-008: pagination metadata is returned correctly", async () => {
   await seedBooks([...11 books...]);
@@ -141,6 +147,7 @@ it("TC-H9-008: pagination metadata is returned correctly", async () => {
 ```
 
 ### Error Simulation Test
+
 ```typescript
 it("TC-H7-005: return 500 Internal Server Error on a database failure", async () => {
   const [book] = await seedBooks([createBookModel()]);
@@ -161,7 +168,9 @@ it("TC-H7-005: return 500 Internal Server Error on a database failure", async ()
 ```
 
 ### Custom Code Assertion
+
 When a test needs a specific non-standard message (e.g. pagination validation), assert both fields with `toMatchObject` instead of inlining a new helper:
+
 ```typescript
 expect(res.body).toMatchObject({
   message: "Invalid page value",
@@ -170,6 +179,7 @@ expect(res.body).toMatchObject({
 ```
 
 ### Swagger Test
+
 ```typescript
 it("TC-H10-005: Swagger documentation loads successfully", async () => {
   const res = await testRequest.get("/api/docs").redirects(1);
@@ -202,41 +212,46 @@ The `test:ci` script (`jest --ci --coverage --maxWorkers=2`) is the CI entry poi
 
 ## Troubleshooting
 
-| Issue | Solution |
-|-------|----------|
-| `ts-node` is required for TypeScript config files | `jest.config.ts` needs `ts-node` installed (devDependency). Without it, Jest cannot read the config. |
-| `Cannot find name 'describe'`/`'jest'` | `@types/jest` globals are not auto-included with TypeScript 6; `tsconfig.json` must declare `"types": ["node", "jest"]`. |
-| `TS151002` warning from ts-jest | Shows up when `tsconfig.json` uses `module: NodeNext` without `isolatedModules: true`. Add `isolatedModules: true`. |
-| Flaky tests in parallel | Each worker must use its own database (`dbName` per pid). Two workers sharing the same DB wipe each other's data. |
-| Slow first run | `mongodb-memory-server` downloads the `mongod` binary on the first run. Run `npm test` once before CI to cache it. |
-| Console noise | The error middleware logs 5xx errors with `console.error`. Client errors (4xx) are not logged. |
+| Issue                                             | Solution                                                                                                                 |
+| ------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| `ts-node` is required for TypeScript config files | `jest.config.ts` needs `ts-node` installed (devDependency). Without it, Jest cannot read the config.                     |
+| `Cannot find name 'describe'`/`'jest'`            | `@types/jest` globals are not auto-included with TypeScript 6; `tsconfig.json` must declare `"types": ["node", "jest"]`. |
+| `TS151002` warning from ts-jest                   | Shows up when `tsconfig.json` uses `module: NodeNext` without `isolatedModules: true`. Add `isolatedModules: true`.      |
+| Flaky tests in parallel                           | Each worker must use its own database (`dbName` per pid). Two workers sharing the same DB wipe each other's data.        |
+| Slow first run                                    | `mongodb-memory-server` downloads the `mongod` binary on the first run. Run `npm test` once before CI to cache it.       |
+| Console noise                                     | The error middleware logs 5xx errors with `console.error`. Client errors (4xx) are not logged.                           |
 
 ---
 
 ## Conventions
 
 ### Test Organization
+
 - **One file per endpoint group** — not per individual test case
 - **Descriptive test names** — include the TC-ID and expected behavior
 - **Use helpers** — never inline test data creation or raw assertions
 
 ### Assertions
+
 - Use `toMatchObject` for partial response matching
 - Use helper assertions (`expectValidationError`, etc.) for standard error responses
 - Assert the `code` field on every error response (the standardized error format includes `message` + `code` + optional `details`)
 - Verify both status code and response body
 
 ### Data Setup
+
 - Use `seedBooks` for multiple records
 - Use `createBookDto`/`createBookModel` factories with overrides
 - Leverage `beforeEach` clearing for isolation
 
 ### Error Testing
+
 - Test both client errors (400, 404, 409) and server errors (500)
 - Mock database failures with `jest.spyOn(...).mockRejectedValueOnce(...)`
 - Always `mockRestore()` after mocking
 
 ### Async Patterns
+
 - All tests are `async`/`await`
 - `jest.setTimeout(20000)` in `setup.ts` for slow operations
 - `Promise.all` in service tests where applicable
@@ -249,11 +264,11 @@ The `test:ci` script (`jest --ci --coverage --maxWorkers=2`) is the CI entry poi
 
 Component, hook, and integration tests using Vitest, React Testing Library, and MSW (Mock Service Worker). Contract-driven MSW handlers synchronized with the backend OpenAPI spec.
 
-| Tool | Purpose |
-|------|---------|
-| Vitest | Test runner and coverage (v8 provider) |
+| Tool                  | Purpose                                               |
+| --------------------- | ----------------------------------------------------- |
+| Vitest                | Test runner and coverage (v8 provider)                |
 | React Testing Library | Component rendering, user interactions, accessibility |
-| MSW | API mocking at the network layer |
+| MSW                   | API mocking at the network layer                      |
 
 **Trade-off accepted**: MSW handlers must stay synchronized with the backend OpenAPI contract. This is enforced by `contract:check` in CI.
 
@@ -276,12 +291,12 @@ npm run contract:verify   # compare handlers against OpenAPI
 
 ## Test Types
 
-| Type | Pattern | What It Tests |
-|------|---------|---------------|
-| Component | `*.test.tsx` | Rendering, user interactions, conditional UI, accessibility |
-| Hook | `*.test.ts` | Queries, mutations, loading/error states, derived state |
-| Integration | `*.test.tsx` | Full page rendering, routing, API interactions, cache invalidation |
-| Contract | `msw-contract.test.ts` | MSW handlers match OpenAPI spec (32 tests) |
+| Type        | Pattern                | What It Tests                                                      |
+| ----------- | ---------------------- | ------------------------------------------------------------------ |
+| Component   | `*.test.tsx`           | Rendering, user interactions, conditional UI, accessibility        |
+| Hook        | `*.test.ts`            | Queries, mutations, loading/error states, derived state            |
+| Integration | `*.test.tsx`           | Full page rendering, routing, API interactions, cache invalidation |
+| Contract    | `msw-contract.test.ts` | MSW handlers match OpenAPI spec (32 tests)                         |
 
 ---
 
@@ -345,9 +360,9 @@ renderHook(() => useBooks(), {
 `src/test/utils/factories/` is the single source of truth for API contract types and mock data:
 
 ```ts
-createBook({ genre: "Horror" });       // single book, unique id and title
-createBookList(5);                     // array of 5 distinct books
-createBookFormData({ title: "..." });  // create-request body
+createBook({ genre: "Horror" }); // single book, unique id and title
+createBookList(5); // array of 5 distinct books
+createBookFormData({ title: "..." }); // create-request body
 ```
 
 ---
@@ -356,13 +371,13 @@ createBookFormData({ title: "..." });  // create-request body
 
 ### Contract Layer
 
-| File | Purpose |
-|------|---------|
-| `contract/validators.ts` | Pure validation functions mirroring backend controllers |
-| `contract/error-messages.ts` | Exact error message strings from backend |
-| `contract/openapi-types.ts` | Auto-generated TypeScript interfaces from OpenAPI spec |
-| `contract/endpoints.ts` | Auto-generated endpoint definitions |
-| `contract/msw-contract.test.ts` | 32 test cases validating every endpoint scenario |
+| File                            | Purpose                                                 |
+| ------------------------------- | ------------------------------------------------------- |
+| `contract/validators.ts`        | Pure validation functions mirroring backend controllers |
+| `contract/error-messages.ts`    | Exact error message strings from backend                |
+| `contract/openapi-types.ts`     | Auto-generated TypeScript interfaces from OpenAPI spec  |
+| `contract/endpoints.ts`         | Auto-generated endpoint definitions                     |
+| `contract/msw-contract.test.ts` | 32 test cases validating every endpoint scenario        |
 
 ### Contract Verification Commands
 
@@ -388,28 +403,33 @@ The verify script checks that every OpenAPI endpoint has a matching MSW handler.
 ## Conventions
 
 ### Test Organization
+
 - **Component tests**: `*.test.tsx` — rendering, interactions, accessibility
 - **Hook tests**: `*.test.ts` — queries, mutations, loading/error states
 - **Integration tests**: `*.test.tsx` — full page with router, MSW, cache invalidation
 - **Contract tests**: `msw-contract.test.ts` — MSW ↔ OpenAPI verification
 
 ### Assertions
+
 - Use `getByRole`, `getByText`, `getByLabelText` for accessible queries
 - Assert loading/skeleton states with `aria-busy` or `role="status"`
 - Assert error states with error message text
 - Assert accessibility with `toHaveAttribute('aria-*')` and `toHaveFocus()`
 
 ### Data Setup
+
 - Use `createBook`, `createBookList`, `createBookFormData` factories
 - Use `server.use(...)` for per-test handler overrides
 - Use `renderWithProviders` with `route` option for router context
 
 ### Error Testing
+
 - Test both client errors (400, 404, 409) and server errors (500)
 - Use MSW `server.use()` to override handlers with error responses
 - Assert error UI renders correct messages
 
 ### Async Patterns
+
 - All tests are `async`/`await`
 - Use `waitFor` for async assertions
 - Use `act()` for state updates that trigger effects

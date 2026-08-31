@@ -88,10 +88,10 @@ cd ..
 
 ### Backend
 
-| Variable | Required | Default | Description |
-|----------|----------|---------|-------------|
-| `PORT` | No | `3000` | Port the server listens on |
-| `MONGODB_URI` | Yes | — | MongoDB connection string |
+| Variable      | Required | Default | Description                |
+| ------------- | -------- | ------- | -------------------------- |
+| `PORT`        | No       | `3000`  | Port the server listens on |
+| `MONGODB_URI` | Yes      | —       | MongoDB connection string  |
 
 ```bash
 # Local MongoDB
@@ -103,9 +103,9 @@ MONGODB_URI=mongodb+srv://<user>:<password>@<cluster>.mongodb.net/<dbname>
 
 ### Frontend
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `VITE_API_URL` | `/api` | Base URL of the backend API |
+| Variable       | Default | Description                 |
+| -------------- | ------- | --------------------------- |
+| `VITE_API_URL` | `/api`  | Base URL of the backend API |
 
 In development, Vite proxies `/api` requests to `http://localhost:3000`. For production, set the full backend URL (e.g., `https://api.example.com/api`).
 
@@ -140,44 +140,44 @@ App runs on `http://localhost:5173`. The frontend proxies API calls to the backe
 
 ## Ports
 
-| Service | Port | Description |
-|---------|------|-------------|
-| Backend | `3000` | REST API server |
+| Service  | Port   | Description               |
+| -------- | ------ | ------------------------- |
+| Backend  | `3000` | REST API server           |
 | Frontend | `5173` | Vite dev server (default) |
 
 ## Commands
 
 ### Backend
 
-| Command | Description |
-|---------|-------------|
-| `npm run dev` | Start dev server with hot-reload |
-| `npm run build` | Compile TypeScript to `dist/` |
-| `npm start` | Run production build |
-| `npm run seed:books` | Populate database with sample books |
-| `npm test` | Run tests in watch mode |
-| `npm run test:run` | Run tests once |
-| `npm run test:coverage` | Run tests with coverage report |
-| `npm run test:ci` | CI mode (coverage + maxWorkers=2) |
-| `npm run lint` | ESLint check |
-| `npm run format` | Prettier format |
+| Command                 | Description                         |
+| ----------------------- | ----------------------------------- |
+| `npm run dev`           | Start dev server with hot-reload    |
+| `npm run build`         | Compile TypeScript to `dist/`       |
+| `npm start`             | Run production build                |
+| `npm run seed:books`    | Populate database with sample books |
+| `npm test`              | Run tests in watch mode             |
+| `npm run test:run`      | Run tests once                      |
+| `npm run test:coverage` | Run tests with coverage report      |
+| `npm run test:ci`       | CI mode (coverage + maxWorkers=2)   |
+| `npm run lint`          | ESLint check                        |
+| `npm run format`        | Prettier format                     |
 
 ### Frontend
 
-| Command | Description |
-|---------|-------------|
-| `npm run dev` | Start Vite dev server with HMR |
-| `npm run build` | Build for production (`tsc -b && vite build`) |
-| `npm run preview` | Preview production build locally |
-| `npm test` | Run Vitest in watch mode |
-| `npm run test:run` | Run tests once |
-| `npm run test:ui` | Open Vitest UI dashboard |
-| `npm run test:coverage` | Run tests with coverage |
-| `npm run contract:extract` | Generate contract types from OpenAPI spec |
-| `npm run contract:verify` | Verify MSW handlers match OpenAPI spec |
-| `npm run contract:check` | Extract + verify contract |
-| `npm run lint` | ESLint check |
-| `npm run format` | Prettier format |
+| Command                    | Description                                   |
+| -------------------------- | --------------------------------------------- |
+| `npm run dev`              | Start Vite dev server with HMR                |
+| `npm run build`            | Build for production (`tsc -b && vite build`) |
+| `npm run preview`          | Preview production build locally              |
+| `npm test`                 | Run Vitest in watch mode                      |
+| `npm run test:run`         | Run tests once                                |
+| `npm run test:ui`          | Open Vitest UI dashboard                      |
+| `npm run test:coverage`    | Run tests with coverage                       |
+| `npm run contract:extract` | Generate contract types from OpenAPI spec     |
+| `npm run contract:verify`  | Verify MSW handlers match OpenAPI spec        |
+| `npm run contract:check`   | Extract + verify contract                     |
+| `npm run lint`             | ESLint check                                  |
+| `npm run format`           | Prettier format                               |
 
 ## Testing
 
@@ -213,11 +213,13 @@ Tests use MSW to mock API calls — no backend required. All API interactions ar
 Both pipelines use GitHub Actions with Node.js 22, npm caching, and path filtering. See [CI/CD Documentation](docs/ci-cd.md) for full details.
 
 **Backend CI** (`.github/workflows/backend-ci.yml`):
+
 - Triggers on push/PR to `main` (changes in `backend/`)
 - Pipeline: checkout → Node.js 22 → install → lint → build → integration tests
 - Uses mongodb-memory-server (no external services required)
 
 **Frontend CI** (`.github/workflows/frontend-ci.yml`):
+
 - Triggers on push/PR to `main` (changes in `frontend/`)
 - Pipeline: checkout → Node.js 22 → install → lint → contract check → build → tests
 - Uses MSW for API mocking (no external services required)
@@ -231,14 +233,14 @@ Both pipelines support manual triggering via `workflow_dispatch`.
 
 ## API Endpoints
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `GET` | `/api/health` | Health check |
-| `POST` | `/api/books` | Create a book |
-| `GET` | `/api/books` | List books (filters + pagination) |
-| `GET` | `/api/books/:id` | Get book by ID |
-| `PATCH` | `/api/books/:id` | Update a book |
-| `DELETE` | `/api/books/:id` | Delete a book |
+| Method   | Endpoint         | Description                       |
+| -------- | ---------------- | --------------------------------- |
+| `GET`    | `/api/health`    | Health check                      |
+| `POST`   | `/api/books`     | Create a book                     |
+| `GET`    | `/api/books`     | List books (filters + pagination) |
+| `GET`    | `/api/books/:id` | Get book by ID                    |
+| `PATCH`  | `/api/books/:id` | Update a book                     |
+| `DELETE` | `/api/books/:id` | Delete a book                     |
 
 ## Documentation
 
@@ -257,10 +259,10 @@ Both pipelines support manual triggering via `workflow_dispatch`.
 
 ## Tech Stack
 
-| Layer | Technology |
-|-------|------------|
-| Backend | Express 5, TypeScript, Mongoose 9, Swagger (OpenAPI 3.0) |
+| Layer    | Technology                                                                  |
+| -------- | --------------------------------------------------------------------------- |
+| Backend  | Express 5, TypeScript, Mongoose 9, Swagger (OpenAPI 3.0)                    |
 | Frontend | React 19, Vite 8, Tailwind CSS v4, TanStack Query v5, Axios, React Router 7 |
-| Testing | Jest 30 (backend), Vitest 4 (frontend), MSW 2, React Testing Library |
-| Database | MongoDB |
-| CI/CD | GitHub Actions, Node.js 22 |
+| Testing  | Jest 30 (backend), Vitest 4 (frontend), MSW 2, React Testing Library        |
+| Database | MongoDB                                                                     |
+| CI/CD    | GitHub Actions, Node.js 22                                                  |

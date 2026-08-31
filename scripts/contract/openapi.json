@@ -12,14 +12,48 @@
         "summary": "List books with optional filters and pagination",
         "tags": ["Books"],
         "parameters": [
-          { "name": "genre", "in": "query", "schema": { "$ref": "#/components/schemas/Genre" } },
-          { "name": "author", "in": "query", "schema": { "type": "string" }, "description": "Case-insensitive partial match" },
-          { "name": "title", "in": "query", "schema": { "type": "string" }, "description": "Case-insensitive partial match" },
-          { "name": "page", "in": "query", "schema": { "type": "integer", "minimum": 1, "default": 1 } },
-          { "name": "limit", "in": "query", "schema": { "type": "integer", "minimum": 1, "maximum": 100, "default": 10 } }
+          {
+            "name": "genre",
+            "in": "query",
+            "schema": { "$ref": "#/components/schemas/Genre" }
+          },
+          {
+            "name": "author",
+            "in": "query",
+            "schema": { "type": "string" },
+            "description": "Case-insensitive partial match"
+          },
+          {
+            "name": "title",
+            "in": "query",
+            "schema": { "type": "string" },
+            "description": "Case-insensitive partial match"
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": { "type": "integer", "minimum": 1, "default": 1 }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 10
+            }
+          }
         ],
         "responses": {
-          "200": { "description": "Paginated list of books", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/PaginatedResponse" } } } },
+          "200": {
+            "description": "Paginated list of books",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/PaginatedResponse" }
+              }
+            }
+          },
           "400": { "$ref": "#/components/responses/ValidationError" },
           "500": { "$ref": "#/components/responses/InternalError" }
         }
@@ -27,9 +61,23 @@
       "post": {
         "summary": "Create a new book",
         "tags": ["Books"],
-        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/CreateBookDto" } } } },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CreateBookDto" }
+            }
+          }
+        },
         "responses": {
-          "201": { "description": "Book created successfully", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Book" } } } },
+          "201": {
+            "description": "Book created successfully",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Book" }
+              }
+            }
+          },
           "400": { "$ref": "#/components/responses/ValidationError" },
           "409": { "$ref": "#/components/responses/ConflictError" },
           "500": { "$ref": "#/components/responses/InternalError" }
@@ -41,10 +89,23 @@
         "summary": "Get a book by id",
         "tags": ["Books"],
         "parameters": [
-          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" }, "description": "MongoDB ObjectId" }
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "MongoDB ObjectId"
+          }
         ],
         "responses": {
-          "200": { "description": "Book found", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Book" } } } },
+          "200": {
+            "description": "Book found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Book" }
+              }
+            }
+          },
           "400": { "$ref": "#/components/responses/ValidationError" },
           "404": { "$ref": "#/components/responses/NotFoundError" },
           "500": { "$ref": "#/components/responses/InternalError" }
@@ -54,11 +115,31 @@
         "summary": "Partially update a book",
         "tags": ["Books"],
         "parameters": [
-          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" }, "description": "MongoDB ObjectId" }
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "MongoDB ObjectId"
+          }
         ],
-        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/UpdateBookDto" } } } },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/UpdateBookDto" }
+            }
+          }
+        },
         "responses": {
-          "200": { "description": "Book updated successfully", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Book" } } } },
+          "200": {
+            "description": "Book updated successfully",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Book" }
+              }
+            }
+          },
           "400": { "$ref": "#/components/responses/ValidationError" },
           "404": { "$ref": "#/components/responses/NotFoundError" },
           "409": { "$ref": "#/components/responses/ConflictError" },
@@ -69,7 +150,13 @@
         "summary": "Delete a book",
         "tags": ["Books"],
         "parameters": [
-          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" }, "description": "MongoDB ObjectId" }
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "MongoDB ObjectId"
+          }
         ],
         "responses": {
           "204": { "description": "Book deleted successfully" },
@@ -85,14 +172,34 @@
       "Genre": {
         "type": "string",
         "enum": [
-          "Romance", "Thriller", "Fantasy", "Science Fiction", "Dystopia",
-          "Historical Fiction", "Adventure", "Self Help", "Popular Science",
-          "Horror", "Young Adult", "Children", "Health", "Sports", "Cooking"
+          "Romance",
+          "Thriller",
+          "Fantasy",
+          "Science Fiction",
+          "Dystopia",
+          "Historical Fiction",
+          "Adventure",
+          "Self Help",
+          "Popular Science",
+          "Horror",
+          "Young Adult",
+          "Children",
+          "Health",
+          "Sports",
+          "Cooking"
         ]
       },
       "Book": {
         "type": "object",
-        "required": ["_id", "title", "author", "genre", "synopsis", "createdAt", "updatedAt"],
+        "required": [
+          "_id",
+          "title",
+          "author",
+          "genre",
+          "synopsis",
+          "createdAt",
+          "updatedAt"
+        ],
         "properties": {
           "_id": { "type": "string", "description": "MongoDB ObjectId" },
           "title": { "type": "string" },
@@ -126,17 +233,31 @@
         "type": "object",
         "properties": {
           "genre": { "$ref": "#/components/schemas/Genre" },
-          "author": { "type": "string", "description": "Case-insensitive partial match" },
-          "title": { "type": "string", "description": "Case-insensitive partial match" },
+          "author": {
+            "type": "string",
+            "description": "Case-insensitive partial match"
+          },
+          "title": {
+            "type": "string",
+            "description": "Case-insensitive partial match"
+          },
           "page": { "type": "integer", "minimum": 1, "default": 1 },
-          "limit": { "type": "integer", "minimum": 1, "maximum": 100, "default": 10 }
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100,
+            "default": 10
+          }
         }
       },
       "PaginatedResponse": {
         "type": "object",
         "required": ["data", "pagination"],
         "properties": {
-          "data": { "type": "array", "items": { "$ref": "#/components/schemas/Book" } },
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/Book" }
+          },
           "pagination": {
             "type": "object",
             "required": ["page", "limit", "total", "totalPages"],
@@ -155,7 +276,11 @@
         "properties": {
           "message": { "type": "string" },
           "code": { "type": "string" },
-          "details": { "type": "object", "additionalProperties": { "type": "string" }, "description": "Field-level validation messages (only on validation errors)" }
+          "details": {
+            "type": "object",
+            "additionalProperties": { "type": "string" },
+            "description": "Field-level validation messages (only on validation errors)"
+          }
         }
       }
     },
@@ -165,7 +290,11 @@
         "content": {
           "application/json": {
             "schema": { "$ref": "#/components/schemas/ErrorResponse" },
-            "example": { "message": "Validation failed", "code": "VALIDATION_ERROR", "details": { "title": "Path `title` is required." } }
+            "example": {
+              "message": "Validation failed",
+              "code": "VALIDATION_ERROR",
+              "details": { "title": "Path `title` is required." }
+            }
           }
         }
       },
@@ -192,7 +321,10 @@
         "content": {
           "application/json": {
             "schema": { "$ref": "#/components/schemas/ErrorResponse" },
-            "example": { "message": "Internal Server Error", "code": "INTERNAL_ERROR" }
+            "example": {
+              "message": "Internal Server Error",
+              "code": "INTERNAL_ERROR"
+            }
           }
         }
       }

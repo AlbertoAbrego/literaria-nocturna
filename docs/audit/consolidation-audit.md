@@ -27,12 +27,12 @@ Documentation (`project-context.md`, `roadmap.md`, `tests.md`, `testing.md`, roo
 
 ### C-01 — Frontend CI runs no tests
 
-| Field | Value |
-|---|---|
-| **Severity** | 🔴 Critical |
-| **Area** | CI/CD |
-| **File(s)** | `.github/workflows/frontend-ci.yml:29-36`, `frontend/package.json:6-16` |
-| **Blocks E2E** | No, but must be fixed in the same consolidation phase |
+| Field          | Value                                                                   |
+| -------------- | ----------------------------------------------------------------------- |
+| **Severity**   | 🔴 Critical                                                             |
+| **Area**       | CI/CD                                                                   |
+| **File(s)**    | `.github/workflows/frontend-ci.yml:29-36`, `frontend/package.json:6-16` |
+| **Blocks E2E** | No, but must be fixed in the same consolidation phase                   |
 
 **Evidence**
 
@@ -68,12 +68,12 @@ The frontend has 22 test files with ~185 test cases (Vitest + RTL + MSW), coveri
 
 ### C-02 — Local development contract is broken for a fresh clone (port/env mismatch)
 
-| Field | Value |
-|---|---|
-| **Severity** | 🔴 Critical |
-| **Area** | Configuration / Developer experience |
-| **File(s)** | `frontend/src/shared/api/env.ts:2`, `backend/src/server.ts:6`, `backend/src/scripts/seed-books.ts:72`, `frontend/.env.example`, `.gitignore:8-11` |
-| **Blocks E2E** | Yes — E2E needs a reproducible local stack |
+| Field          | Value                                                                                                                                             |
+| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Severity**   | 🔴 Critical                                                                                                                                       |
+| **Area**       | Configuration / Developer experience                                                                                                              |
+| **File(s)**    | `frontend/src/shared/api/env.ts:2`, `backend/src/server.ts:6`, `backend/src/scripts/seed-books.ts:72`, `frontend/.env.example`, `.gitignore:8-11` |
+| **Blocks E2E** | Yes — E2E needs a reproducible local stack                                                                                                        |
 
 **Evidence**
 
@@ -118,25 +118,25 @@ On a fresh clone: `npm run dev` in backend → server on **5000**. Frontend defa
 
 ### C-03 — MSW mock API has drifted from the real backend contract
 
-| Field | Value |
-|---|---|
-| **Severity** | 🔴 Critical |
-| **Area** | Frontend tests / API contract |
-| **File(s)** | `frontend/src/test/handlers/books.ts`, `frontend/src/test/handlers/errors.ts`, `backend/src/services/book.service.ts:27-35`, `backend/src/controllers/book.controller.ts:110-122`, `backend/src/middleware/error.middleware.ts:12-27` |
-| **Blocks E2E** | No, but it undermines the test layer E2E will build on |
+| Field          | Value                                                                                                                                                                                                                                 |
+| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Severity**   | 🔴 Critical                                                                                                                                                                                                                           |
+| **Area**       | Frontend tests / API contract                                                                                                                                                                                                         |
+| **File(s)**    | `frontend/src/test/handlers/books.ts`, `frontend/src/test/handlers/errors.ts`, `backend/src/services/book.service.ts:27-35`, `backend/src/controllers/book.controller.ts:110-122`, `backend/src/middleware/error.middleware.ts:12-27` |
+| **Blocks E2E** | No, but it undermines the test layer E2E will build on                                                                                                                                                                                |
 
 **Evidence — divergence table**
 
-| Contract point | Backend behavior | MSW behavior (`handlers/books.ts`) |
-|---|---|---|
-| Sort order of list | `sort({ title: 1 })` — alphabetical (`book.service.ts:35`) | No sort; seed insertion order (`books.ts:101`) |
-| Invalid `page`/`limit` | 400 `VALIDATION_ERROR` (`book.controller.ts:117-122`) | Silently clamps to `max(1, …)` / `min(100, …)` (`books.ts:87-88`) |
-| Invalid `genre` on GET | 400 `"Invalid genre"` (`book.controller.ts:110-111`) | Returns an empty list (`books.ts:91`) |
+| Contract point              | Backend behavior                                                                          | MSW behavior (`handlers/books.ts`)                                                       |
+| --------------------------- | ----------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| Sort order of list          | `sort({ title: 1 })` — alphabetical (`book.service.ts:35`)                                | No sort; seed insertion order (`books.ts:101`)                                           |
+| Invalid `page`/`limit`      | 400 `VALIDATION_ERROR` (`book.controller.ts:117-122`)                                     | Silently clamps to `max(1, …)` / `min(100, …)` (`books.ts:87-88`)                        |
+| Invalid `genre` on GET      | 400 `"Invalid genre"` (`book.controller.ts:110-111`)                                      | Returns an empty list (`books.ts:91`)                                                    |
 | Create validation `details` | Per-field keys: `{title: "Path \`title\` is required.", …}` (`error.middleware.ts:12-27`) | Single key `body: "title, author, genre and synopsis are required"` (`books.ts:121-124`) |
-| PATCH conflict semantics | Conflict only over fields present in body (`book.service.ts:50-61`) | Always checks the full (title, author) pair (`books.ts:167-174`) |
-| PATCH empty body | 400 `"Request body is missing"` (`book.controller.ts:235-237`) | 400 `"Validation failed"` + `details.body` (`books.ts:160-162`) |
-| 500 message | `"Internal Server Error"` (`error.middleware.ts:38,51`) | `"Internal server error"` — lowercase `s` (`handlers/errors.ts:28`) |
-| Invalid ObjectId on GET | 400 `"Invalid ID"` (`book.controller.ts:177-179`) | 404 not found (`books.ts:111-114`) |
+| PATCH conflict semantics    | Conflict only over fields present in body (`book.service.ts:50-61`)                       | Always checks the full (title, author) pair (`books.ts:167-174`)                         |
+| PATCH empty body            | 400 `"Request body is missing"` (`book.controller.ts:235-237`)                            | 400 `"Validation failed"` + `details.body` (`books.ts:160-162`)                          |
+| 500 message                 | `"Internal Server Error"` (`error.middleware.ts:38,51`)                                   | `"Internal server error"` — lowercase `s` (`handlers/errors.ts:28`)                      |
+| Invalid ObjectId on GET     | 400 `"Invalid ID"` (`book.controller.ts:177-179`)                                         | 404 not found (`books.ts:111-114`)                                                       |
 
 **Concrete consequence**
 
@@ -159,12 +159,12 @@ On a fresh clone: `npm run dev` in backend → server on **5000**. Frontend defa
 
 ### H-01 — CI pipelines are inconsistent with each other and with documented intent
 
-| Field | Value |
-|---|---|
-| **Severity** | 🟠 High |
-| **Area** | CI/CD |
-| **File(s)** | `.github/workflows/frontend-ci.yml:18,29-30`, `.github/workflows/backend-ci.yml:29-34,46`, `docs/testing.md:188`, `frontend/package.json` |
-| **Blocks E2E** | No |
+| Field          | Value                                                                                                                                     |
+| -------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| **Severity**   | 🟠 High                                                                                                                                   |
+| **Area**       | CI/CD                                                                                                                                     |
+| **File(s)**    | `.github/workflows/frontend-ci.yml:18,29-30`, `.github/workflows/backend-ci.yml:29-34,46`, `docs/testing.md:188`, `frontend/package.json` |
+| **Blocks E2E** | No                                                                                                                                        |
 
 **Findings**
 
@@ -181,12 +181,12 @@ On a fresh clone: `npm run dev` in backend → server on **5000**. Frontend defa
 
 ### H-02 — Unescaped user input in MongoDB `$regex` filters
 
-| Field | Value |
-|---|---|
-| **Severity** | 🟠 High |
-| **Area** | Backend — search security/correctness |
-| **File(s)** | `backend/src/services/book.service.ts:27-28` |
-| **Blocks E2E** | No |
+| Field          | Value                                        |
+| -------------- | -------------------------------------------- |
+| **Severity**   | 🟠 High                                      |
+| **Area**       | Backend — search security/correctness        |
+| **File(s)**    | `backend/src/services/book.service.ts:27-28` |
+| **Blocks E2E** | No                                           |
 
 **Evidence**
 
@@ -212,12 +212,12 @@ User-supplied strings are interpolated directly into regular expressions. A quer
 
 ### H-03 — Genre domain duplicated across three sources with no parity check
 
-| Field | Value |
-|---|---|
-| **Severity** | 🟠 High |
-| **Area** | Architecture / API contract |
-| **File(s)** | `backend/src/models/book.model.ts:3-19`, `backend/src/config/swagger.ts:14-33`, `frontend/src/features/books/types/book.types.ts:1-17`, `backend/src/test/integration/swagger.integration.test.ts:12-18` |
-| **Blocks E2E** | No |
+| Field          | Value                                                                                                                                                                                                    |
+| -------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Severity**   | 🟠 High                                                                                                                                                                                                  |
+| **Area**       | Architecture / API contract                                                                                                                                                                              |
+| **File(s)**    | `backend/src/models/book.model.ts:3-19`, `backend/src/config/swagger.ts:14-33`, `frontend/src/features/books/types/book.types.ts:1-17`, `backend/src/test/integration/swagger.integration.test.ts:12-18` |
+| **Blocks E2E** | No                                                                                                                                                                                                       |
 
 **Evidence**
 
@@ -233,12 +233,12 @@ The 15 genre values are defined in the Mongoose enum, then **hand-copied** into 
 
 ### H-04 — No runtime DTO validation layer; validation is implicit at the DB layer
 
-| Field | Value |
-|---|---|
-| **Severity** | 🟠 High |
-| **Area** | Backend — validation |
-| **File(s)** | `backend/src/dto/book/*.ts` (all), `backend/src/controllers/book.controller.ts:46-48,110-122,235-241`, `backend/src/models/book.model.ts:21-31` |
-| **Blocks E2E** | No |
+| Field          | Value                                                                                                                                           |
+| -------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Severity**   | 🟠 High                                                                                                                                         |
+| **Area**       | Backend — validation                                                                                                                            |
+| **File(s)**    | `backend/src/dto/book/*.ts` (all), `backend/src/controllers/book.controller.ts:46-48,110-122,235-241`, `backend/src/models/book.model.ts:21-31` |
+| **Blocks E2E** | No                                                                                                                                              |
 
 **Evidence**
 
@@ -264,12 +264,12 @@ Adding new modules (Members, Readings) will multiply this pattern. The error for
 
 ### H-05 — Pagination edge-case bugs in delete and filter-count UI
 
-| Field | Value |
-|---|---|
-| **Severity** | 🟠 High |
-| **Area** | Frontend — correctness |
-| **File(s)** | `frontend/src/features/books/hooks/useDeleteBook.ts:41-56`, `frontend/src/pages/BooksPage.tsx:11` |
-| **Blocks E2E** | Yes — both are cheap to trigger in a browser and would surface immediately |
+| Field          | Value                                                                                             |
+| -------------- | ------------------------------------------------------------------------------------------------- |
+| **Severity**   | 🟠 High                                                                                           |
+| **Area**       | Frontend — correctness                                                                            |
+| **File(s)**    | `frontend/src/features/books/hooks/useDeleteBook.ts:41-56`, `frontend/src/pages/BooksPage.tsx:11` |
+| **Blocks E2E** | Yes — both are cheap to trigger in a browser and would surface immediately                        |
 
 **Bug 1 — delete on last page leaves a stale empty page**
 
@@ -288,12 +288,12 @@ The optimistic update removes the row and decrements `total` but never adjusts `
 
 ### H-06 — Backend build ships test files in the production output
 
-| Field | Value |
-|---|---|
-| **Severity** | 🟠 High |
-| **Area** | Backend — build hygiene |
-| **File(s)** | `backend/tsconfig.json:23` (`include: ["src"]`) |
-| **Blocks E2E** | No |
+| Field          | Value                                           |
+| -------------- | ----------------------------------------------- |
+| **Severity**   | 🟠 High                                         |
+| **Area**       | Backend — build hygiene                         |
+| **File(s)**    | `backend/tsconfig.json:23` (`include: ["src"]`) |
+| **Blocks E2E** | No                                              |
 
 **Evidence**
 
@@ -312,12 +312,12 @@ The optimistic update removes the row and decrements `total` but never adjusts `
 
 ### H-07 — Seed script is fragile, hardcoded, and undocumented
 
-| Field | Value |
-|---|---|
-| **Severity** | 🟠 High |
-| **Area** | Backend — developer tooling |
-| **File(s)** | `backend/src/scripts/seed-books.ts:72`, `backend/package.json:16` |
-| **Blocks E2E** | No |
+| Field          | Value                                                             |
+| -------------- | ----------------------------------------------------------------- |
+| **Severity**   | 🟠 High                                                           |
+| **Area**       | Backend — developer tooling                                       |
+| **File(s)**    | `backend/src/scripts/seed-books.ts:72`, `backend/package.json:16` |
+| **Blocks E2E** | No                                                                |
 
 **Evidence**
 
@@ -335,12 +335,12 @@ The optimistic update removes the row and decrements `total` but never adjusts `
 
 ### H-08 — Duplicate-guard is a find-then-write race; no unique index
 
-| Field | Value |
-|---|---|
-| **Severity** | 🟠 High |
-| **Area** | Backend — data integrity |
-| **File(s)** | `backend/src/services/book.service.ts:12-15,50-61`, `backend/src/models/book.model.ts:21-31` |
-| **Blocks E2E** | No |
+| Field          | Value                                                                                        |
+| -------------- | -------------------------------------------------------------------------------------------- |
+| **Severity**   | 🟠 High                                                                                      |
+| **Area**       | Backend — data integrity                                                                     |
+| **File(s)**    | `backend/src/services/book.service.ts:12-15,50-61`, `backend/src/models/book.model.ts:21-31` |
+| **Blocks E2E** | No                                                                                           |
 
 **Evidence**
 
@@ -358,12 +358,12 @@ The optimistic update removes the row and decrements `total` but never adjusts `
 
 ### M-01 — Frontend book types are weak and duplicated
 
-| Field | Value |
-|---|---|
-| **Severity** | 🟡 Medium |
-| **Area** | Frontend — typing |
-| **File(s)** | `frontend/src/features/books/types/book.types.ts:25,33,39`, `frontend/src/test/utils/factories/book.factory.ts:5-14` |
-| **Blocks E2E** | No |
+| Field          | Value                                                                                                                |
+| -------------- | -------------------------------------------------------------------------------------------------------------------- |
+| **Severity**   | 🟡 Medium                                                                                                            |
+| **Area**       | Frontend — typing                                                                                                    |
+| **File(s)**    | `frontend/src/features/books/types/book.types.ts:25,33,39`, `frontend/src/test/utils/factories/book.factory.ts:5-14` |
+| **Blocks E2E** | No                                                                                                                   |
 
 - `Book.genre` and `CreateBookInput.genre`/`UpdateBookInput.genre` are typed `string` while `BooksQueryParams.genre` is `Genre` — the type system allows sending invalid genres that the backend will reject with 400 (currently unreachable from the UI, but the API layer doesn't enforce it).
 - The `Book` type is declared twice: production (`genre: string`) and test factory (`genre: Genre`). Two parallel hierarchies that can drift (they already differ in genre typing).
@@ -377,14 +377,14 @@ The optimistic update removes the row and decrements `total` but never adjusts `
 
 ### M-02 — Hook tests assert TanStack Query key strings (implementation details)
 
-| Field | Value |
-|---|---|
-| **Severity** | 🟡 Medium |
-| **Area** | Frontend tests |
-| **File(s)** | `frontend/src/features/books/hooks/useBooks.test.ts:66-68,98-99`, `useBook.test.ts:56`, `useCreateBook.test.ts:134-145`, `useUpdateBook.test.ts:162-163`, `useDeleteBook.test.ts:23,181-182` |
-| **Blocks E2E** | No |
+| Field          | Value                                                                                                                                                                                        |
+| -------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Severity**   | 🟡 Medium                                                                                                                                                                                    |
+| **Area**       | Frontend tests                                                                                                                                                                               |
+| **File(s)**    | `frontend/src/features/books/hooks/useBooks.test.ts:66-68,98-99`, `useBook.test.ts:56`, `useCreateBook.test.ts:134-145`, `useUpdateBook.test.ts:162-163`, `useDeleteBook.test.ts:23,181-182` |
+| **Blocks E2E** | No                                                                                                                                                                                           |
 
-Six hook test files assert on serialized query keys (`["books", undefined]`, `["books","detail",id]`, invalidation spies). Renaming a key (e.g., adding a namespace for Members module) breaks tests for reasons unrelated to behavior. `EditBookPage.test.tsx:78-114` demonstrates the better pattern: asserting invalidation *outcome* behaviorally (stale-time Infinity + refetch visibility).
+Six hook test files assert on serialized query keys (`["books", undefined]`, `["books","detail",id]`, invalidation spies). Renaming a key (e.g., adding a namespace for Members module) breaks tests for reasons unrelated to behavior. `EditBookPage.test.tsx:78-114` demonstrates the better pattern: asserting invalidation _outcome_ behaviorally (stale-time Infinity + refetch visibility).
 
 **Recommended action** — Replace key-string assertions with behavior-level assertions, or centralize keys in a single module (e.g., `queryKeys.ts`) so keys are refactorable in one place and tests can import them instead of hardcoding strings.
 
@@ -392,12 +392,12 @@ Six hook test files assert on serialized query keys (`["books", undefined]`, `["
 
 ### M-03 — `src/test/examples/` scaffolding runs in CI but covers no production code
 
-| Field | Value |
-|---|---|
-| **Severity** | 🟡 Medium |
-| **Area** | Frontend tests |
-| **File(s)** | `frontend/src/test/examples/{component.example.test.tsx, hook.example.test.ts, integration.example.test.tsx}` (+ `vitest.config.ts:15`) |
-| **Blocks E2E** | No |
+| Field          | Value                                                                                                                                   |
+| -------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| **Severity**   | 🟡 Medium                                                                                                                               |
+| **Area**       | Frontend tests                                                                                                                          |
+| **File(s)**    | `frontend/src/test/examples/{component.example.test.tsx, hook.example.test.ts, integration.example.test.tsx}` (+ `vitest.config.ts:15`) |
+| **Blocks E2E** | No                                                                                                                                      |
 
 All three files match `src/**/*.test.{ts,tsx}` and therefore run in every CI run (12 test cases). They use inline throwaway components and **re-implement production hooks inline** (`hook.example.test.ts:22-37`), duplicating scenarios already covered by the real `useBooks`/`useCreateBook` suites. They are documentation, not tests.
 
@@ -409,12 +409,12 @@ All three files match `src/**/*.test.{ts,tsx}` and therefore run in every CI run
 
 ### M-04 — Missing high-value test scenarios
 
-| Field | Value |
-|---|---|
-| **Severity** | 🟡 Medium |
-| **Area** | Testing |
-| **File(s)** | `frontend/src/shared/api/http.ts:28-33`, `frontend/src/features/books/hooks/useBookFilters.ts:26-32`, `backend/src/controllers/book.controller.ts:110-122` |
-| **Blocks E2E** | No |
+| Field          | Value                                                                                                                                                      |
+| -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Severity**   | 🟡 Medium                                                                                                                                                  |
+| **Area**       | Testing                                                                                                                                                    |
+| **File(s)**    | `frontend/src/shared/api/http.ts:28-33`, `frontend/src/features/books/hooks/useBookFilters.ts:26-32`, `backend/src/controllers/book.controller.ts:110-122` |
+| **Blocks E2E** | No                                                                                                                                                         |
 
 Gaps identified (not an exhaustive mandate):
 
@@ -430,12 +430,12 @@ Gaps identified (not an exhaustive mandate):
 
 ### M-05 — Documentation is stale or contradictory
 
-| Field | Value |
-|---|---|
-| **Severity** | 🟡 Medium |
-| **Area** | Documentation |
-| **File(s)** | `docs/project-context.md:17-18,376-399`, `docs/roadmap.md`, `docs/tests.md:69,107,146-161`, `docs/testing.md:188`, `docs/frontend-testing.md:26` |
-| **Blocks E2E** | No |
+| Field          | Value                                                                                                                                            |
+| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Severity**   | 🟡 Medium                                                                                                                                        |
+| **Area**       | Documentation                                                                                                                                    |
+| **File(s)**    | `docs/project-context.md:17-18,376-399`, `docs/roadmap.md`, `docs/tests.md:69,107,146-161`, `docs/testing.md:188`, `docs/frontend-testing.md:26` |
+| **Blocks E2E** | No                                                                                                                                               |
 
 Verified contradictions:
 
@@ -452,12 +452,12 @@ Verified contradictions:
 
 ### M-06 — READMEs are not usable for a portfolio project
 
-| Field | Value |
-|---|---|
-| **Severity** | 🟡 Medium |
-| **Area** | Documentation |
-| **File(s)** | `README.md` (root, 3 lines), `frontend/README.md` (untouched Vite boilerplate, incl. React Compiler section) |
-| **Blocks E2E** | No |
+| Field          | Value                                                                                                        |
+| -------------- | ------------------------------------------------------------------------------------------------------------ |
+| **Severity**   | 🟡 Medium                                                                                                    |
+| **Area**       | Documentation                                                                                                |
+| **File(s)**    | `README.md` (root, 3 lines), `frontend/README.md` (untouched Vite boilerplate, incl. React Compiler section) |
+| **Blocks E2E** | No                                                                                                           |
 
 Root README: title + CI badge with placeholder `https://github.com/usuario/repositorio/...` — no setup, no scripts, no architecture, no env vars. `frontend/README.md` is the default Vite template.
 
@@ -467,12 +467,12 @@ Root README: title + CI badge with placeholder `https://github.com/usuario/repos
 
 ### M-07 — Security posture is dev-only (CORS wide open; no hardening)
 
-| Field | Value |
-|---|---|
-| **Severity** | 🟡 Medium (deployment-dependent) |
-| **Area** | Security |
-| **File(s)** | `backend/src/app.ts:10` |
-| **Blocks E2E** | No |
+| Field          | Value                            |
+| -------------- | -------------------------------- |
+| **Severity**   | 🟡 Medium (deployment-dependent) |
+| **Area**       | Security                         |
+| **File(s)**    | `backend/src/app.ts:10`          |
+| **Blocks E2E** | No                               |
 
 `app.use(cors())` accepts every origin. There is no helmet, rate limiting, or request-size configuration (Express JSON body default 100 kb — the only implicit limit). No authentication exists anywhere, which is consistent with the MVP scope.
 
@@ -482,12 +482,12 @@ Root README: title + CI badge with placeholder `https://github.com/usuario/repos
 
 ### M-08 — Swagger spec is hand-maintained and only shallowly tested
 
-| Field | Value |
-|---|---|
-| **Severity** | 🟡 Medium |
-| **Area** | API documentation / contract |
-| **File(s)** | `backend/src/config/swagger.ts:12-152`, `backend/src/test/integration/swagger.integration.test.ts:12-18`, `backend/src/routes/swagger.routes.ts` |
-| **Blocks E2E** | No |
+| Field          | Value                                                                                                                                            |
+| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Severity**   | 🟡 Medium                                                                                                                                        |
+| **Area**       | API documentation / contract                                                                                                                     |
+| **File(s)**    | `backend/src/config/swagger.ts:12-152`, `backend/src/test/integration/swagger.integration.test.ts:12-18`, `backend/src/routes/swagger.routes.ts` |
+| **Blocks E2E** | No                                                                                                                                               |
 
 The OpenAPI `components` (Book, DTOs, Genre, PaginatedResponse, ErrorResponse) are written by hand and are not asserted against the actual Mongoose model or the error-middleware output. The integration test only checks that two paths exist. Spec-vs-code drift (e.g., H-03 genre parity) is currently invisible to CI.
 
@@ -497,12 +497,12 @@ The OpenAPI `components` (Book, DTOs, Genre, PaginatedResponse, ErrorResponse) a
 
 ### M-09 — Backend environment contract is undocumented; health check is superficial
 
-| Field | Value |
-|---|---|
-| **Severity** | 🟡 Medium |
-| **Area** | Configuration |
-| **File(s)** | `backend/src/config/database.ts:4-6`, `backend/src/controllers/health.controller.ts:28-35` |
-| **Blocks E2E** | No |
+| Field          | Value                                                                                      |
+| -------------- | ------------------------------------------------------------------------------------------ |
+| **Severity**   | 🟡 Medium                                                                                  |
+| **Area**       | Configuration                                                                              |
+| **File(s)**    | `backend/src/config/database.ts:4-6`, `backend/src/controllers/health.controller.ts:28-35` |
+| **Blocks E2E** | No                                                                                         |
 
 - `PORT`/`MONGODB_URI` exist only in the untracked `.env`; a missing URI produces a bare `Error("Database URI is not provided")`.
 - `GET /api/health` returns `{ status: "ok" }` unconditionally — it does not ping MongoDB, so it reports healthy while the DB is unreachable (misleading for E2E readiness probes).
@@ -513,12 +513,12 @@ The OpenAPI `components` (Book, DTOs, Genre, PaginatedResponse, ErrorResponse) a
 
 ### M-10 — Frontend test layers duplicate heavy flows; rebalance before E2E
 
-| Field | Value |
-|---|---|
-| **Severity** | 🟡 Medium |
-| **Area** | Testing strategy |
-| **File(s)** | `frontend/src/pages/BooksPage.test.tsx` (25 cases) vs `BookTable/FilterBar/SearchBar/GenreFilter/DeleteBookButton/Modal/*.test.tsx` |
-| **Blocks E2E** | No |
+| Field          | Value                                                                                                                               |
+| -------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| **Severity**   | 🟡 Medium                                                                                                                           |
+| **Area**       | Testing strategy                                                                                                                    |
+| **File(s)**    | `frontend/src/pages/BooksPage.test.tsx` (25 cases) vs `BookTable/FilterBar/SearchBar/GenreFilter/DeleteBookButton/Modal/*.test.tsx` |
+| **Blocks E2E** | No                                                                                                                                  |
 
 `BooksPage.test.tsx` comprehensively re-exercises delete-modal mechanics, filter interactions, keyboard nav, and pagination that the component-level tests already cover; conversely component tests duplicate page-level flows. This is not wrong — defense in depth — but it is the layer where the cost of duplication is highest right now: ~30–40% of the suite re-tests the same flows through different entry points.
 
@@ -528,12 +528,12 @@ The OpenAPI `components` (Book, DTOs, Genre, PaginatedResponse, ErrorResponse) a
 
 ### M-11 — Stale artifacts and lint noise in the frontend repo
 
-| Field | Value |
-|---|---|
-| **Severity** | 🟡 Medium |
-| **Area** | Repo hygiene |
-| **File(s)** | `frontend/cov.txt` (tracked), `frontend/cov2.txt` (untracked, stale), `frontend/coverage/**` (generated, on disk), `frontend/eslint.config.js:10` |
-| **Blocks E2E** | No |
+| Field          | Value                                                                                                                                             |
+| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Severity**   | 🟡 Medium                                                                                                                                         |
+| **Area**       | Repo hygiene                                                                                                                                      |
+| **File(s)**    | `frontend/cov.txt` (tracked), `frontend/cov2.txt` (untracked, stale), `frontend/coverage/**` (generated, on disk), `frontend/eslint.config.js:10` |
+| **Blocks E2E** | No                                                                                                                                                |
 
 - `frontend/cov.txt` is committed to git (verified via `git ls-files`) — a stale coverage dump with a hardcoded local path (`C:/programacion-con-ia/...`).
 - ESLint (executed during this audit) reports 6 warnings — all from generated `frontend/coverage/lcov-report/*.js` files, because the config ignores `dist` but not `coverage`. `npm run lint` is currently noisy.
@@ -545,12 +545,12 @@ The OpenAPI `components` (Book, DTOs, Genre, PaginatedResponse, ErrorResponse) a
 
 ### M-12 — No coverage thresholds or coverage gating in CI
 
-| Field | Value |
-|---|---|
-| **Severity** | 🟡 Medium |
-| **Area** | Testing / CI |
-| **File(s)** | `backend/jest.config.ts:9-11` (no thresholds), `frontend/vitest.config.ts:19-31` (no thresholds) |
-| **Blocks E2E** | No |
+| Field          | Value                                                                                            |
+| -------------- | ------------------------------------------------------------------------------------------------ |
+| **Severity**   | 🟡 Medium                                                                                        |
+| **Area**       | Testing / CI                                                                                     |
+| **File(s)**    | `backend/jest.config.ts:9-11` (no thresholds), `frontend/vitest.config.ts:19-31` (no thresholds) |
+| **Blocks E2E** | No                                                                                               |
 
 Current measured coverage (from the tracked `cov.txt`): frontend ~89% statements / ~81% branches — healthy. But nothing enforces it, backend CI doesn't run coverage at all, and `collectCoverageFrom: ["src/**/*.ts"]` includes the test helpers themselves, inflating the number slightly.
 
@@ -561,18 +561,23 @@ Current measured coverage (from the tracked `cov.txt`): frontend ~89% statements
 ## 🟢 Low Priority Findings
 
 ### L-01 — `main` field points to a non-existent file
+
 `backend/package.json:5` — `"main": "index.js"` does not exist (build output is `dist/server.js`). Harmless for scripts (they use explicit entrypoints) but wrong metadata for a portfolio repo.
 
 ### L-02 — Hardcoded version in health response
+
 `backend/src/controllers/health.controller.ts:32` — `version: "1.0.0"` is hardcoded while `package.json:3` also says `1.0.0`. They will drift; read from `package.json` or keep both updated.
 
 ### L-03 — Backend Jest `collectCoverageFrom` includes `src/test/**`
+
 `backend/jest.config.ts:9` — `["src/**/*.ts", …]` counts test code as coverable, slightly inflating coverage figures and masking gaps in helpers.
 
 ### L-04 — Home page is a placeholder
+
 `frontend/src/pages/HomePage.tsx` renders a bare heading. Fine for the current scope; flag as content debt before E2E copy-checks (E2E will assert real copy, so fix before writing Home checks).
 
 ### L-05 — BookForm `handleSuccess` resets values that no caller observes
+
 `frontend/src/features/books/components/BookForm.tsx:42-49` — both callers navigate away on success, so the reset is dead code. Trivial cleanup during consolidation.
 
 ---
@@ -605,20 +610,20 @@ Current measured coverage (from the tracked `cov.txt`): frontend ~89% statements
 
 ## Backend Assessment
 
-| Dimension | Verdict |
-|---|---|
-| Structure | ✅ Routes → controllers → services → models; DTOs in isolation; health/swagger separate. Clean for its size |
-| Validation | ⚠️ DB-layer only; no runtime DTO validation (H-04) |
-| Error handling | ✅ Strong: `AppError`, `ErrorCodes`, derived codes, standardized body, 5xx masking |
-| HTTP semantics | ✅ 201/200/204/400/404/409/500 all used correctly; PATCH for partial update is idiomatic |
-| Pagination | ✅ `{data, pagination:{page,limit,total,totalPages}}`; validated `page`/`limit` with max 100; defaults |
-| Search/filtering | ⚠️ Regex interpolation of user input (H-02); works but semantics are not "plain partial match" |
-| Duplicate handling | ⚠️ find-then-write; no unique index (H-08) |
-| Config | ⚠️ Untracked `.env`, no example, silent defaults mismatch (C-02, M-09) |
-| Swagger | ⚠️ Hand-maintained schemas; shallow test coverage (H-03, M-08) |
-| Build | ⚠️ Ships test files in `dist` (H-06) |
-| Logging | ✅ Minimal and appropriate; 5xx-only in middleware |
-| TypeScript | ✅ strict, `as const` codes, no `any` |
+| Dimension          | Verdict                                                                                                     |
+| ------------------ | ----------------------------------------------------------------------------------------------------------- |
+| Structure          | ✅ Routes → controllers → services → models; DTOs in isolation; health/swagger separate. Clean for its size |
+| Validation         | ⚠️ DB-layer only; no runtime DTO validation (H-04)                                                          |
+| Error handling     | ✅ Strong: `AppError`, `ErrorCodes`, derived codes, standardized body, 5xx masking                          |
+| HTTP semantics     | ✅ 201/200/204/400/404/409/500 all used correctly; PATCH for partial update is idiomatic                    |
+| Pagination         | ✅ `{data, pagination:{page,limit,total,totalPages}}`; validated `page`/`limit` with max 100; defaults      |
+| Search/filtering   | ⚠️ Regex interpolation of user input (H-02); works but semantics are not "plain partial match"              |
+| Duplicate handling | ⚠️ find-then-write; no unique index (H-08)                                                                  |
+| Config             | ⚠️ Untracked `.env`, no example, silent defaults mismatch (C-02, M-09)                                      |
+| Swagger            | ⚠️ Hand-maintained schemas; shallow test coverage (H-03, M-08)                                              |
+| Build              | ⚠️ Ships test files in `dist` (H-06)                                                                        |
+| Logging            | ✅ Minimal and appropriate; 5xx-only in middleware                                                          |
+| TypeScript         | ✅ strict, `as const` codes, no `any`                                                                       |
 
 Notable design decisions worth preserving: the `ErrorCodes`/`deriveCodeFromStatus` single-source pattern; controller-level guard clauses returning `next(new AppError(...))` before `try/catch` (readable); `Promise.all` for parallel count+find in the list service.
 
@@ -626,20 +631,20 @@ Notable design decisions worth preserving: the `ErrorCodes`/`deriveCodeFromStatu
 
 ## Frontend Assessment
 
-| Dimension | Verdict |
-|---|---|
-| Feature organization | ✅ `features/books/{api,hooks,components,types,utils}` + `pages` + `shared/{api,components}` — scale-friendly |
-| API layer | ✅ axios instance with typed error interceptor; single `http` client; env-driven base URL (default is the C-02 problem) |
-| TanStack Query | ✅ Keyed queries, `staleTime`/`retry` defaults, optimistic delete with rollback |
-| Routing | ✅ Router 7 data-free `createBrowserRouter`; static routes before dynamic; `/books/create` order is safe |
-| Loading/error/empty states | ✅ Skeletons (`aria-busy`), ErrorState + Retry, contextual EmptyState (filtered/normal) |
-| Forms | ✅ Controlled + per-field errors + `aria-invalid` & `aria-describedby`; 409/400 mapped to form vs banner |
-| Typing | ⚠️ `genre: string` instead of `Genre`; duplicated `Book` type (M-01) |
-| A11y | ✅ Strong (modal, focus, aria wiring) |
-| Responsive | ✅ Responsive grids, `sm:` breakpoints, `max-w-[1200px]` container |
-| Design system | ✅ Exact match to `docs/design/` |
-| ESLint | ⚠️ Runs, but polluted by `coverage/` warnings (M-11) |
-| TypeScript strictness | ⚠️ **`tsconfig.app.json` does not set `"strict": true`** — the project's own docs claim "TypeScript strict checking"; only `noUnusedLocals`/`noUnusedParameters` are on. This should be corrected in consolidation (verify the repo compiles clean under strict before flipping it). |
+| Dimension                  | Verdict                                                                                                                                                                                                                                                                              |
+| -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Feature organization       | ✅ `features/books/{api,hooks,components,types,utils}` + `pages` + `shared/{api,components}` — scale-friendly                                                                                                                                                                        |
+| API layer                  | ✅ axios instance with typed error interceptor; single `http` client; env-driven base URL (default is the C-02 problem)                                                                                                                                                              |
+| TanStack Query             | ✅ Keyed queries, `staleTime`/`retry` defaults, optimistic delete with rollback                                                                                                                                                                                                      |
+| Routing                    | ✅ Router 7 data-free `createBrowserRouter`; static routes before dynamic; `/books/create` order is safe                                                                                                                                                                             |
+| Loading/error/empty states | ✅ Skeletons (`aria-busy`), ErrorState + Retry, contextual EmptyState (filtered/normal)                                                                                                                                                                                              |
+| Forms                      | ✅ Controlled + per-field errors + `aria-invalid` & `aria-describedby`; 409/400 mapped to form vs banner                                                                                                                                                                             |
+| Typing                     | ⚠️ `genre: string` instead of `Genre`; duplicated `Book` type (M-01)                                                                                                                                                                                                                 |
+| A11y                       | ✅ Strong (modal, focus, aria wiring)                                                                                                                                                                                                                                                |
+| Responsive                 | ✅ Responsive grids, `sm:` breakpoints, `max-w-[1200px]` container                                                                                                                                                                                                                   |
+| Design system              | ✅ Exact match to `docs/design/`                                                                                                                                                                                                                                                     |
+| ESLint                     | ⚠️ Runs, but polluted by `coverage/` warnings (M-11)                                                                                                                                                                                                                                 |
+| TypeScript strictness      | ⚠️ **`tsconfig.app.json` does not set `"strict": true`** — the project's own docs claim "TypeScript strict checking"; only `noUnusedLocals`/`noUnusedParameters` are on. This should be corrected in consolidation (verify the repo compiles clean under strict before flipping it). |
 
 **Frontend types note:** the claimed "TypeScript strict checking" (task context) is true for the backend (`strict: true`) but **not verified for the frontend** (`tsconfig.app.json:1-29` contains no `strict` flag). This is a documentation-vs-config discrepancy; either enable it or stop claiming it.
 
@@ -649,20 +654,20 @@ Notable design decisions worth preserving: the `ErrorCodes`/`deriveCodeFromStatu
 
 Traced flow-by-flow (request → response → types → hooks → UI):
 
-| Flow | Request | Backend | Frontend types/hook | Verdict |
-|---|---|---|---|---|
-| List books | `GET /api/books?title&author&genre&page&limit` | `{data, pagination}` sorted by title | `PaginatedResponse<Book>` / `useBooks(queryParams)` | ✅ Shape matches |
-| Pagination | `page=1..N`, limit ≤100 | validated; out-of-range → empty data | `filters.page` ↔ URL ↔ `Pagination` | ✅ Consistent (URL only includes `page` when >1 — a clean canonicalization) |
-| Search | `title=`/`author=` partial CI regex | `$regex $options:"i"` | debounced 300ms, trimmed, URL-synced | ⚠️ Escape regex (H-02) |
-| Genre filter | `genre=` enum | inline enum check → 400 for invalid | `Genre \| ""` from `GENRES` | ✅ (UI can't send invalid values) |
-| Get by id | `GET /books/:id` | 200/400 invalid id/404 | `useBook` maps 404 → `isNotFound` | ✅ |
-| Create | `POST /books` | 201 `Book` | `useCreateBook` → invalidate `["books"]` | ✅ (409 handled in form) |
-| Update | `PATCH /books/:id` | 200; 400 empty body; 404; 409 | `useUpdateBook` invalidates list + detail | ✅ |
-| Delete | `DELETE /books/:id` | 204 no body | optimistic remove + rollback + invalidate | ⚠️ Page clamp bug (H-05) |
-| Validation errors | 400 `details` per-field | Mongoose-derived messages | `BookForm` maps `details` → field errors | ⚠️ MSW shape differs from real (C-03) |
-| Not found | 404 `NOT_FOUND` | consistent | `isNotFound` states on details/edit; inline message on delete | ✅ |
-| Conflict | 409 `CONFLICT` | `Book already exists.` | banner via `handleError` | ✅ |
-| Server error | 500 `INTERNAL_ERROR` | masked message | generic ErrorState/ErrorAlert | ✅ |
+| Flow              | Request                                        | Backend                              | Frontend types/hook                                           | Verdict                                                                     |
+| ----------------- | ---------------------------------------------- | ------------------------------------ | ------------------------------------------------------------- | --------------------------------------------------------------------------- |
+| List books        | `GET /api/books?title&author&genre&page&limit` | `{data, pagination}` sorted by title | `PaginatedResponse<Book>` / `useBooks(queryParams)`           | ✅ Shape matches                                                            |
+| Pagination        | `page=1..N`, limit ≤100                        | validated; out-of-range → empty data | `filters.page` ↔ URL ↔ `Pagination`                           | ✅ Consistent (URL only includes `page` when >1 — a clean canonicalization) |
+| Search            | `title=`/`author=` partial CI regex            | `$regex $options:"i"`                | debounced 300ms, trimmed, URL-synced                          | ⚠️ Escape regex (H-02)                                                      |
+| Genre filter      | `genre=` enum                                  | inline enum check → 400 for invalid  | `Genre \| ""` from `GENRES`                                   | ✅ (UI can't send invalid values)                                           |
+| Get by id         | `GET /books/:id`                               | 200/400 invalid id/404               | `useBook` maps 404 → `isNotFound`                             | ✅                                                                          |
+| Create            | `POST /books`                                  | 201 `Book`                           | `useCreateBook` → invalidate `["books"]`                      | ✅ (409 handled in form)                                                    |
+| Update            | `PATCH /books/:id`                             | 200; 400 empty body; 404; 409        | `useUpdateBook` invalidates list + detail                     | ✅                                                                          |
+| Delete            | `DELETE /books/:id`                            | 204 no body                          | optimistic remove + rollback + invalidate                     | ⚠️ Page clamp bug (H-05)                                                    |
+| Validation errors | 400 `details` per-field                        | Mongoose-derived messages            | `BookForm` maps `details` → field errors                      | ⚠️ MSW shape differs from real (C-03)                                       |
+| Not found         | 404 `NOT_FOUND`                                | consistent                           | `isNotFound` states on details/edit; inline message on delete | ✅                                                                          |
+| Conflict          | 409 `CONFLICT`                                 | `Book already exists.`               | banner via `handleError`                                      | ✅                                                                          |
+| Server error      | 500 `INTERNAL_ERROR`                           | masked message                       | generic ErrorState/ErrorAlert                                 | ✅                                                                          |
 
 **Contract mismatches found:** 8 (see C-03 table). All are in the mock layer or in parameter-safety (H-02), not in the production frontend code paths — the production client matches the backend correctly in shape, method, and status handling.
 
@@ -707,16 +712,16 @@ Traced flow-by-flow (request → response → types → hooks → UI):
 
 ## CI/CD Assessment
 
-| Aspect | Backend | Frontend | Verdict |
-|---|---|---|---|
-| Trigger | push+PR to main, path-filtered (`backend/**`) | push+PR to main, path-filtered (`frontend/**`) | ✅ Symmetric, efficient |
-| Node version | 22 via setup-node + npm cache | **Runner default, no setup-node, no cache** | ⚠️ H-01 |
-| Lint | ✅ `npm run lint` | ✅ `npm run lint` | ✅ |
-| Typecheck/build | ✅ `npm run build` (tsc) | ✅ `npm run build` (`tsc -b && vite build`) | ✅ |
-| Tests | ✅ `npm test` | ❌ **absent** | 🔴 C-01 |
-| Coverage | ❌ not in CI | ❌ not in CI | ⚠️ M-12 |
-| Path filters | `backend/**` + workflow file | `frontend/**` + workflow file | ✅ |
-| Job naming | `backend` | **`backend`** (copy-paste) | ⚠️ H-01 |
+| Aspect          | Backend                                       | Frontend                                       | Verdict                 |
+| --------------- | --------------------------------------------- | ---------------------------------------------- | ----------------------- |
+| Trigger         | push+PR to main, path-filtered (`backend/**`) | push+PR to main, path-filtered (`frontend/**`) | ✅ Symmetric, efficient |
+| Node version    | 22 via setup-node + npm cache                 | **Runner default, no setup-node, no cache**    | ⚠️ H-01                 |
+| Lint            | ✅ `npm run lint`                             | ✅ `npm run lint`                              | ✅                      |
+| Typecheck/build | ✅ `npm run build` (tsc)                      | ✅ `npm run build` (`tsc -b && vite build`)    | ✅                      |
+| Tests           | ✅ `npm test`                                 | ❌ **absent**                                  | 🔴 C-01                 |
+| Coverage        | ❌ not in CI                                  | ❌ not in CI                                   | ⚠️ M-12                 |
+| Path filters    | `backend/**` + workflow file                  | `frontend/**` + workflow file                  | ✅                      |
+| Job naming      | `backend`                                     | **`backend`** (copy-paste)                     | ⚠️ H-01                 |
 
 **Does the current setup protect PRs?** Partially. Backend PRs are protected; frontend PRs are only lint+build-checked — no test execution. A frontend behavior regression has zero CI signal. Both pipelines run `npm ci` from lockfiles and checkout `actions/checkout@v4` — both good.
 
@@ -728,19 +733,19 @@ Traced flow-by-flow (request → response → types → hooks → UI):
 
 Verified against implementation (full matrix in M-05; highlights below):
 
-| Doc | State |
-|---|---|
-| `docs/project-context.md` | ⚠️ Versions stale (Mongoose 8→9, Jest 29→30); state section ends at Story 10; CI/CD listed as "planned"; no frontend coverage at all |
-| `docs/roadmap.md` | ⚠️ "Current: Story 11" — 9 stories stale |
-| `docs/tests.md` | ⚠️ Wrong TC-H5-002 attribution, wrong TC-H3-005 logging claim, missing Swagger group, 6 vs 7 files, mismatched totals |
-| `docs/testing.md` | ⚠️ Accurate strategy, but "test:ci is CI entry point" is false |
-| `docs/frontend-testing.md` | ✅ Accurate (scripts match package.json; conventions match code) |
-| `docs/design/design-system.md` | ✅ Token-for-token accurate against `index.css` and components |
-| `docs/design/design-context.md`, `ui-components.md` | ✅ Accurate (verified buttons, inputs, cards, navbar, pagination, empty/not-found copy) |
-| `docs/mvp.md` | 🟢 Skeletal but not contradictory |
-| Root `README.md` | 🔴 Placeholder; unusable as documentation (M-06) |
-| `frontend/README.md` | 🔴 Untouched Vite boilerplate (M-06) |
-| `docs/planning/audit.md` | ℹ️ Prior audit prompt (gitignored by design) |
+| Doc                                                 | State                                                                                                                                |
+| --------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| `docs/project-context.md`                           | ⚠️ Versions stale (Mongoose 8→9, Jest 29→30); state section ends at Story 10; CI/CD listed as "planned"; no frontend coverage at all |
+| `docs/roadmap.md`                                   | ⚠️ "Current: Story 11" — 9 stories stale                                                                                             |
+| `docs/tests.md`                                     | ⚠️ Wrong TC-H5-002 attribution, wrong TC-H3-005 logging claim, missing Swagger group, 6 vs 7 files, mismatched totals                |
+| `docs/testing.md`                                   | ⚠️ Accurate strategy, but "test:ci is CI entry point" is false                                                                       |
+| `docs/frontend-testing.md`                          | ✅ Accurate (scripts match package.json; conventions match code)                                                                     |
+| `docs/design/design-system.md`                      | ✅ Token-for-token accurate against `index.css` and components                                                                       |
+| `docs/design/design-context.md`, `ui-components.md` | ✅ Accurate (verified buttons, inputs, cards, navbar, pagination, empty/not-found copy)                                              |
+| `docs/mvp.md`                                       | 🟢 Skeletal but not contradictory                                                                                                    |
+| Root `README.md`                                    | 🔴 Placeholder; unusable as documentation (M-06)                                                                                     |
+| `frontend/README.md`                                | 🔴 Untouched Vite boilerplate (M-06)                                                                                                 |
+| `docs/planning/audit.md`                            | ℹ️ Prior audit prompt (gitignored by design)                                                                                         |
 
 **Missing decisions documented nowhere:** the error format evolution (story-10's own follow-up items were never written into `project-context.md` — `docs/stories/story-10-...md:91-96` requires documenting malformed-JSON→500 behavior; not done); the port contract (C-02); seed script; `PORT`/`MONGODB_URI`; the storytelling artifacts claim "strict" frontend TS (untrue — see Frontend Assessment).
 
@@ -774,14 +779,14 @@ Verified against implementation (full matrix in M-05; highlights below):
 
 ### 1. Must fix before E2E
 
-| Priority | Item | Refs |
-|---|---|---|
-| 1 | Align the local port/env contract; add `backend/.env.example`; Vite proxy or canonical default | C-02 |
-| 2 | Run frontend tests in CI (`test:ci` script + workflow step); synchronize workflows (setUp-node, cache, naming, `test:ci` on backend too) | C-01, H-01, M-12 (thresholds can wait) |
-| 3 | Realign MSW handlers to the backend contract; add the parity test | C-03 |
-| 4 | Fix pagination bugs (delete page clamp; active-filter count) | H-05 |
-| 5 | Escaping of regex filters (contract semantics for search) | H-02 |
-| 6 | Unique (title, author) index + 11000 → 409 mapping | H-08 |
+| Priority | Item                                                                                                                                     | Refs                                   |
+| -------- | ---------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------- |
+| 1        | Align the local port/env contract; add `backend/.env.example`; Vite proxy or canonical default                                           | C-02                                   |
+| 2        | Run frontend tests in CI (`test:ci` script + workflow step); synchronize workflows (setUp-node, cache, naming, `test:ci` on backend too) | C-01, H-01, M-12 (thresholds can wait) |
+| 3        | Realign MSW handlers to the backend contract; add the parity test                                                                        | C-03                                   |
+| 4        | Fix pagination bugs (delete page clamp; active-filter count)                                                                             | H-05                                   |
+| 5        | Escaping of regex filters (contract semantics for search)                                                                                | H-02                                   |
+| 6        | Unique (title, author) index + 11000 → 409 mapping                                                                                       | H-08                                   |
 
 Rationale: E2E tests need a deterministic local stack (1), a CI that runs the suite they extend (2), mock fixtures that don't lie about the API E2E exercises (3), and a UI without the cheap-to-hit pagination bugs (4). Items 5–6 stabilize the semantics E2E asserts against.
 
@@ -815,7 +820,7 @@ Rationale: E2E tests need a deterministic local stack (1), a CI that runs the su
 **Must fix first (blocks a meaningful E2E layer):**
 
 1. **C-02** — E2E needs a reproducible way to start backend + frontend (Playwright `webServer` config depends on known ports/env).
-2. **C-01 / H-01** — CI must run the unit/integration suites *before* E2E is added; otherwise failures have no bisection layer.
+2. **C-01 / H-01** — CI must run the unit/integration suites _before_ E2E is added; otherwise failures have no bisection layer.
 3. **C-03** — if mock stay diverged, E2E against the real backend will chase ghosts the jsdom suite believes are fine, and E2E fixtures built on the mock inherit its wrong behaviors.
 4. **H-05** — the delete-last-item-on-last-page flow is a guaranteed E2E flake/failure; fix the two-line bug first.
 

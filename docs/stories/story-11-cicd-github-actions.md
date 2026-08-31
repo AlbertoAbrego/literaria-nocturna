@@ -10,36 +10,36 @@ Create a continuous integration workflow that validates the backend on every pus
 
 ### Workflow Setup
 
-* Create a GitHub Actions workflow.
-* Trigger on push and pull requests.
-* Use a Node.js LTS environment.
+- Create a GitHub Actions workflow.
+- Trigger on push and pull requests.
+- Use a Node.js LTS environment.
 
 ### Automated Checks
 
-* Install dependencies.
-* Run lint.
-* Run TypeScript build.
-* Run the Jest integration test suite.
+- Install dependencies.
+- Run lint.
+- Run TypeScript build.
+- Run the Jest integration test suite.
 
 ### Reporting
 
-* Fail the workflow on lint errors.
-* Fail the workflow on build errors.
-* Fail the workflow on test failures.
+- Fail the workflow on lint errors.
+- Fail the workflow on build errors.
+- Fail the workflow on test failures.
 
 ### Documentation
 
-* Document the CI workflow.
-* Add status badge to the README (optional).
+- Document the CI workflow.
+- Add status badge to the README (optional).
 
 ## Acceptance Criteria
 
-* GitHub Actions runs automatically on push.
-* GitHub Actions runs automatically on pull requests.
-* Lint passes.
-* Build passes.
-* All tests pass.
-* Workflow fails correctly when a test fails.
+- GitHub Actions runs automatically on push.
+- GitHub Actions runs automatically on pull requests.
+- Lint passes.
+- Build passes.
+- All tests pass.
+- Workflow fails correctly when a test fails.
 
 ## Test Cases
 

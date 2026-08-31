@@ -10,45 +10,45 @@ Improve the overall API consistency by introducing a standardized error response
 
 ### Standardized Error Responses
 
-* Introduce a consistent error response structure.
-* Include a `message` field.
-* Include a `code` field.
-* Reserve support for optional `details` in future validation errors.
+- Introduce a consistent error response structure.
+- Include a `message` field.
+- Include a `code` field.
+- Reserve support for optional `details` in future validation errors.
 
 ### Validation Improvements
 
-* Improve validation error handling.
-* Return consistent `400 Bad Request` responses.
-* Prepare the middleware for future field-level validation details.
+- Improve validation error handling.
+- Return consistent `400 Bad Request` responses.
+- Prepare the middleware for future field-level validation details.
 
 ### Logging Improvements
 
-* Avoid logging expected client errors (`400`, `404`, `409`).
-* Log only server-side errors (`5xx`).
-* Keep logs concise and useful for debugging.
+- Avoid logging expected client errors (`400`, `404`, `409`).
+- Log only server-side errors (`5xx`).
+- Keep logs concise and useful for debugging.
 
 ### Middleware Cleanup
 
-* Simplify the global error middleware.
-* Ensure consistent error propagation.
-* Remove redundant logging and duplicated logic.
+- Simplify the global error middleware.
+- Ensure consistent error propagation.
+- Remove redundant logging and duplicated logic.
 
 ### API Documentation
 
-* Integrate Swagger/OpenAPI.
-* Document all book endpoints.
-* Document request and response schemas.
-* Document standardized error responses.
-* Expose the interactive API documentation endpoint.
+- Integrate Swagger/OpenAPI.
+- Document all book endpoints.
+- Document request and response schemas.
+- Document standardized error responses.
+- Expose the interactive API documentation endpoint.
 
 ## Acceptance Criteria
 
-* All API endpoints use the standardized error response format.
-* Validation errors return consistent responses.
-* Client errors are not logged as server errors.
-* Swagger documentation is accessible and accurate.
-* Error responses are documented in OpenAPI.
-* Middleware follows a consistent error-handling strategy.
+- All API endpoints use the standardized error response format.
+- Validation errors return consistent responses.
+- Client errors are not logged as server errors.
+- Swagger documentation is accessible and accurate.
+- Error responses are documented in OpenAPI.
+- Middleware follows a consistent error-handling strategy.
 
 ## Test Cases
 
@@ -90,8 +90,8 @@ This gap affects the story's acceptance criteria: malformed payloads are client 
 
 ### Required Changes in Next Phases
 
-* **Middleware (small follow-up, before Phase 5):** add an explicit branch for body-parser parse errors (`SyntaxError` with `status: 400`, e.g. `type: 'entity.parse.failed'`) returning `400` with `VALIDATION_ERROR` and a generic message (e.g. `Invalid JSON payload`), without logging.
-* **Phase 5 (Testing):** add a test case for malformed JSON bodies asserting `400` + `code: VALIDATION_ERROR`, and that the error is not logged as a server error.
-* **Phase 6 (Documentation):** document the malformed JSON response in `docs/project-context.md` and in the OpenAPI error components.
+- **Middleware (small follow-up, before Phase 5):** add an explicit branch for body-parser parse errors (`SyntaxError` with `status: 400`, e.g. `type: 'entity.parse.failed'`) returning `400` with `VALIDATION_ERROR` and a generic message (e.g. `Invalid JSON payload`), without logging.
+- **Phase 5 (Testing):** add a test case for malformed JSON bodies asserting `400` + `code: VALIDATION_ERROR`, and that the error is not logged as a server error.
+- **Phase 6 (Documentation):** document the malformed JSON response in `docs/project-context.md` and in the OpenAPI error components.
 
 **Alternative (not chosen):** treat all parser failures as `500` and accept that a client-error case gets logged. Rejected because it conflicts with the "client errors are not logged" criterion.
