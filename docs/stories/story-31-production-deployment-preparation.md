@@ -42,13 +42,13 @@ Production
 
 Document configuration for:
 
-| Configuration | Development | Staging | Production |
-| --- | --- | --- | --- |
-| Frontend API | Local API | Staging API | Production API |
-| Database | Local/Dev | Staging DB | Production DB |
-| CORS | Localhost | Staging domain | Production domain |
-| Secrets | Local `.env` | Hosting secrets | Hosting secrets |
-| HTTPS | Optional | Required | Required |
+| Configuration | Development  | Staging         | Production        |
+| ------------- | ------------ | --------------- | ----------------- |
+| Frontend API  | Local API    | Staging API     | Production API    |
+| Database      | Local/Dev    | Staging DB      | Production DB     |
+| CORS          | Localhost    | Staging domain  | Production domain |
+| Secrets       | Local `.env` | Hosting secrets | Hosting secrets   |
+| HTTPS         | Optional     | Required        | Required          |
 
 ## Acceptance Criteria
 

@@ -46,7 +46,10 @@ interface OpenAPIEndpoint {
       };
     };
   };
-  responses: Record<string, { description: string; $ref?: string } | { description: string }>;
+  responses: Record<
+    string,
+    { description: string; $ref?: string } | { description: string }
+  >;
 }
 
 function resolveRef(ref: string, spec: OpenAPISpec): OpenAPISchema {
@@ -110,7 +113,10 @@ function schemaToTypeScript(
   return "unknown";
 }
 
-function getInlineType(schema: OpenAPISchema | { $ref: string }, spec: OpenAPISpec): string {
+function getInlineType(
+  schema: OpenAPISchema | { $ref: string },
+  spec: OpenAPISpec,
+): string {
   if ("$ref" in schema) {
     const resolved = resolveRef(schema.$ref, spec);
     return getInlineType(resolved, spec);
@@ -128,9 +134,10 @@ function getInlineType(schema: OpenAPISchema | { $ref: string }, spec: OpenAPISp
     const entries = Object.entries(schema.properties)
       .map(([key, propSchema]) => {
         const propRef = propSchema as OpenAPISchema | { $ref: string };
-        const typeStr = " $ref" in propRef
-          ? getInlineType(resolveRef(propRef.$ref, spec), spec)
-          : getInlineType(propRef as OpenAPISchema, spec);
+        const typeStr =
+          " $ref" in propRef
+            ? getInlineType(resolveRef(propRef.$ref, spec), spec)
+            : getInlineType(propRef as OpenAPISchema, spec);
         const isRequired = schema.required?.includes(key) ?? false;
         return `${key}${isRequired ? "" : "?"}: ${typeStr}`;
       })
@@ -140,9 +147,10 @@ function getInlineType(schema: OpenAPISchema | { $ref: string }, spec: OpenAPISp
 
   if (schema.type === "array" && schema.items) {
     const itemsRef = schema.items as OpenAPISchema | { $ref: string };
-    const itemType = "$ref" in itemsRef
-      ? getInlineType(resolveRef(itemsRef.$ref, spec), spec)
-      : getInlineType(itemsRef as OpenAPISchema, spec);
+    const itemType =
+      "$ref" in itemsRef
+        ? getInlineType(resolveRef(itemsRef.$ref, spec), spec)
+        : getInlineType(itemsRef as OpenAPISchema, spec);
     return `${itemType}[]`;
   }
 
@@ -202,15 +210,22 @@ function generateEndpoints(spec: OpenAPISpec): string {
       }));
 
       const requestBody = endpoint.requestBody
-        ? { required: endpoint.requestBody.required, ref: endpoint.requestBody.content["application/json"].schema.$ref }
+        ? {
+            required: endpoint.requestBody.required,
+            ref: endpoint.requestBody.content["application/json"].schema.$ref,
+          }
         : undefined;
 
-      const responses: Record<string, { description: string; ref?: string }> = {};
+      const responses: Record<string, { description: string; ref?: string }> =
+        {};
       for (const [status, resp] of Object.entries(endpoint.responses)) {
         if ("$ref" in resp) {
-          const resolved = resolveRef(resp.$ref, spec) as { description?: string };
+          const resolved = resolveRef(resp.$ref, spec) as {
+            description?: string;
+          };
           responses[status] = {
-            description: resolved.description ?? resp.$ref.split("/").pop() ?? "",
+            description:
+              resolved.description ?? resp.$ref.split("/").pop() ?? "",
             ref: resp.$ref,
           };
         } else {
@@ -224,11 +239,15 @@ function generateEndpoints(spec: OpenAPISpec): string {
       lines.push(`    method: "${method.toUpperCase()}",`);
       lines.push(`    path: "${path}",`);
       lines.push(`    summary: "${endpoint.summary}",`);
-      lines.push(`    parameters: ${JSON.stringify(parameters, null, 6).replace(/\n/g, "\n    ")},`);
+      lines.push(
+        `    parameters: ${JSON.stringify(parameters, null, 6).replace(/\n/g, "\n    ")},`,
+      );
       if (requestBody) {
         lines.push(`    requestBody: ${JSON.stringify(requestBody)},`);
       }
-      lines.push(`    responses: ${JSON.stringify(responses, null, 6).replace(/\n/g, "\n    ")},`);
+      lines.push(
+        `    responses: ${JSON.stringify(responses, null, 6).replace(/\n/g, "\n    ")},`,
+      );
       lines.push("  },");
     }
   }

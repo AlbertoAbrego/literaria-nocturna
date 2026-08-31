@@ -214,13 +214,13 @@ Every error response follows the shape:
 
 ## Validation Conventions
 
-| Layer               | What is Validated                                  | How                                                          |
-| ------------------- | -------------------------------------------------- | ------------------------------------------------------------ |
-| Controller (params) | ObjectId format                                    | `mongoose.Types.ObjectId.isValid()`                          |
-| Controller (body)   | Required fields, genre, empty body                 | `validateCreateBookDto()`, `validateUpdateBookDto()`          |
-| Controller (query)  | Genre enum, page/limit bounds                      | `validateBookQueryDto()`                                     |
-| Mongoose (schema)   | Required fields, types, enum values (defense in depth) | Schema definition + `runValidators: true`                |
-| Service             | Business uniqueness (title+author)                 | Manual query + `AppError(409)`                               |
+| Layer               | What is Validated                                      | How                                                  |
+| ------------------- | ------------------------------------------------------ | ---------------------------------------------------- |
+| Controller (params) | ObjectId format                                        | `mongoose.Types.ObjectId.isValid()`                  |
+| Controller (body)   | Required fields, genre, empty body                     | `validateCreateBookDto()`, `validateUpdateBookDto()` |
+| Controller (query)  | Genre enum, page/limit bounds                          | `validateBookQueryDto()`                             |
+| Mongoose (schema)   | Required fields, types, enum values (defense in depth) | Schema definition + `runValidators: true`            |
+| Service             | Business uniqueness (title+author)                     | Manual query + `AppError(409)`                       |
 
 - Validation functions live in `src/utils/dto-validation.ts` (DTO-level) and `src/utils/validation.ts` (primitives)
 - Both controller-level and Mongoose-level validation produce the same error format: `{ message: "Validation failed", code: "VALIDATION_ERROR", details: { field: "error message" } }`

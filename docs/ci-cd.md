@@ -10,11 +10,11 @@ GitHub Actions pipelines for automated testing, linting, and building. Both pipe
 
 ### Triggers
 
-| Event | Branch | Path Filter |
-|-------|--------|-------------|
-| `push` | `main` | `backend/**`, `.github/workflows/backend-ci.yml` |
-| `pull_request` | `main` | `backend/**`, `.github/workflows/backend-ci.yml` |
-| `workflow_dispatch` | — | Manual trigger (no path filter) |
+| Event               | Branch | Path Filter                                      |
+| ------------------- | ------ | ------------------------------------------------ |
+| `push`              | `main` | `backend/**`, `.github/workflows/backend-ci.yml` |
+| `pull_request`      | `main` | `backend/**`, `.github/workflows/backend-ci.yml` |
+| `workflow_dispatch` | —      | Manual trigger (no path filter)                  |
 
 ### Pipeline Steps
 
@@ -22,14 +22,14 @@ GitHub Actions pipelines for automated testing, linting, and building. Both pipe
 Checkout → Setup Node.js 22 → npm ci → ESLint → Build → Integration Tests
 ```
 
-| Step | Command | Purpose |
-|------|---------|---------|
-| Checkout | `actions/checkout@v4` | Clone repository |
-| Setup Node.js | `actions/setup-node@v4` | Node.js 22 with npm cache |
-| Install | `npm ci` | Clean install dependencies |
-| Lint | `npm run lint` | ESLint check |
-| Build | `npm run build` | TypeScript compilation (`tsc -p tsconfig.build.json`) |
-| Tests | `npm run test:ci` | `jest --ci --coverage --maxWorkers=2` |
+| Step          | Command                 | Purpose                                               |
+| ------------- | ----------------------- | ----------------------------------------------------- |
+| Checkout      | `actions/checkout@v4`   | Clone repository                                      |
+| Setup Node.js | `actions/setup-node@v4` | Node.js 22 with npm cache                             |
+| Install       | `npm ci`                | Clean install dependencies                            |
+| Lint          | `npm run lint`          | ESLint check                                          |
+| Build         | `npm run build`         | TypeScript compilation (`tsc -p tsconfig.build.json`) |
+| Tests         | `npm run test:ci`       | `jest --ci --coverage --maxWorkers=2`                 |
 
 ### Test Infrastructure
 
@@ -46,11 +46,11 @@ Checkout → Setup Node.js 22 → npm ci → ESLint → Build → Integration Te
 
 ### Triggers
 
-| Event | Branch | Path Filter |
-|-------|--------|-------------|
-| `push` | `main` | `frontend/**`, `.github/workflows/frontend-ci.yml` |
-| `pull_request` | `main` | `frontend/**`, `.github/workflows/frontend-ci.yml` |
-| `workflow_dispatch` | — | Manual trigger (no path filter) |
+| Event               | Branch | Path Filter                                        |
+| ------------------- | ------ | -------------------------------------------------- |
+| `push`              | `main` | `frontend/**`, `.github/workflows/frontend-ci.yml` |
+| `pull_request`      | `main` | `frontend/**`, `.github/workflows/frontend-ci.yml` |
+| `workflow_dispatch` | —      | Manual trigger (no path filter)                    |
 
 ### Pipeline Steps
 
@@ -58,15 +58,15 @@ Checkout → Setup Node.js 22 → npm ci → ESLint → Build → Integration Te
 Checkout → Setup Node.js 22 → npm ci → ESLint → Contract Check → Build → Tests
 ```
 
-| Step | Command | Purpose |
-|------|---------|---------|
-| Checkout | `actions/checkout@v4` | Clone repository |
-| Setup Node.js | `actions/setup-node@v4` | Node.js 22 with npm cache |
-| Install | `npm ci` | Clean install dependencies |
-| Lint | `npm run lint` | ESLint check |
+| Step           | Command                   | Purpose                                |
+| -------------- | ------------------------- | -------------------------------------- |
+| Checkout       | `actions/checkout@v4`     | Clone repository                       |
+| Setup Node.js  | `actions/setup-node@v4`   | Node.js 22 with npm cache              |
+| Install        | `npm ci`                  | Clean install dependencies             |
+| Lint           | `npm run lint`            | ESLint check                           |
 | Contract Check | `npm run contract:verify` | Verify MSW handlers match OpenAPI spec |
-| Build | `npm run build` | `tsc -b && vite build` |
-| Tests | `npm run test:run` | `vitest run` (non-watch mode) |
+| Build          | `npm run build`           | `tsc -b && vite build`                 |
+| Tests          | `npm run test:run`        | `vitest run` (non-watch mode)          |
 
 ### Test Infrastructure
 
@@ -108,11 +108,11 @@ gh workflow run frontend-ci.yml
 
 ## Environment Requirements
 
-| Requirement | Backend | Frontend |
-|-------------|---------|----------|
-| Node.js | 22 | 22 |
-| npm | 10+ | 10+ |
-| External services | None (mongodb-memory-server) | None (MSW mocks API) |
+| Requirement           | Backend                       | Frontend             |
+| --------------------- | ----------------------------- | -------------------- |
+| Node.js               | 22                            | 22                   |
+| npm                   | 10+                           | 10+                  |
+| External services     | None (mongodb-memory-server)  | None (MSW mocks API) |
 | Environment variables | None (tests use in-memory DB) | None (tests use MSW) |
 
 Both pipelines are fully self-contained — no secrets, databases, or external APIs required.
@@ -128,9 +128,9 @@ Both pipelines are fully self-contained — no secrets, databases, or external A
 
 ## Troubleshooting
 
-| Issue | Solution |
-|-------|----------|
-| `mongodb-memory-server` download fails | Run `npm test` locally first to cache the binary. CI runners may need a retry. |
-| MSW contract check fails | Run `npm run contract:extract` locally, verify handlers match, commit updated `contract/openapi-types.ts` |
-| Build fails with type errors | Run `npx tsc --noEmit` locally to catch type errors before pushing |
-| ESLint fails | Run `npm run lint` and `npm run format` locally before committing |
+| Issue                                  | Solution                                                                                                  |
+| -------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| `mongodb-memory-server` download fails | Run `npm test` locally first to cache the binary. CI runners may need a retry.                            |
+| MSW contract check fails               | Run `npm run contract:extract` locally, verify handlers match, commit updated `contract/openapi-types.ts` |
+| Build fails with type errors           | Run `npx tsc --noEmit` locally to catch type errors before pushing                                        |
+| ESLint fails                           | Run `npm run lint` and `npm run format` locally before committing                                         |

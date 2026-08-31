@@ -296,7 +296,7 @@ deep paths.
 state for the catalog and keeps it synchronized with the URL:
 
 - **Draft vs. committed.** The controlled inputs (title/author/genre) read from a
-  `draft` state so typing is instant; the URL reflects only the *committed* value.
+  `draft` state so typing is instant; the URL reflects only the _committed_ value.
   A 300ms debounce writes `draft` → URL via `buildSearchParams` with
   `{ replace: true }`, and the committed value is parsed back from
   `useSearchParams`.
@@ -388,6 +388,7 @@ a faithful representation of the API.
 derived from the backend's `swagger.ts` config and JSDoc annotations.
 
 **Flow:**
+
 1. `npm run contract:extract` reads the OpenAPI spec and generates
    `openapi-types.ts` (TypeScript interfaces) and `endpoints.ts` (endpoint
    definitions) in `src/test/contract/`.
@@ -411,7 +412,7 @@ Use path aliases.
 Preferred:
 
 ```ts
-import { BookTable } from '@/features/books/components';
+import { BookTable } from "@/features/books/components";
 ```
 
 Avoid long relative paths.
