@@ -51,6 +51,9 @@ literaria-nocturna/
 │           ├── handlers/     # MSW handlers (books, errors)
 │           ├── utils/        # renderWithProviders, createTestQueryClient
 │           └── examples/     # Reference test implementations
+├── e2e/                      # Playwright E2E tests (Chromium)
+│   └── smoke.test.ts         # Infrastructure smoke test
+├── playwright.config.ts      # Playwright configuration
 └── docs/                     # Architecture, stories, planning
 ```
 
@@ -179,6 +182,14 @@ App runs on `http://localhost:5173`. The frontend proxies API calls to the backe
 | `npm run lint`             | ESLint check                                  |
 | `npm run format`           | Prettier format                               |
 
+### E2E (from repository root)
+
+| Command              | Description                              |
+| -------------------- | ---------------------------------------- |
+| `npm run test:e2e`   | Run Playwright E2E suite (Chromium)      |
+| `npm run test:e2e:headed` | Run with visible browser            |
+| `npm run test:e2e:debug`  | Interactive step-through debugging   |
+
 ## Testing
 
 ### Backend
@@ -207,6 +218,18 @@ npm run contract:check  # verify MSW ↔ OpenAPI contract
 ```
 
 Tests use MSW to mock API calls — no backend required. All API interactions are covered by handlers in `src/test/handlers/`.
+
+### E2E (Playwright)
+
+Browser-based end-to-end tests using Chromium. Verifies the full stack: browser → frontend → backend → MongoDB.
+
+```bash
+npm run test:e2e           # run E2E suite (headless)
+npm run test:e2e:headed    # run with visible browser
+npm run test:e2e:debug     # interactive step-through debugging
+```
+
+Playwright automatically starts both backend and frontend servers. MongoDB must be reachable (configured in `backend/.env`).
 
 ## CI/CD
 
@@ -263,6 +286,6 @@ Both pipelines support manual triggering via `workflow_dispatch`.
 | -------- | --------------------------------------------------------------------------- |
 | Backend  | Express 5, TypeScript, Mongoose 9, Swagger (OpenAPI 3.0)                    |
 | Frontend | React 19, Vite 8, Tailwind CSS v4, TanStack Query v5, Axios, React Router 7 |
-| Testing  | Jest 30 (backend), Vitest 4 (frontend), MSW 2, React Testing Library        |
+| Testing  | Jest 30 (backend), Vitest 4 (frontend), MSW 2, React Testing Library, Playwright (E2E) |
 | Database | MongoDB                                                                     |
 | CI/CD    | GitHub Actions, Node.js 22                                                  |

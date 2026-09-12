@@ -433,3 +433,80 @@ The verify script checks that every OpenAPI endpoint has a matching MSW handler.
 - All tests are `async`/`await`
 - Use `waitFor` for async assertions
 - Use `act()` for state updates that trigger effects
+
+---
+
+# E2E Testing (Playwright)
+
+## Strategy
+
+Browser-based end-to-end tests using Playwright with Chromium. Exercises the full stack: browser → frontend (React/Vite) → backend (Express) → real MongoDB.
+
+| Tool            | Purpose                                      |
+| --------------- | -------------------------------------------- |
+| Playwright      | Browser automation, assertions, test runner  |
+| Chromium        | Browser engine (initial; Firefox/WebKit TBD) |
+
+**Trade-off**: Slowest layer, requires running applications and database. Validates what no other layer can: real browser rendering, real network requests, real user interactions.
+
+---
+
+## How to Run
+
+From the repository root:
+
+```bash
+npm run test:e2e        # run E2E suite (Chromium, headless)
+npm run test:e2e:headed # run with visible browser
+npm run test:e2e:debug  # interactive step-through debugging
+```
+
+**Prerequisites**: Backend and frontend `dev` servers are started automatically by Playwright via `webServer` configuration. MongoDB must be reachable (configured in `backend/.env`).
+
+---
+
+## Structure
+
+```
+e2e/
+└── smoke.test.ts          # Infrastructure smoke test
+
+playwright.config.ts       # Playwright configuration (root)
+```
+
+---
+
+## How It Works
+
+1. **Configuration** (`playwright.config.ts`): Defines test directory (`e2e/`), Chromium project, base URL (`http://localhost:5173`), and `webServer` array.
+
+2. **Web Server Management**: Playwright starts both applications before tests:
+   - Backend: `npm run dev --prefix backend` (port 3000, readiness: `/api/health/ready`)
+   - Frontend: `npm run dev --prefix frontend` (port 5173)
+   - `reuseExistingServer: !process.env.CI` reuses already-running dev servers locally.
+
+3. **Smoke Test**: Navigates to `/`, asserts redirect to `/books`, asserts `"Catalog"` heading visible. No data dependencies.
+
+4. **Artifacts**: Traces, screenshots, and videos are captured on failure and stored in `test-results/` (git-ignored).
+
+---
+
+## Conventions
+
+- **Stable selectors**: Use `getByRole`, `getByText`, `getByTestId` — never CSS selectors or XPath
+- **No data dependencies**: Tests must not depend on specific database IDs, seeded data, or external state
+- **Minimal scope**: Infrastructure tests verify startup and rendering; functional tests belong to future stories
+- **Independent tests**: Each test must be isolated and runnable in any order
+
+---
+
+## E2E vs Other Test Layers
+
+| Concern                | Backend Integration | Frontend Unit/Component | E2E           |
+| ---------------------- | ------------------- | ----------------------- | ------------- |
+| Real browser           | No                  | No                      | Yes           |
+| Real network requests  | No (supertest)      | No (MSW)                | Yes           |
+| Real database          | In-memory           | No (mocked)             | Yes           |
+| Speed                  | Fast                | Fast                    | Slow          |
+| Startup required       | No                  | No                      | Yes           |
+| Cross-layer integration| Partial             | No                      | Full          |

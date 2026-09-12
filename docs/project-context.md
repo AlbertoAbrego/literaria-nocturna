@@ -267,15 +267,17 @@ Every error response follows the shape:
 
 ### Strategy
 
-**Integration tests only** — the real Express app is exercised against a real in-memory MongoDB.
+Four test layers, each with a distinct scope:
 
-| Tool                    | Purpose                                         |
-| ----------------------- | ----------------------------------------------- |
-| `supertest`             | Sends HTTP requests to the app (no port opened) |
-| `mongodb-memory-server` | Spawns isolated `mongod` per test run           |
-| Jest                    | Test runner, assertions, lifecycle hooks        |
+| Layer                | Tool                                     | Scope                                                       |
+| -------------------- | ---------------------------------------- | ----------------------------------------------------------- |
+| Backend Integration  | Jest + Supertest + MongoDB Memory Server | Route → Controller → Service → Model → In-memory MongoDB    |
+| Frontend Unit/Component | Vitest + React Testing Library + MSW  | Individual components, hooks, pages with mocked API          |
+| **E2E**              | **Playwright + Chromium**                | **Full stack: Browser → Frontend → Backend → Real MongoDB** |
 
-**Trade-off**: Slower than unit tests, but verifies the full Route → Controller → Service → Model contract.
+**Backend trade-off**: Slower than unit tests, but verifies the full Route → Controller → Service → Model contract.
+
+**E2E trade-off**: Requires running applications and database. Validates the integration that lower layers cannot cover: real browser rendering, real network requests, real database queries.
 
 ### Test Infrastructure
 
@@ -338,6 +340,14 @@ npm test              # single run
 npm run test:watch    # watch mode
 npm run test:coverage # coverage report (text, lcov, html)
 npm run test:ci       # CI mode: --ci --coverage --maxWorkers=2
+```
+
+### E2E Commands (from repository root)
+
+```bash
+npm run test:e2e        # run Playwright E2E suite (Chromium)
+npm run test:e2e:headed # run with visible browser
+npm run test:e2e:debug  # interactive step-through debugging
 ```
 
 ### CI/CD
@@ -443,11 +453,20 @@ Both pipelines use consistent Node.js 22, npm caching, and fail PRs on test/lint
   - Coverage thresholds enforced: backend ≥80/75/75/80, frontend ≥90/85/90/90
   - Example tests excluded from suite
   - Frontend CI runs `test:coverage` with threshold enforcement
-  - Test layer strategy documented (4 layers: backend integration, frontend unit/component, frontend integration+MSW, Playwright E2E)
+  - Test layer strategy documented (3 layers: backend integration, frontend unit/component+MSW, Playwright E2E)
+
+### Current (Story 33)
+
+- Playwright E2E infrastructure:
+  - Playwright installed at repository root (`@playwright/test`)
+  - Chromium browser configured as initial browser project
+  - `playwright.config.ts` at root with `webServer` array for backend + frontend
+  - Dedicated `e2e/` directory with smoke test
+  - Root npm scripts: `test:e2e`, `test:e2e:headed`, `test:e2e:debug`
+  - Smoke test verifies full stack startup and main page rendering
 
 ### Planned
 
-- Playwright E2E implementation
 - Members module
 - Readings module
 
