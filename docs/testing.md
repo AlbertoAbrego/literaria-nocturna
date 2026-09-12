@@ -442,10 +442,10 @@ The verify script checks that every OpenAPI endpoint has a matching MSW handler.
 
 Browser-based end-to-end tests using Playwright with Chromium. Exercises the full stack: browser → frontend (React/Vite) → backend (Express) → real MongoDB.
 
-| Tool            | Purpose                                      |
-| --------------- | -------------------------------------------- |
-| Playwright      | Browser automation, assertions, test runner  |
-| Chromium        | Browser engine (initial; Firefox/WebKit TBD) |
+| Tool       | Purpose                                      |
+| ---------- | -------------------------------------------- |
+| Playwright | Browser automation, assertions, test runner  |
+| Chromium   | Browser engine (initial; Firefox/WebKit TBD) |
 
 **Trade-off**: Slowest layer, requires running applications and database. Validates what no other layer can: real browser rendering, real network requests, real user interactions.
 
@@ -502,11 +502,11 @@ playwright.config.ts       # Playwright configuration (root)
 
 ## E2E vs Other Test Layers
 
-| Concern                | Backend Integration | Frontend Unit/Component | E2E           |
-| ---------------------- | ------------------- | ----------------------- | ------------- |
-| Real browser           | No                  | No                      | Yes           |
-| Real network requests  | No (supertest)      | No (MSW)                | Yes           |
-| Real database          | In-memory           | No (mocked)             | Yes           |
-| Speed                  | Fast                | Fast                    | Slow          |
-| Startup required       | No                  | No                      | Yes           |
-| Cross-layer integration| Partial             | No                      | Full          |
+| Concern                 | Backend Integration | Frontend Unit/Component | E2E  |
+| ----------------------- | ------------------- | ----------------------- | ---- |
+| Real browser            | No                  | No                      | Yes  |
+| Real network requests   | No (supertest)      | No (MSW)                | Yes  |
+| Real database           | In-memory           | No (mocked)             | Yes  |
+| Speed                   | Fast                | Fast                    | Slow |
+| Startup required        | No                  | No                      | Yes  |
+| Cross-layer integration | Partial             | No                      | Full |

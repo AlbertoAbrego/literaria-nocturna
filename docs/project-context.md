@@ -269,11 +269,11 @@ Every error response follows the shape:
 
 Four test layers, each with a distinct scope:
 
-| Layer                | Tool                                     | Scope                                                       |
-| -------------------- | ---------------------------------------- | ----------------------------------------------------------- |
-| Backend Integration  | Jest + Supertest + MongoDB Memory Server | Route → Controller → Service → Model → In-memory MongoDB    |
-| Frontend Unit/Component | Vitest + React Testing Library + MSW  | Individual components, hooks, pages with mocked API          |
-| **E2E**              | **Playwright + Chromium**                | **Full stack: Browser → Frontend → Backend → Real MongoDB** |
+| Layer                   | Tool                                     | Scope                                                       |
+| ----------------------- | ---------------------------------------- | ----------------------------------------------------------- |
+| Backend Integration     | Jest + Supertest + MongoDB Memory Server | Route → Controller → Service → Model → In-memory MongoDB    |
+| Frontend Unit/Component | Vitest + React Testing Library + MSW     | Individual components, hooks, pages with mocked API         |
+| **E2E**                 | **Playwright + Chromium**                | **Full stack: Browser → Frontend → Backend → Real MongoDB** |
 
 **Backend trade-off**: Slower than unit tests, but verifies the full Route → Controller → Service → Model contract.
 

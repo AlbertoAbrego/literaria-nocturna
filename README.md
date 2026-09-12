@@ -184,11 +184,11 @@ App runs on `http://localhost:5173`. The frontend proxies API calls to the backe
 
 ### E2E (from repository root)
 
-| Command              | Description                              |
-| -------------------- | ---------------------------------------- |
-| `npm run test:e2e`   | Run Playwright E2E suite (Chromium)      |
+| Command                   | Description                         |
+| ------------------------- | ----------------------------------- |
+| `npm run test:e2e`        | Run Playwright E2E suite (Chromium) |
 | `npm run test:e2e:headed` | Run with visible browser            |
-| `npm run test:e2e:debug`  | Interactive step-through debugging   |
+| `npm run test:e2e:debug`  | Interactive step-through debugging  |
 
 ## Testing
 
@@ -282,10 +282,10 @@ Both pipelines support manual triggering via `workflow_dispatch`.
 
 ## Tech Stack
 
-| Layer    | Technology                                                                  |
-| -------- | --------------------------------------------------------------------------- |
-| Backend  | Express 5, TypeScript, Mongoose 9, Swagger (OpenAPI 3.0)                    |
-| Frontend | React 19, Vite 8, Tailwind CSS v4, TanStack Query v5, Axios, React Router 7 |
+| Layer    | Technology                                                                             |
+| -------- | -------------------------------------------------------------------------------------- |
+| Backend  | Express 5, TypeScript, Mongoose 9, Swagger (OpenAPI 3.0)                               |
+| Frontend | React 19, Vite 8, Tailwind CSS v4, TanStack Query v5, Axios, React Router 7            |
 | Testing  | Jest 30 (backend), Vitest 4 (frontend), MSW 2, React Testing Library, Playwright (E2E) |
-| Database | MongoDB                                                                     |
-| CI/CD    | GitHub Actions, Node.js 22                                                  |
+| Database | MongoDB                                                                                |
+| CI/CD    | GitHub Actions, Node.js 22                                                             |
