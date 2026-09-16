@@ -269,18 +269,18 @@ Every error response follows the shape:
 
 Four test layers, each with a distinct scope:
 
-| Layer                   | Tool                                     | Scope                                                       |
-| ----------------------- | ---------------------------------------- | ----------------------------------------------------------- |
-| Backend Integration     | Jest + Supertest + MongoDB Memory Server | Route → Controller → Service → Model → In-memory MongoDB    |
-| Frontend Unit/Component | Vitest + React Testing Library + MSW     | Individual components, hooks, pages with mocked API         |
-| Frontend Integration/MSW| Vitest + React Testing Library + MSW     | Full page rendering, routing, cache invalidation via MSW    |
-| **E2E**                 | **Playwright + Chromium**                | **Full stack: Browser → Frontend → Backend → Real MongoDB** |
+| Layer                    | Tool                                     | Scope                                                       |
+| ------------------------ | ---------------------------------------- | ----------------------------------------------------------- |
+| Backend Integration      | Jest + Supertest + MongoDB Memory Server | Route → Controller → Service → Model → In-memory MongoDB    |
+| Frontend Unit/Component  | Vitest + React Testing Library + MSW     | Individual components, hooks, pages with mocked API         |
+| Frontend Integration/MSW | Vitest + React Testing Library + MSW     | Full page rendering, routing, cache invalidation via MSW    |
+| **E2E**                  | **Playwright + Chromium**                | **Full stack: Browser → Frontend → Backend → Real MongoDB** |
 
 **Backend trade-off**: Slower than unit tests, but verifies the full Route → Controller → Service → Model contract.
 
 **E2E trade-off**: Requires running applications and database. Validates the integration that lower layers cannot cover: real browser rendering, real network requests, real database queries.
 
-Detailed E2E testing conventions, layer boundaries, and selection criteria are documented in [testing.md](testing.md#e2e-testing-playwright).
+Detailed E2E architecture, conventions, layer boundaries, and selection criteria are documented in [testing.md](testing.md#e2e-testing-playwright).
 
 ### Test Infrastructure
 

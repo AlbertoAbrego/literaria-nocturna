@@ -26,12 +26,12 @@ There are no unit tests yet. If the service/controller grows, pure logic (domain
 
 The project uses four test layers, each with a distinct scope and trade-off:
 
-| Layer                   | Tool                                     | Scope                                                       |
-| ----------------------- | ---------------------------------------- | ----------------------------------------------------------- |
-| Backend Integration     | Jest + Supertest + MongoDB Memory Server | Route → Controller → Service → Model → In-memory MongoDB    |
-| Frontend Unit/Component | Vitest + React Testing Library + MSW     | Individual components, hooks, pages with mocked API         |
-| Frontend Integration/MSW| Vitest + React Testing Library + MSW     | Full page rendering, routing, cache invalidation via MSW    |
-| **E2E (Playwright)**    | **Playwright + Chromium**                | **Full stack: Browser → Frontend → Backend → Real MongoDB** |
+| Layer                    | Tool                                     | Scope                                                       |
+| ------------------------ | ---------------------------------------- | ----------------------------------------------------------- |
+| Backend Integration      | Jest + Supertest + MongoDB Memory Server | Route → Controller → Service → Model → In-memory MongoDB    |
+| Frontend Unit/Component  | Vitest + React Testing Library + MSW     | Individual components, hooks, pages with mocked API         |
+| Frontend Integration/MSW | Vitest + React Testing Library + MSW     | Full page rendering, routing, cache invalidation via MSW    |
+| **E2E (Playwright)**     | **Playwright + Chromium**                | **Full stack: Browser → Frontend → Backend → Real MongoDB** |
 
 ---
 
@@ -504,6 +504,96 @@ playwright.config.ts       # Playwright configuration (root)
 
 ---
 
+## Architecture
+
+### Directory Structure
+
+The E2E suite lives at the repository root in `e2e/`. Future stories should follow this structure:
+
+```
+e2e/
+├── fixtures/                   # Shared test data helpers
+│   └── test-data.ts            # Unique data generators (not a full factory)
+├── helpers/                    # Reusable E2E utilities
+│   ├── navigation.ts           # High-level page navigation (gotoCatalog, gotoCreateBook)
+│   ├── assertions.ts           # Common assertion patterns (expectBookInCatalog, expectValidationError)
+│   └── selectors.ts            # Shared selector constants (only when reused ≥3 times)
+├── books/                      # Feature-organized test files (mirrors frontend features/)
+│   ├── catalog.e2e.test.ts
+│   ├── create-book.e2e.test.ts
+│   ├── edit-book.e2e.test.ts
+│   ├── delete-book.e2e.test.ts
+│   └── book-details.e2e.test.ts
+├── smoke.test.ts               # Infrastructure verification (Story 33 — keep as-is)
+└── utils/
+    └── debug.ts                # Low-level debug utilities (attach, waitFor)
+```
+
+Each feature module (Books, Members, Readings) gets its own subdirectory. Infrastructure tests (smoke) stay at the `e2e/` root.
+
+### Test File Naming
+
+| Element         | Convention                        | Example                                                 |
+| --------------- | --------------------------------- | ------------------------------------------------------- |
+| Test file       | `<feature>.<journey>.e2e.test.ts` | `books.create-book.e2e.test.ts`                         |
+| Describe block  | User journey name                 | `test.describe("Create Book Journey", ...)`             |
+| Test case       | `"TC-<story>-<case>: <behavior>"` | `"TC-H15-001: create valid book and see it in catalog"` |
+| Helper function | camelCase, verb-noun              | `gotoCreateBook()`, `expectBookInCatalog()`             |
+| Fixture         | noun, descriptive                 | `authenticatedPage`, `cleanDatabase`                    |
+
+The `.e2e.` suffix in file names distinguishes E2E tests from backend (`*.integration.test.ts`) and frontend (`*.test.tsx`, `*.test.ts`) tests. This naming aligns with the backend convention of `<entity>.<action>.integration.test.ts`.
+
+### Test Organization
+
+One `describe` block per user journey or page. Multiple `test` cases within a `describe` cover different scenarios for that journey:
+
+```typescript
+// books.create-book.e2e.test.ts
+import { test, expect } from "@playwright/test";
+
+test.describe("Create Book Journey", () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto("/books/new");
+  });
+
+  test("TC-H15-001: create valid book and see it in catalog", async ({
+    page,
+  }) => {
+    // ... fill form, submit, assert in catalog
+  });
+
+  test("TC-H15-002: show validation error when title is missing", async ({
+    page,
+  }) => {
+    // ... fill form with empty title, submit, assert error
+  });
+});
+```
+
+### Fixtures
+
+- Use Playwright's built-in `test.extend` for cross-cutting concerns (auth, API client) only when needed.
+- Prefer inline setup in `test.beforeEach`/`test.afterEach` over shared fixtures.
+- Shared fixtures go in `e2e/fixtures/test-data.ts` with clear, descriptive names.
+- Do not create a complex fixture framework. Add complexity only when pain is felt.
+
+### Helpers
+
+- Page Object Models (POM) are **not** mandated. Prefer lightweight helper functions in `e2e/helpers/`.
+- **Navigation helpers** (`e2e/helpers/navigation.ts`): High-level page interactions like `gotoCatalog(page)`, `gotoCreateBook(page)`.
+- **Assertion helpers** (`e2e/helpers/assertions.ts`): Reusable expectation patterns like `expectBookInCatalog(page, title)`, `expectValidationError(page, message)`.
+- **Selector constants** (`e2e/helpers/selectors.ts`): Extract shared selectors only when reused in ≥3 test files. Prefer inline locators with stable queries.
+- Extract to helper only when used across multiple test files.
+
+### Parallel Execution
+
+- `fullyParallel: true` is enabled in `playwright.config.ts`.
+- Tests must be independent: no shared mutable state, no reliance on execution order.
+- Each test creates its own data via UI or API.
+- `test.describe.serial()` should only be used for explicitly dependent sequences, with justification documented in the test file.
+
+---
+
 ## Conventions
 
 - **Stable selectors**: Use `getByRole`, `getByText`, `getByTestId` — never CSS selectors or XPath
@@ -587,13 +677,13 @@ The following journeys are candidates for E2E coverage in future stories:
 
 ## E2E vs Other Test Layers
 
-| Concern                 | Backend Integration | Frontend Unit/Component | Frontend Integration/MSW | E2E  |
-| ----------------------- | ------------------- | ----------------------- | ------------------------ | ---- |
-| Real browser            | No                  | No                      | No                       | Yes  |
-| Real network requests   | No (supertest)      | No (MSW)                | No (MSW)                 | Yes  |
-| Real database           | In-memory           | No (mocked)             | No (mocked)              | Yes  |
-| Speed                   | Fast                | Fast                    | Medium                   | Slow |
-| Startup required        | No                  | No                      | No                       | Yes  |
-| Cross-layer integration | Partial             | No                      | Partial                  | Full |
-| Typical scope           | Single endpoint group | Single component/hook  | Full page with router    | Multi-page user journey |
+| Concern                 | Backend Integration                           | Frontend Unit/Component                  | Frontend Integration/MSW              | E2E                                                 |
+| ----------------------- | --------------------------------------------- | ---------------------------------------- | ------------------------------------- | --------------------------------------------------- |
+| Real browser            | No                                            | No                                       | No                                    | Yes                                                 |
+| Real network requests   | No (supertest)                                | No (MSW)                                 | No (MSW)                              | Yes                                                 |
+| Real database           | In-memory                                     | No (mocked)                              | No (mocked)                           | Yes                                                 |
+| Speed                   | Fast                                          | Fast                                     | Medium                                | Slow                                                |
+| Startup required        | No                                            | No                                       | No                                    | Yes                                                 |
+| Cross-layer integration | Partial                                       | No                                       | Partial                               | Full                                                |
+| Typical scope           | Single endpoint group                         | Single component/hook                    | Full page with router                 | Multi-page user journey                             |
 | When to write           | New endpoint, validation rule, business logic | New component, prop variant, interaction | New page, routing, cache invalidation | Critical journey, cross-layer bug, browser behavior |
