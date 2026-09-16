@@ -22,6 +22,19 @@ There are no unit tests yet. If the service/controller grows, pure logic (domain
 
 ---
 
+## Testing Layer Strategy
+
+The project uses four test layers, each with a distinct scope and trade-off:
+
+| Layer                   | Tool                                     | Scope                                                       |
+| ----------------------- | ---------------------------------------- | ----------------------------------------------------------- |
+| Backend Integration     | Jest + Supertest + MongoDB Memory Server | Route → Controller → Service → Model → In-memory MongoDB    |
+| Frontend Unit/Component | Vitest + React Testing Library + MSW     | Individual components, hooks, pages with mocked API         |
+| Frontend Integration/MSW| Vitest + React Testing Library + MSW     | Full page rendering, routing, cache invalidation via MSW    |
+| **E2E (Playwright)**    | **Playwright + Chromium**                | **Full stack: Browser → Frontend → Backend → Real MongoDB** |
+
+---
+
 ## How to Run
 
 ```bash
@@ -500,13 +513,87 @@ playwright.config.ts       # Playwright configuration (root)
 
 ---
 
+## Layer Boundaries
+
+Each testing layer owns specific responsibilities. Understanding these boundaries prevents redundant coverage.
+
+### Backend Integration owns
+
+- HTTP status codes and error codes (`VALIDATION_ERROR`, `CONFLICT`, `NOT_FOUND`, `INTERNAL_ERROR`)
+- Pagination math and filter logic
+- Business rule enforcement (e.g., duplicate book uniqueness)
+- Database failure simulation
+- Response body shapes and standardized error format
+
+### Frontend Unit/Component owns
+
+- Component rendering with props
+- User interactions (click, type, select)
+- Conditional UI (empty states, loading states, error states)
+- Accessibility (roles, labels, focus management)
+- Form validation UI behavior
+
+### Frontend Integration/MSW owns
+
+- Full page rendering with router and TanStack Query
+- Cache invalidation and refetch behavior
+- Mutation lifecycle (optimistic updates, rollback)
+- URL-synchronized filter state
+- Navigation flows between routes
+
+### E2E owns
+
+- Critical user journeys spanning all layers
+- Real browser behavior (focus management, keyboard navigation, clipboard)
+- Real network timing and latency
+- Real database state and constraints
+- Cross-layer integration verification
+
+---
+
+## Selection Criteria
+
+A scenario warrants an E2E test if it meets **at least two** of:
+
+1. Spans frontend → backend → database
+2. Involves real browser behavior (focus, keyboard, clipboard, resize)
+3. Is a critical user journey (primary happy path or high-risk failure mode)
+4. Cannot be fully verified with MSW (e.g., network timing, real DB constraints)
+
+A scenario does **not** warrant E2E if:
+
+- It is a pure validation rule (tested in backend integration)
+- It is a pure rendering or interaction (tested in frontend component)
+- It is a cache invalidation detail (tested in frontend integration)
+- It is an error message text (tested in backend integration + frontend contract)
+
+### Critical User Journeys (Books Module)
+
+The following journeys are candidates for E2E coverage in future stories:
+
+1. **Full CRUD cycle**: Create book → verify in catalog → open details → edit → verify update → delete → verify removal
+2. **Catalog navigation**: Search/filter → paginate → change page size → verify URL sync
+3. **Validation error display**: Create/edit form shows backend validation errors inline
+4. **Empty state flow**: Empty catalog → create first book → verify catalog populates
+5. **Keyboard navigation**: Tab through catalog table, pagination, modal focus trap
+
+### Test Granularity
+
+- Target: **5–10 E2E tests per feature module** (Books, Members, Readings)
+- Each test covers one user journey with multiple assertions
+- Avoid one test per field, validation rule, or button
+
+---
+
 ## E2E vs Other Test Layers
 
-| Concern                 | Backend Integration | Frontend Unit/Component | E2E  |
-| ----------------------- | ------------------- | ----------------------- | ---- |
-| Real browser            | No                  | No                      | Yes  |
-| Real network requests   | No (supertest)      | No (MSW)                | Yes  |
-| Real database           | In-memory           | No (mocked)             | Yes  |
-| Speed                   | Fast                | Fast                    | Slow |
-| Startup required        | No                  | No                      | Yes  |
-| Cross-layer integration | Partial             | No                      | Full |
+| Concern                 | Backend Integration | Frontend Unit/Component | Frontend Integration/MSW | E2E  |
+| ----------------------- | ------------------- | ----------------------- | ------------------------ | ---- |
+| Real browser            | No                  | No                      | No                       | Yes  |
+| Real network requests   | No (supertest)      | No (MSW)                | No (MSW)                 | Yes  |
+| Real database           | In-memory           | No (mocked)             | No (mocked)              | Yes  |
+| Speed                   | Fast                | Fast                    | Medium                   | Slow |
+| Startup required        | No                  | No                      | No                       | Yes  |
+| Cross-layer integration | Partial             | No                      | Partial                  | Full |
+| Typical scope           | Single endpoint group | Single component/hook  | Full page with router    | Multi-page user journey |
+| When to write           | New endpoint, validation rule, business logic | New component, prop variant, interaction | New page, routing, cache invalidation | Critical journey, cross-layer bug, browser behavior |
