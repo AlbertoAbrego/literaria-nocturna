@@ -280,7 +280,7 @@ Four test layers, each with a distinct scope:
 
 **E2E trade-off**: Requires running applications and database. Validates the integration that lower layers cannot cover: real browser rendering, real network requests, real database queries.
 
-Detailed E2E architecture, conventions, layer boundaries, and selection criteria are documented in [testing.md](testing.md#e2e-testing-playwright).
+Detailed E2E architecture, conventions, layer boundaries, selection criteria, and coverage guidelines are documented in [testing.md](testing.md#e2e-testing-playwright).
 
 ### Test Infrastructure
 

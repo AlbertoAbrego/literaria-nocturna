@@ -673,6 +673,26 @@ The following journeys are candidates for E2E coverage in future stories:
 - Each test covers one user journey with multiple assertions
 - Avoid one test per field, validation rule, or button
 
+### Redundancy Avoidance
+
+Each layer tests different aspects of the same feature. Overlap is intentional for some concerns (e.g., a validation error is verified at every layer that touches it), but the _aspect_ tested differs:
+
+| Concern                         | Backend Integration                 | Frontend Component          | Frontend Integration/MSW               | E2E                                    |
+| ------------------------------- | ----------------------------------- | --------------------------- | -------------------------------------- | -------------------------------------- |
+| Validation error response shape | ✅ Status code, error code, message | —                           | —                                      | —                                      |
+| Validation error renders inline | —                                   | ✅ Shows error text in form | ✅ Shows error after real MSW response | ✅ Shows error after real API response |
+| Pagination metadata correct     | ✅ Math, totals, empty page         | —                           | ✅ Cache, URL sync                     | —                                      |
+| Pagination navigable in browser | —                                   | —                           | —                                      | ✅ Click next, verify URL              |
+
+**Rule**: If a bug would be caught by backend or frontend tests alone, do not add an E2E test for it. Add E2E only for bugs that _only_ manifest in real browser + real network + real database.
+
+**Example — validation error**:
+
+- Backend integration: tests that `POST /api/books` with empty title returns 400 + `VALIDATION_ERROR`
+- Frontend component: tests that `BookForm` renders error message when prop `error` is set
+- Frontend integration: tests that `BookForm` renders error message after MSW returns 400
+- E2E: tests that submitting the form with empty title shows the error in the browser (one journey, not per field)
+
 ---
 
 ## E2E vs Other Test Layers
