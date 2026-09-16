@@ -1,6 +1,6 @@
 # Testing
 
-This document covers both backend and frontend testing strategies. See [tests.md](tests.md) for the test case index and [frontend-testing.md](frontend-testing.md) for detailed frontend testing conventions.
+This document covers backend, frontend, and E2E testing strategies. See [tests.md](tests.md) for the test case index and [frontend-testing.md](frontend-testing.md) for detailed frontend testing conventions.
 
 ---
 
