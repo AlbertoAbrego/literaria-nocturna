@@ -1,6 +1,6 @@
 # Testing
 
-This document covers both backend and frontend testing strategies. See [tests.md](tests.md) for the test case index and [frontend-testing.md](frontend-testing.md) for detailed frontend testing conventions.
+This document covers backend, frontend, and E2E testing strategies. See [tests.md](tests.md) for the test case index and [frontend-testing.md](frontend-testing.md) for detailed frontend testing conventions.
 
 ---
 
@@ -19,6 +19,19 @@ This document covers both backend and frontend testing strategies. See [tests.md
 **Trade-off accepted**: Slower than unit tests, but they verify the full Route → Controller → Service → Model contract.
 
 There are no unit tests yet. If the service/controller grows, pure logic (domain validations, calculations) could be extracted into functions and covered with unit tests.
+
+---
+
+## Testing Layer Strategy
+
+The project uses four test layers, each with a distinct scope and trade-off:
+
+| Layer                    | Tool                                     | Scope                                                       |
+| ------------------------ | ---------------------------------------- | ----------------------------------------------------------- |
+| Backend Integration      | Jest + Supertest + MongoDB Memory Server | Route → Controller → Service → Model → In-memory MongoDB    |
+| Frontend Unit/Component  | Vitest + React Testing Library + MSW     | Individual components, hooks, pages with mocked API         |
+| Frontend Integration/MSW | Vitest + React Testing Library + MSW     | Full page rendering, routing, cache invalidation via MSW    |
+| **E2E (Playwright)**     | **Playwright + Chromium**                | **Full stack: Browser → Frontend → Backend → Real MongoDB** |
 
 ---
 
@@ -491,6 +504,96 @@ playwright.config.ts       # Playwright configuration (root)
 
 ---
 
+## Architecture
+
+### Directory Structure
+
+The E2E suite lives at the repository root in `e2e/`. Future stories should follow this structure:
+
+```
+e2e/
+├── fixtures/                   # Shared test data helpers
+│   └── test-data.ts            # Unique data generators (not a full factory)
+├── helpers/                    # Reusable E2E utilities
+│   ├── navigation.ts           # High-level page navigation (gotoCatalog, gotoCreateBook)
+│   ├── assertions.ts           # Common assertion patterns (expectBookInCatalog, expectValidationError)
+│   └── selectors.ts            # Shared selector constants (only when reused ≥3 times)
+├── books/                      # Feature-organized test files (mirrors frontend features/)
+│   ├── catalog.e2e.test.ts
+│   ├── create-book.e2e.test.ts
+│   ├── edit-book.e2e.test.ts
+│   ├── delete-book.e2e.test.ts
+│   └── book-details.e2e.test.ts
+├── smoke.test.ts               # Infrastructure verification (Story 33 — keep as-is)
+└── utils/
+    └── debug.ts                # Low-level debug utilities (attach, waitFor)
+```
+
+Each feature module (Books, Members, Readings) gets its own subdirectory. Infrastructure tests (smoke) stay at the `e2e/` root.
+
+### Test File Naming
+
+| Element         | Convention                        | Example                                                 |
+| --------------- | --------------------------------- | ------------------------------------------------------- |
+| Test file       | `<feature>.<journey>.e2e.test.ts` | `books.create-book.e2e.test.ts`                         |
+| Describe block  | User journey name                 | `test.describe("Create Book Journey", ...)`             |
+| Test case       | `"TC-<story>-<case>: <behavior>"` | `"TC-H15-001: create valid book and see it in catalog"` |
+| Helper function | camelCase, verb-noun              | `gotoCreateBook()`, `expectBookInCatalog()`             |
+| Fixture         | noun, descriptive                 | `authenticatedPage`, `cleanDatabase`                    |
+
+The `.e2e.` suffix in file names distinguishes E2E tests from backend (`*.integration.test.ts`) and frontend (`*.test.tsx`, `*.test.ts`) tests. This naming aligns with the backend convention of `<entity>.<action>.integration.test.ts`.
+
+### Test Organization
+
+One `describe` block per user journey or page. Multiple `test` cases within a `describe` cover different scenarios for that journey:
+
+```typescript
+// books.create-book.e2e.test.ts
+import { test, expect } from "@playwright/test";
+
+test.describe("Create Book Journey", () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto("/books/new");
+  });
+
+  test("TC-H15-001: create valid book and see it in catalog", async ({
+    page,
+  }) => {
+    // ... fill form, submit, assert in catalog
+  });
+
+  test("TC-H15-002: show validation error when title is missing", async ({
+    page,
+  }) => {
+    // ... fill form with empty title, submit, assert error
+  });
+});
+```
+
+### Fixtures
+
+- Use Playwright's built-in `test.extend` for cross-cutting concerns (auth, API client) only when needed.
+- Prefer inline setup in `test.beforeEach`/`test.afterEach` over shared fixtures.
+- Shared fixtures go in `e2e/fixtures/test-data.ts` with clear, descriptive names.
+- Do not create a complex fixture framework. Add complexity only when pain is felt.
+
+### Helpers
+
+- Page Object Models (POM) are **not** mandated. Prefer lightweight helper functions in `e2e/helpers/`.
+- **Navigation helpers** (`e2e/helpers/navigation.ts`): High-level page interactions like `gotoCatalog(page)`, `gotoCreateBook(page)`.
+- **Assertion helpers** (`e2e/helpers/assertions.ts`): Reusable expectation patterns like `expectBookInCatalog(page, title)`, `expectValidationError(page, message)`.
+- **Selector constants** (`e2e/helpers/selectors.ts`): Extract shared selectors only when reused in ≥3 test files. Prefer inline locators with stable queries.
+- Extract to helper only when used across multiple test files.
+
+### Parallel Execution
+
+- `fullyParallel: true` is enabled in `playwright.config.ts`.
+- Tests must be independent: no shared mutable state, no reliance on execution order.
+- Each test creates its own data via UI or API.
+- `test.describe.serial()` should only be used for explicitly dependent sequences, with justification documented in the test file.
+
+---
+
 ## Conventions
 
 - **Stable selectors**: Use `getByRole`, `getByText`, `getByTestId` — never CSS selectors or XPath
@@ -500,13 +603,237 @@ playwright.config.ts       # Playwright configuration (root)
 
 ---
 
+## Layer Boundaries
+
+Each testing layer owns specific responsibilities. Understanding these boundaries prevents redundant coverage.
+
+### Backend Integration owns
+
+- HTTP status codes and error codes (`VALIDATION_ERROR`, `CONFLICT`, `NOT_FOUND`, `INTERNAL_ERROR`)
+- Pagination math and filter logic
+- Business rule enforcement (e.g., duplicate book uniqueness)
+- Database failure simulation
+- Response body shapes and standardized error format
+
+### Frontend Unit/Component owns
+
+- Component rendering with props
+- User interactions (click, type, select)
+- Conditional UI (empty states, loading states, error states)
+- Accessibility (roles, labels, focus management)
+- Form validation UI behavior
+
+### Frontend Integration/MSW owns
+
+- Full page rendering with router and TanStack Query
+- Cache invalidation and refetch behavior
+- Mutation lifecycle (optimistic updates, rollback)
+- URL-synchronized filter state
+- Navigation flows between routes
+
+### E2E owns
+
+- Critical user journeys spanning all layers
+- Real browser behavior (focus management, keyboard navigation, clipboard)
+- Real network timing and latency
+- Real database state and constraints
+- Cross-layer integration verification
+
+---
+
+## Selection Criteria
+
+A scenario warrants an E2E test if it meets **at least two** of:
+
+1. Spans frontend → backend → database
+2. Involves real browser behavior (focus, keyboard, clipboard, resize)
+3. Is a critical user journey (primary happy path or high-risk failure mode)
+4. Cannot be fully verified with MSW (e.g., network timing, real DB constraints)
+
+A scenario does **not** warrant E2E if:
+
+- It is a pure validation rule (tested in backend integration)
+- It is a pure rendering or interaction (tested in frontend component)
+- It is a cache invalidation detail (tested in frontend integration)
+- It is an error message text (tested in backend integration + frontend contract)
+
+### Critical User Journeys (Books Module)
+
+The following journeys are candidates for E2E coverage in future stories:
+
+1. **Full CRUD cycle**: Create book → verify in catalog → open details → edit → verify update → delete → verify removal
+2. **Catalog navigation**: Search/filter → paginate → change page size → verify URL sync
+3. **Validation error display**: Create/edit form shows backend validation errors inline
+4. **Empty state flow**: Empty catalog → create first book → verify catalog populates
+5. **Keyboard navigation**: Tab through catalog table, pagination, modal focus trap
+
+### Test Granularity
+
+- Target: **5–10 E2E tests per feature module** (Books, Members, Readings)
+- Each test covers one user journey with multiple assertions
+- Avoid one test per field, validation rule, or button
+
+### Redundancy Avoidance
+
+Each layer tests different aspects of the same feature. Overlap is intentional for some concerns (e.g., a validation error is verified at every layer that touches it), but the _aspect_ tested differs:
+
+| Concern                         | Backend Integration                 | Frontend Component          | Frontend Integration/MSW               | E2E                                    |
+| ------------------------------- | ----------------------------------- | --------------------------- | -------------------------------------- | -------------------------------------- |
+| Validation error response shape | ✅ Status code, error code, message | —                           | —                                      | —                                      |
+| Validation error renders inline | —                                   | ✅ Shows error text in form | ✅ Shows error after real MSW response | ✅ Shows error after real API response |
+| Pagination metadata correct     | ✅ Math, totals, empty page         | —                           | ✅ Cache, URL sync                     | —                                      |
+| Pagination navigable in browser | —                                   | —                           | —                                      | ✅ Click next, verify URL              |
+
+**Rule**: If a bug would be caught by backend or frontend tests alone, do not add an E2E test for it. Add E2E only for bugs that _only_ manifest in real browser + real network + real database.
+
+**Example — validation error**:
+
+- Backend integration: tests that `POST /api/books` with empty title returns 400 + `VALIDATION_ERROR`
+- Frontend component: tests that `BookForm` renders error message when prop `error` is set
+- Frontend integration: tests that `BookForm` renders error message after MSW returns 400
+- E2E: tests that submitting the form with empty title shows the error in the browser (one journey, not per field)
+
+---
+
 ## E2E vs Other Test Layers
 
-| Concern                 | Backend Integration | Frontend Unit/Component | E2E  |
-| ----------------------- | ------------------- | ----------------------- | ---- |
-| Real browser            | No                  | No                      | Yes  |
-| Real network requests   | No (supertest)      | No (MSW)                | Yes  |
-| Real database           | In-memory           | No (mocked)             | Yes  |
-| Speed                   | Fast                | Fast                    | Slow |
-| Startup required        | No                  | No                      | Yes  |
-| Cross-layer integration | Partial             | No                      | Full |
+| Concern                 | Backend Integration                           | Frontend Unit/Component                  | Frontend Integration/MSW              | E2E                                                 |
+| ----------------------- | --------------------------------------------- | ---------------------------------------- | ------------------------------------- | --------------------------------------------------- |
+| Real browser            | No                                            | No                                       | No                                    | Yes                                                 |
+| Real network requests   | No (supertest)                                | No (MSW)                                 | No (MSW)                              | Yes                                                 |
+| Real database           | In-memory                                     | No (mocked)                              | No (mocked)                           | Yes                                                 |
+| Speed                   | Fast                                          | Fast                                     | Medium                                | Slow                                                |
+| Startup required        | No                                            | No                                       | No                                    | Yes                                                 |
+| Cross-layer integration | Partial                                       | No                                       | Partial                               | Full                                                |
+| Typical scope           | Single endpoint group                         | Single component/hook                    | Full page with router                 | Multi-page user journey                             |
+| When to write           | New endpoint, validation rule, business logic | New component, prop variant, interaction | New page, routing, cache invalidation | Critical journey, cross-layer bug, browser behavior |
+
+---
+
+## Test Data Strategy
+
+### Principles
+
+1. **Real database**: E2E uses real MongoDB (configured in `backend/.env`). Tests run against the same database the application uses in development.
+2. **Deterministic creation**: Tests create data via UI interactions or API calls within the test — never via direct database access.
+3. **Unique identifiers**: Use timestamps, random suffixes, or UUIDs for titles and other unique fields to avoid collisions between parallel tests.
+4. **No shared seeds**: No global seed data that multiple tests depend on. Each test owns its data lifecycle.
+5. **Cleanup**: Prefer API cleanup in `test.afterEach` (delete created books via `DELETE /api/books/:id`). Direct database cleanup is a fallback only if API cleanup fails.
+6. **No database reset between tests**: Rely on unique data and per-test cleanup. Full database reset is reserved for infrastructure smoke tests only.
+
+### Data Creation Patterns
+
+```typescript
+// Inline unique data — simple, explicit
+const bookData = {
+  title: `E2E Book ${Date.now()}`,
+  author: "Test Author",
+  genre: "Horror",
+  synopsis: "Test synopsis",
+};
+
+// Reusable helper (in e2e/fixtures/test-data.ts) — when pattern repeats
+export function createUniqueBook(overrides = {}) {
+  return {
+    title: `Book ${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+    author: "Test Author",
+    genre: "Horror",
+    synopsis: "Test synopsis for E2E",
+    ...overrides,
+  };
+}
+```
+
+### Isolation
+
+- Each test creates 1–3 records maximum.
+- `test.afterEach` deletes created books via API:
+  ```typescript
+  test.afterEach(async ({ request }) => {
+    const books = await request
+      .get("/api/books?limit=100")
+      .then((r) => r.json());
+    for (const book of books.data) {
+      if (book.title.startsWith("E2E Book") || book.title.startsWith("Book ")) {
+        await request.delete(`/api/books/${book._id}`);
+      }
+    }
+  });
+  ```
+- Alternatively, track created IDs within the test and delete specifically.
+
+### Collision Prevention
+
+- Unique titles prevent `409 Conflict` on duplicate title+author.
+- Random suffix ensures parallel test safety.
+- No reliance on specific database IDs — use content-based assertions.
+
+---
+
+## Flakiness & Reliability
+
+### Common Causes of Flakiness
+
+| Cause                                   | Prevention                                        |
+| --------------------------------------- | ------------------------------------------------- |
+| Brittle selectors (CSS, XPath)          | Use selector hierarchy: Role → Label → TestId     |
+| Race conditions (UI updates before API) | `waitForResponse()` for critical API calls        |
+| Animation/timing                        | Disable animations via CSS injection              |
+| Shared test data                        | Unique data per test + cleanup                    |
+| Network instability (local)             | `waitForResponse()` with generous timeout         |
+| Test order dependence                   | `fullyParallel: true`, no global state            |
+| Unhandled async (modals, toasts)        | Assert dialog/toast visibility before interaction |
+
+### Prevention Strategies
+
+1. **Selector hygiene**: Enforce the selector hierarchy in code review. Reject CSS selectors and XPath.
+2. **Explicit waits only for network**: Use `page.waitForResponse()` when UI depends on API completion. Never use `page.waitForTimeout()`.
+3. **Animation disable**: Inject CSS in `playwright.config.ts` or global test setup:
+   ```typescript
+   await page.addStyleTag({
+     content: "* { animation: none !important; transition: none !important; }",
+   });
+   ```
+4. **Data uniqueness**: Timestamp + random suffix in every test's data.
+5. **Cleanup reliability**: API cleanup in `afterEach`, ignore 404 responses (data may already be deleted).
+6. **Assertion patterns**: Web-first assertions only (`expect(locator).toBeVisible()`). No manual polling or `waitForSelector()`.
+
+### Debugging Workflow
+
+1. **Run headed**: `npm run test:e2e:headed` — watch the failure live in a visible browser.
+2. **Run debug**: `npm run test:e2e:debug` — step through with Playwright Inspector.
+3. **Inspect trace**: Open `test-results/<test-name>/trace.zip` in [trace.playwright.dev](https://trace.playwright.dev).
+4. **Check screenshots**: `test-results/` contains screenshots on failure.
+5. **Check videos**: `test-results/` contains video recordings retained on failure.
+6. **Attach custom info**: Use `testInfo.attach()` for API response bodies or other debug data:
+   ```typescript
+   const response = await request.get("/api/books");
+   testInfo.attach("api-response", {
+     body: JSON.stringify(await response.json()),
+     contentType: "application/json",
+   });
+   ```
+
+### Trace / Screenshot / Video Policy
+
+| Artifact   | Setting             | Rationale                                                 |
+| ---------- | ------------------- | --------------------------------------------------------- |
+| Trace      | `on-first-retry`    | Captures full context on retry; low overhead on first run |
+| Screenshot | `only-on-failure`   | Visual debug on failure only                              |
+| Video      | `retain-on-failure` | Motion context for CI failures                            |
+
+These settings are configured in `playwright.config.ts` and should not be changed without justification.
+
+### Retry Considerations
+
+- **CI**: `retries: 2` (configured in `playwright.config.ts`).
+- **Local**: `retries: 0` (fail fast for debugging).
+- **Do not** add per-test retries to mask flakiness. Fix the root cause.
+- If a test is legitimately flaky due to external dependency, document the reason and create a follow-up issue.
+
+### Isolation Requirements
+
+- Each test gets a fresh browser context (Playwright default).
+- Each test creates and cleans up its own data.
+- No shared `localStorage`, `sessionStorage`, or cookies between tests.
+- `storageState` should only be used for authenticated sessions (future).
