@@ -687,3 +687,133 @@ The following journeys are candidates for E2E coverage in future stories:
 | Cross-layer integration | Partial                                       | No                                       | Partial                               | Full                                                |
 | Typical scope           | Single endpoint group                         | Single component/hook                    | Full page with router                 | Multi-page user journey                             |
 | When to write           | New endpoint, validation rule, business logic | New component, prop variant, interaction | New page, routing, cache invalidation | Critical journey, cross-layer bug, browser behavior |
+
+---
+
+## Test Data Strategy
+
+### Principles
+
+1. **Real database**: E2E uses real MongoDB (configured in `backend/.env`). Tests run against the same database the application uses in development.
+2. **Deterministic creation**: Tests create data via UI interactions or API calls within the test — never via direct database access.
+3. **Unique identifiers**: Use timestamps, random suffixes, or UUIDs for titles and other unique fields to avoid collisions between parallel tests.
+4. **No shared seeds**: No global seed data that multiple tests depend on. Each test owns its data lifecycle.
+5. **Cleanup**: Prefer API cleanup in `test.afterEach` (delete created books via `DELETE /api/books/:id`). Direct database cleanup is a fallback only if API cleanup fails.
+6. **No database reset between tests**: Rely on unique data and per-test cleanup. Full database reset is reserved for infrastructure smoke tests only.
+
+### Data Creation Patterns
+
+```typescript
+// Inline unique data — simple, explicit
+const bookData = {
+  title: `E2E Book ${Date.now()}`,
+  author: "Test Author",
+  genre: "Horror",
+  synopsis: "Test synopsis",
+};
+
+// Reusable helper (in e2e/fixtures/test-data.ts) — when pattern repeats
+export function createUniqueBook(overrides = {}) {
+  return {
+    title: `Book ${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+    author: "Test Author",
+    genre: "Horror",
+    synopsis: "Test synopsis for E2E",
+    ...overrides,
+  };
+}
+```
+
+### Isolation
+
+- Each test creates 1–3 records maximum.
+- `test.afterEach` deletes created books via API:
+  ```typescript
+  test.afterEach(async ({ request }) => {
+    const books = await request
+      .get("/api/books?limit=100")
+      .then((r) => r.json());
+    for (const book of books.data) {
+      if (book.title.startsWith("E2E Book") || book.title.startsWith("Book ")) {
+        await request.delete(`/api/books/${book._id}`);
+      }
+    }
+  });
+  ```
+- Alternatively, track created IDs within the test and delete specifically.
+
+### Collision Prevention
+
+- Unique titles prevent `409 Conflict` on duplicate title+author.
+- Random suffix ensures parallel test safety.
+- No reliance on specific database IDs — use content-based assertions.
+
+---
+
+## Flakiness & Reliability
+
+### Common Causes of Flakiness
+
+| Cause                                   | Prevention                                        |
+| --------------------------------------- | ------------------------------------------------- |
+| Brittle selectors (CSS, XPath)          | Use selector hierarchy: Role → Label → TestId     |
+| Race conditions (UI updates before API) | `waitForResponse()` for critical API calls        |
+| Animation/timing                        | Disable animations via CSS injection              |
+| Shared test data                        | Unique data per test + cleanup                    |
+| Network instability (local)             | `waitForResponse()` with generous timeout         |
+| Test order dependence                   | `fullyParallel: true`, no global state            |
+| Unhandled async (modals, toasts)        | Assert dialog/toast visibility before interaction |
+
+### Prevention Strategies
+
+1. **Selector hygiene**: Enforce the selector hierarchy in code review. Reject CSS selectors and XPath.
+2. **Explicit waits only for network**: Use `page.waitForResponse()` when UI depends on API completion. Never use `page.waitForTimeout()`.
+3. **Animation disable**: Inject CSS in `playwright.config.ts` or global test setup:
+   ```typescript
+   await page.addStyleTag({
+     content: "* { animation: none !important; transition: none !important; }",
+   });
+   ```
+4. **Data uniqueness**: Timestamp + random suffix in every test's data.
+5. **Cleanup reliability**: API cleanup in `afterEach`, ignore 404 responses (data may already be deleted).
+6. **Assertion patterns**: Web-first assertions only (`expect(locator).toBeVisible()`). No manual polling or `waitForSelector()`.
+
+### Debugging Workflow
+
+1. **Run headed**: `npm run test:e2e:headed` — watch the failure live in a visible browser.
+2. **Run debug**: `npm run test:e2e:debug` — step through with Playwright Inspector.
+3. **Inspect trace**: Open `test-results/<test-name>/trace.zip` in [trace.playwright.dev](https://trace.playwright.dev).
+4. **Check screenshots**: `test-results/` contains screenshots on failure.
+5. **Check videos**: `test-results/` contains video recordings retained on failure.
+6. **Attach custom info**: Use `testInfo.attach()` for API response bodies or other debug data:
+   ```typescript
+   const response = await request.get("/api/books");
+   testInfo.attach("api-response", {
+     body: JSON.stringify(await response.json()),
+     contentType: "application/json",
+   });
+   ```
+
+### Trace / Screenshot / Video Policy
+
+| Artifact   | Setting             | Rationale                                                 |
+| ---------- | ------------------- | --------------------------------------------------------- |
+| Trace      | `on-first-retry`    | Captures full context on retry; low overhead on first run |
+| Screenshot | `only-on-failure`   | Visual debug on failure only                              |
+| Video      | `retain-on-failure` | Motion context for CI failures                            |
+
+These settings are configured in `playwright.config.ts` and should not be changed without justification.
+
+### Retry Considerations
+
+- **CI**: `retries: 2` (configured in `playwright.config.ts`).
+- **Local**: `retries: 0` (fail fast for debugging).
+- **Do not** add per-test retries to mask flakiness. Fix the root cause.
+- If a test is legitimately flaky due to external dependency, document the reason and create a follow-up issue.
+
+### Isolation Requirements
+
+- Each test gets a fresh browser context (Playwright default).
+- Each test creates and cleans up its own data.
+- No shared `localStorage`, `sessionStorage`, or cookies between tests.
+- `storageState` should only be used for authenticated sessions (future).
