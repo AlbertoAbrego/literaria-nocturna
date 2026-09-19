@@ -9,7 +9,7 @@ describe("BookTable", () => {
     books[0] = { ...books[0], title: "The Unquiet Archive", author: "Ada Lovelace" };
     books[1] = { ...books[1], synopsis: "A catalog of doors that open only once." };
 
-    renderWithProviders(<BookTable books={books} />);
+    renderWithProviders(<BookTable books={books} />, { route: "/books" });
 
     expect(screen.getByRole("table", { name: "Book catalog" })).toBeInTheDocument();
     expect(screen.getByText("The Unquiet Archive")).toBeInTheDocument();
@@ -20,7 +20,7 @@ describe("BookTable", () => {
   });
 
   it("renders the table headers", () => {
-    renderWithProviders(<BookTable books={createBookList(1)} />);
+    renderWithProviders(<BookTable books={createBookList(1)} />, { route: "/books" });
 
     expect(screen.getAllByRole("columnheader")).toHaveLength(5);
     for (const column of ["Title", "Author", "Genre", "Synopsis", "Actions"]) {
@@ -29,7 +29,7 @@ describe("BookTable", () => {
   });
 
   it("displays the empty state when there are no books", () => {
-    renderWithProviders(<BookTable books={[]} />);
+    renderWithProviders(<BookTable books={[]} />, { route: "/books" });
 
     const emptyMessage = screen.getByText(
       (_content, element) =>
@@ -41,7 +41,7 @@ describe("BookTable", () => {
   });
 
   it("displays a contextual empty state when filters produce no matches", () => {
-    renderWithProviders(<BookTable books={[]} isFiltered />);
+    renderWithProviders(<BookTable books={[]} isFiltered />, { route: "/books" });
 
     const emptyMessage = screen.getByText(
       (_content, element) =>
@@ -53,7 +53,7 @@ describe("BookTable", () => {
   });
 
   it("displays skeleton rows while loading", () => {
-    renderWithProviders(<BookTable books={[]} isLoading />);
+    renderWithProviders(<BookTable books={[]} isLoading />, { route: "/books" });
 
     expect(screen.getByRole("status")).toHaveTextContent("Loading the catalog");
     expect(screen.getByRole("table")).toHaveAttribute("aria-busy", "true");
@@ -63,7 +63,7 @@ describe("BookTable", () => {
   it("displays the error state and triggers retry", async () => {
     const onRetry = vi.fn();
 
-    renderWithProviders(<BookTable books={[]} isError onRetry={onRetry} />);
+    renderWithProviders(<BookTable books={[]} isError onRetry={onRetry} />, { route: "/books" });
 
     expect(screen.getByRole("alert")).toHaveTextContent("The archive could not be reached.");
 
@@ -72,7 +72,7 @@ describe("BookTable", () => {
   });
 
   it("exposes accessible table semantics", () => {
-    renderWithProviders(<BookTable books={createBookList(1)} />);
+    renderWithProviders(<BookTable books={createBookList(1)} />, { route: "/books" });
 
     expect(screen.getByRole("table", { name: "Book catalog" })).toBeInTheDocument();
     expect(screen.getAllByRole("columnheader")).toHaveLength(5);
