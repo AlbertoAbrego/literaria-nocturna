@@ -1,4 +1,6 @@
+import { useNavigate } from "react-router";
 import type { Book } from "@/features/books/types";
+import Button from "@/shared/components/ui/Button";
 import {
   Table,
   TableBody,
@@ -24,6 +26,8 @@ interface BookTableProps {
 const COLUMNS = ["Title", "Author", "Genre", "Synopsis", "Actions"] as const;
 
 function BookTable({ books, isLoading, isError, isFiltered, onRetry }: BookTableProps) {
+  const navigate = useNavigate();
+
   if (isError) {
     return <ErrorState onRetry={onRetry} />;
   }
@@ -56,7 +60,17 @@ function BookTable({ books, isLoading, isError, isFiltered, onRetry }: BookTable
                 <TableCell className="text-ash">{book.genre}</TableCell>
                 <TableCell className="max-w-md truncate text-ash">{book.synopsis}</TableCell>
                 <TableCell className="text-right">
-                  <DeleteBookButton bookId={book._id} bookTitle={book.title} />
+                  <span className="inline-flex items-center gap-2">
+                    <Button
+                      variant="ghost"
+                      aria-label={`View details of ${book.title}`}
+                      onClick={() => navigate(`/books/${book._id}`)}
+                      className="inline-flex items-center gap-1 px-2 py-1 text-xs"
+                    >
+                      View Details
+                    </Button>
+                    <DeleteBookButton bookId={book._id} bookTitle={book.title} />
+                  </span>
                 </TableCell>
               </TableRow>
             ))}
