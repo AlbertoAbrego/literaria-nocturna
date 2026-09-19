@@ -78,4 +78,19 @@ describe("BookTable", () => {
     expect(screen.getAllByRole("columnheader")).toHaveLength(5);
     expect(screen.getAllByRole("row")).toHaveLength(2);
   });
+
+  it("renders a View Details button for each book with an accessible label", () => {
+    const books = createBookList(2);
+    books[0] = { ...books[0], title: "The Unquiet Archive" };
+    books[1] = { ...books[1], title: "Atlas of Forgotten Stars" };
+
+    renderWithProviders(<BookTable books={books} />, { route: "/books" });
+
+    expect(
+      screen.getByRole("button", { name: "View details of The Unquiet Archive" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "View details of Atlas of Forgotten Stars" }),
+    ).toBeInTheDocument();
+  });
 });

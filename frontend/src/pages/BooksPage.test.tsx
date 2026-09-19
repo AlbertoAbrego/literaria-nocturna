@@ -3,6 +3,7 @@ import { HttpResponse, http } from "msw";
 import { createMemoryRouter, RouterProvider } from "react-router";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import BooksPage from "@/pages/BooksPage";
+import BookDetailsPage from "@/pages/BookDetailsPage";
 import { server } from "@/test/server";
 import { internalError, notFoundError } from "@/test/handlers/errors";
 import { ERROR_MESSAGES } from "@/test/contract/error-messages";
@@ -719,6 +720,51 @@ describe("BooksPage", () => {
         expect(screen.getByText("Dune")).toBeInTheDocument();
         expect(screen.getByText("Dune Messiah")).toBeInTheDocument();
       });
+    });
+
+    it("clicking View Details navigates to the Book Details page for the correct book", async () => {
+      const books = createBookList(2);
+      books[0] = { ...books[0], title: "The Unquiet Archive", _id: "book-id-001" };
+      books[1] = { ...books[1], title: "Atlas of Forgotten Stars", _id: "book-id-002" };
+
+      server.use(
+        http.get("/api/books", () => {
+          return HttpResponse.json({
+            data: books,
+            pagination: { page: 1, limit: 10, total: books.length, totalPages: 1 },
+          });
+        }),
+        http.get("/api/books/:id", ({ params }) => {
+          const book = books.find((b) => b._id === params.id);
+          if (!book) {
+            return notFoundError(ERROR_MESSAGES.BOOK_NOT_FOUND);
+          }
+          return HttpResponse.json(book);
+        }),
+      );
+
+      const router = createMemoryRouter(
+        [
+          { path: "/", element: <></> },
+          { path: "/books", element: <BooksPage /> },
+          { path: "/books/:id", element: <BookDetailsPage /> },
+        ],
+        { initialEntries: ["/books"] },
+      );
+      renderWithProviders(<RouterProvider router={router} />);
+
+      await waitFor(() => expect(screen.getByText("The Unquiet Archive")).toBeInTheDocument());
+
+      await userEvent.click(
+        screen.getByRole("button", { name: "View details of The Unquiet Archive" }),
+      );
+
+      await waitFor(() => expect(router.state.location.pathname).toBe("/books/book-id-001"));
+      await waitFor(() =>
+        expect(
+          screen.getByRole("heading", { level: 1, name: "The Unquiet Archive" }),
+        ).toBeInTheDocument(),
+      );
     });
   });
 });
