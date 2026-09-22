@@ -22,6 +22,13 @@ export default defineConfig({
     {
       name: "chromium",
       use: { ...devices["Desktop Chrome"] },
+      testIgnore: "**/empty-catalog.e2e.test.ts",
+    },
+    {
+      name: "chromium-isolated",
+      use: { ...devices["Desktop Chrome"] },
+      testMatch: "**/empty-catalog.e2e.test.ts",
+      dependencies: ["chromium"],
     },
   ],
   webServer: [
