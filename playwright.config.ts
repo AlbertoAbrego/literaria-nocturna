@@ -37,6 +37,12 @@ export default defineConfig({
       url: "http://localhost:3000/api/health/ready",
       timeout: 60_000,
       reuseExistingServer: !process.env.CI,
+      env: {
+        // The suite issues hundreds of API calls in minutes across parallel
+        // workers; the backend/.env default (100 per 15 min) throttles tests
+        // with 429 responses mid-run.
+        RATE_LIMIT_MAX: "10000",
+      },
     },
     {
       command: "npm run dev --prefix frontend",
