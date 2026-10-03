@@ -1,5 +1,16 @@
 import type { APIRequestContext, Page } from "@playwright/test";
 
+/**
+ * URL predicate for page.route() interception of Books API requests.
+ *
+ * A glob like "**/api/books**" also matches Vite dev-server module files
+ * (e.g. /src/features/books/api/books.api.ts), which would break the app
+ * under test. Matching on the pathname prefix avoids that collision.
+ */
+export function matchBooksApi(url: URL): boolean {
+  return /^\/api\/books(\/|$)/.test(url.pathname);
+}
+
 interface BookData {
   _id: string;
   title: string;
