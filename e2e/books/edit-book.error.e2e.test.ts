@@ -132,4 +132,36 @@ test.describe("Edit Book Validation Errors", () => {
     ).toBeVisible();
     await expect(page.getByText(`by ${originalB.author}`)).toBeVisible();
   });
+
+  test("TC-H37-015: server failure shows an error and preserves the form data", async ({
+    page,
+  }) => {
+    const book = createUniqueBookData();
+    const id = await createAndOpenEditForm(page, book);
+    createdBookIds.push(id);
+
+    await page.route(matchBooksApi, async (route) => {
+      if (route.request().method() === "PATCH") {
+        await route.fulfill({
+          status: 500,
+          contentType: "application/json",
+          body: JSON.stringify({
+            message: "Internal Server Error",
+            code: "INTERNAL_ERROR",
+          }),
+        });
+        return;
+      }
+      await route.continue();
+    });
+
+    const updatedTitle = `${book.title} Updated`;
+    await page.getByLabel("Title").fill(updatedTitle);
+    await page.getByRole("button", { name: /update the book/i }).click();
+
+    await expectFormErrorAlert(page, "Internal Server Error");
+    await expect(page).toHaveURL(`/books/${id}/edit`);
+    await expect(page.getByLabel("Title")).toHaveValue(updatedTitle);
+    await expect(page.getByLabel("Author")).toHaveValue(book.author);
+  });
 });

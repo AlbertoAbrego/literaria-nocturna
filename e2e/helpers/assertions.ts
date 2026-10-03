@@ -49,6 +49,6 @@ export async function expectNotFoundState(page: Page): Promise<void> {
     page.getByText("This volume does not exist in the catalog."),
   ).toBeVisible();
   await expect(
-    page.getByRole("link", { name: /back to catalog/i }),
+    page.getByRole("link", { name: /back to (the )?catalog/i }),
   ).toBeVisible();
 }

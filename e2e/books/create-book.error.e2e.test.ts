@@ -115,4 +115,40 @@ test.describe("Create Book Validation Errors", () => {
       page.getByRole("cell", { name: book.title, exact: true }),
     ).toHaveCount(1);
   });
+
+  test("TC-H37-014: server failure shows an error and preserves the form data", async ({
+    page,
+  }) => {
+    await gotoCreateBook(page);
+
+    await page.route(matchBooksApi, async (route) => {
+      if (route.request().method() === "POST") {
+        await route.fulfill({
+          status: 500,
+          contentType: "application/json",
+          body: JSON.stringify({
+            message: "Internal Server Error",
+            code: "INTERNAL_ERROR",
+          }),
+        });
+        return;
+      }
+      await route.continue();
+    });
+
+    const book = createUniqueBookData();
+    await page.getByLabel("Title").fill(book.title);
+    await page.getByLabel("Author").fill(book.author);
+    await page.getByLabel("Genre").selectOption(book.genre);
+    await page.getByLabel("Synopsis").fill(book.synopsis);
+
+    await page.getByRole("button", { name: /catalog the book/i }).click();
+
+    await expectFormErrorAlert(page, "Internal Server Error");
+    await expect(page).toHaveURL(/\/books\/create$/);
+    await expect(page.getByLabel("Title")).toHaveValue(book.title);
+    await expect(page.getByLabel("Author")).toHaveValue(book.author);
+    await expect(page.getByLabel("Genre")).toHaveValue(book.genre);
+    await expect(page.getByLabel("Synopsis")).toHaveValue(book.synopsis);
+  });
 });
