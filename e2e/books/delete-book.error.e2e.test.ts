@@ -22,6 +22,10 @@ test.describe("Delete Book Error Scenarios", () => {
 
     await gotoCatalog(page);
     await page.getByLabel("Title").fill(book.title);
+    // Wait for the debounced filter commit before touching the row: asserting
+    // the cell too early can pass against the unfiltered query, and the late
+    // key switch replaces the table with a skeleton, unmounting the dialog.
+    await expect(page.getByText("1 active filter")).toBeVisible();
     await expect(
       page.getByRole("cell", { name: book.title, exact: true }),
     ).toBeVisible();
