@@ -516,17 +516,24 @@ e2e/
 │   └── test-data.ts            # Unique data generators (not a full factory)
 ├── helpers/                    # Reusable E2E utilities
 │   ├── navigation.ts           # High-level page navigation (gotoCatalog, gotoCreateBook)
-│   ├── assertions.ts           # Common assertion patterns (expectBookInCatalog, expectValidationError)
-│   └── selectors.ts            # Shared selector constants (only when reused ≥3 times)
+│   ├── assertions.ts           # Common assertion patterns (expectBookInCatalog, expectFieldError)
+│   ├── api.ts                  # Books API helpers (matchBooksApi route predicate, cleanup)
+│   ├── books.ts                # Book setup flows (createBookThroughUI)
+│   └── env.ts                  # Environment helpers
 ├── books/                      # Feature-organized test files (mirrors frontend features/)
 │   ├── catalog.e2e.test.ts
 │   ├── create-book.e2e.test.ts
+│   ├── create-book.error.e2e.test.ts
 │   ├── edit-book.e2e.test.ts
+│   ├── edit-book.error.e2e.test.ts
 │   ├── delete-book.e2e.test.ts
-│   └── book-details.e2e.test.ts
-├── smoke.test.ts               # Infrastructure verification (Story 33 — keep as-is)
-└── utils/
-    └── debug.ts                # Low-level debug utilities (attach, waitFor)
+│   ├── delete-book.error.e2e.test.ts
+│   ├── book-details.error.e2e.test.ts
+│   ├── empty-catalog.e2e.test.ts
+│   └── recovery.e2e.test.ts    # Cross-feature error recovery flows
+├── global-setup.ts             # Seeds the Books database before each run
+├── global-teardown.ts          # Clears Books after the run
+└── smoke.test.ts               # Infrastructure verification (Story 33 — keep as-is)
 ```
 
 Each feature module (Books, Members, Readings) gets its own subdirectory. Infrastructure tests (smoke) stay at the `e2e/` root.
@@ -542,6 +549,8 @@ Each feature module (Books, Members, Readings) gets its own subdirectory. Infras
 | Fixture         | noun, descriptive                 | `authenticatedPage`, `cleanDatabase`                    |
 
 The `.e2e.` suffix in file names distinguishes E2E tests from backend (`*.integration.test.ts`) and frontend (`*.test.tsx`, `*.test.ts`) tests. This naming aligns with the backend convention of `<entity>.<action>.integration.test.ts`.
+
+Negative and error scenarios use the `.error.` journey segment (`create-book.error.e2e.test.ts`) so failure-path tests stay separate from successful journeys; cross-feature recovery flows get their own file (`recovery.e2e.test.ts`).
 
 ### Test Organization
 
@@ -581,8 +590,9 @@ test.describe("Create Book Journey", () => {
 
 - Page Object Models (POM) are **not** mandated. Prefer lightweight helper functions in `e2e/helpers/`.
 - **Navigation helpers** (`e2e/helpers/navigation.ts`): High-level page interactions like `gotoCatalog(page)`, `gotoCreateBook(page)`.
-- **Assertion helpers** (`e2e/helpers/assertions.ts`): Reusable expectation patterns like `expectBookInCatalog(page, title)`, `expectValidationError(page, message)`.
-- **Selector constants** (`e2e/helpers/selectors.ts`): Extract shared selectors only when reused in ≥3 test files. Prefer inline locators with stable queries.
+- **Assertion helpers** (`e2e/helpers/assertions.ts`): Reusable expectation patterns like `expectBookInCatalog(page, title)`, `expectFieldError(page, message)`, `expectErrorState(page)`.
+- **API helpers** (`e2e/helpers/api.ts`): `matchBooksApi(url)` predicate for `page.route()` interception of Books API requests (never use URL globs — they also match Vite module files), plus API cleanup utilities.
+- **Setup helpers** (`e2e/helpers/books.ts`): Flows that create data for a test, like `createBookThroughUI(page, data)`.
 - Extract to helper only when used across multiple test files.
 
 ### Parallel Execution
