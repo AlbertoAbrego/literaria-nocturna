@@ -458,15 +458,27 @@ Both pipelines use consistent Node.js 22, npm caching, and fail PRs on test/lint
   - Frontend CI runs `test:coverage` with threshold enforcement
   - Test layer strategy documented (3 layers: backend integration, frontend unit/component+MSW, Playwright E2E)
 
-### Current (Story 33)
+### Current (Story 38)
 
 - Playwright E2E infrastructure:
   - Playwright installed at repository root (`@playwright/test`)
   - Chromium browser configured as initial browser project
-  - `playwright.config.ts` at root with `webServer` array for backend + frontend
-  - Dedicated `e2e/` directory with smoke test
-  - Root npm scripts: `test:e2e`, `test:e2e:headed`, `test:e2e:debug`
+  - `playwright.config.ts` at root with `webServer` array for backend + frontend (local only; staging uses deployed URLs)
+  - Dedicated `e2e/` directory with smoke test and Books E2E suite
+  - Root npm scripts: `test:e2e`, `test:e2e:headed`, `test:e2e:debug`, `test:e2e:staging`, `e2e:cleanup-stale`
   - Smoke test verifies full stack startup and main page rendering
+- E2E Test Data Strategy (Story 38):
+  - Run-scoped ownership via `E2E:${runId}:` title prefix (8-char hex run ID)
+  - Per-test API cleanup in `afterEach` + global teardown run-scoped sweep
+  - Stale data cleanup script (`npm run e2e:cleanup-stale`) for interrupted runs
+  - Staging safety: explicit `E2E_STAGING=1` opt-in, run-scoped cleanup, dry-run mode
+  - No direct database access in tests — all operations via API
+  - Reference books (15 hardcoded) seeded once in global setup, never modified
+- E2E Environment Model:
+  - Local: Vite + local backend + Atlas dev DB
+  - CI: Same as local, run-scoped isolation
+  - Staging: Deployed Vercel/Render + Atlas staging DB, explicit opt-in, run-scoped cleanup
+- Books E2E Suite (Stories 36–37): 30 tests covering catalog, create, edit, delete, validation, error, and recovery flows
 
 ### Planned
 

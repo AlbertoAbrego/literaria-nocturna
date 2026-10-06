@@ -1,5 +1,6 @@
 import { test, expect } from "@playwright/test";
 import { gotoCreateBook } from "../helpers/navigation";
+import { matchBooksApi } from "../helpers/api";
 import { createUniqueBookData } from "../fixtures/test-data";
 
 test.describe("Delete Book Journey", () => {
@@ -30,8 +31,12 @@ test.describe("Delete Book Journey", () => {
     const createRes = await createResponse;
     const createBody = (await createRes.json()) as { _id: string };
     createdBookIds.push(createBody._id);
-    await page.waitForLoadState("networkidle");
 
+    await expect(page).toHaveURL(/\/books$/);
+
+    // Page is already at catalog after redirect; data is loaded
+    await page.getByLabel("Title").fill(bookData.title);
+    await expect(page.getByText("1 active filter")).toBeVisible();
     await expect(
       page.getByRole("cell", { name: bookData.title, exact: true }),
     ).toBeVisible();
@@ -81,8 +86,12 @@ test.describe("Delete Book Journey", () => {
     const createRes = await createResponse;
     const createBody = (await createRes.json()) as { _id: string };
     const bookId = createBody._id;
-    await page.waitForLoadState("networkidle");
 
+    await expect(page).toHaveURL(/\/books$/);
+
+    // Page is already at catalog after redirect; data is loaded
+    await page.getByLabel("Title").fill(bookData.title);
+    await expect(page.getByText("1 active filter")).toBeVisible();
     await expect(
       page.getByRole("cell", { name: bookData.title, exact: true }),
     ).toBeVisible();

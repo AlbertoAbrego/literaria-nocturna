@@ -7,11 +7,16 @@
     "prepare": "husky",
     "test:e2e": "playwright test",
     "test:e2e:headed": "playwright test --headed",
-    "test:e2e:debug": "playwright test --debug"
+    "test:e2e:debug": "playwright test --debug",
+    "test:e2e:staging": "E2E_STAGING=1 playwright test --project=chromium-staging",
+    "test:e2e:staging:headed": "E2E_STAGING=1 playwright test --project=chromium-staging --headed",
+    "e2e:cleanup-stale": "tsx scripts/e2e-cleanup-stale.ts --dry-run",
+    "e2e:cleanup-stale:force": "tsx scripts/e2e-cleanup-stale.ts --force"
   },
   "devDependencies": {
     "@playwright/test": "^1.63.0",
     "husky": "^9.1.7",
-    "mongodb": "^7.6.0"
+    "mongodb": "^7.6.0",
+    "tsx": "^4.23.12"
   }
 }
