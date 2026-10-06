@@ -129,7 +129,9 @@ export default async function globalSetup(): Promise<void> {
   if (existingCount < SEED_BOOKS.length) {
     await books.deleteMany({ title: { $in: SEED_BOOKS.map((b) => b.title) } });
     await books.insertMany(SEED_BOOKS);
-    console.log(`[E2E Global Setup] Seeded ${SEED_BOOKS.length} reference books`);
+    console.log(
+      `[E2E Global Setup] Seeded ${SEED_BOOKS.length} reference books`,
+    );
   } else {
     console.log("[E2E Global Setup] Reference books already present");
   }

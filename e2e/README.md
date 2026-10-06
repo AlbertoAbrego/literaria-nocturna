@@ -37,6 +37,7 @@ npm run e2e:cleanup-stale:force
 ## Running Locally
 
 Prerequisites:
+
 - Backend `.env` configured with `MONGODB_URI` pointing to Atlas dev DB
 - Frontend `.env` with `VITE_API_URL=/api`
 
@@ -56,6 +57,7 @@ Playwright's `webServer` config starts both servers automatically if not already
 ## Staging E2E
 
 Requires:
+
 - Deployed staging frontend (Vercel) and backend (Render)
 - Atlas `staging` database
 - Explicit opt-in via `E2E_STAGING=1`
@@ -84,7 +86,7 @@ E2E_STAGING=1 E2E_RUN_ID=abc12345 npm run e2e:cleanup-stale:force
 
 ```typescript
 // Create unique book data (auto-includes run ID)
-import { createUniqueBookData } from './fixtures/test-data';
+import { createUniqueBookData } from "./fixtures/test-data";
 const bookData = createUniqueBookData(); // title: "E2E:runId:E2E Book timestamp-random"
 
 // Override specific fields
@@ -93,13 +95,13 @@ const bookData = createUniqueBookData({ title: "My Custom Title" });
 
 ## Key Helpers
 
-| Helper | Location | Purpose |
-|--------|----------|---------|
-| `gotoCatalog(page)` | `helpers/navigation.ts` | Navigate to catalog, wait for data |
-| `gotoCreateBook(page)` | `helpers/navigation.ts` | Navigate to create form |
-| `createBookThroughUI(page, data)` | `helpers/books.ts` | Create book via UI, return ID |
-| `deleteRunBooks(api, runId)` | `helpers/api.ts` | Delete all books for a run ID |
-| `isE2EOwned(title)` | `fixtures/test-data.ts` | Check if title has E2E prefix |
+| Helper                            | Location                | Purpose                            |
+| --------------------------------- | ----------------------- | ---------------------------------- |
+| `gotoCatalog(page)`               | `helpers/navigation.ts` | Navigate to catalog, wait for data |
+| `gotoCreateBook(page)`            | `helpers/navigation.ts` | Navigate to create form            |
+| `createBookThroughUI(page, data)` | `helpers/books.ts`      | Create book via UI, return ID      |
+| `deleteRunBooks(api, runId)`      | `helpers/api.ts`        | Delete all books for a run ID      |
+| `isE2EOwned(title)`               | `fixtures/test-data.ts` | Check if title has E2E prefix      |
 
 ## Staging Safety Checklist
 

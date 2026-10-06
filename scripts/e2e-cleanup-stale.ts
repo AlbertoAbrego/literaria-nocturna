@@ -6,20 +6,28 @@ import { isE2EOwned } from "./fixtures/test-data";
 function getApiBaseUrl(): string {
   const isStaging = process.env.E2E_STAGING === "1";
   if (isStaging) {
-    return process.env.PLAYWRIGHT_API_URL || "https://api-staging.literaria-nocturna.render.com";
+    return (
+      process.env.PLAYWRIGHT_API_URL ||
+      "https://api-staging.literaria-nocturna.render.com"
+    );
   }
   const env = loadEnvFile(resolve("backend/.env"));
   const port = env.PORT || "3000";
   return `http://localhost:${port}`;
 }
 
-async function deleteStaleBooks(api: APIRequestContext, dryRun: boolean): Promise<number> {
+async function deleteStaleBooks(
+  api: APIRequestContext,
+  dryRun: boolean,
+): Promise<number> {
   const response = await api.get("/api/books?limit=1000");
   if (!response.ok()) {
     console.error("[E2E Stale Cleanup] Failed to fetch books");
     return 0;
   }
-  const body = (await response.json()) as { data: Array<{ _id: string; title: string; createdAt: string }> };
+  const body = (await response.json()) as {
+    data: Array<{ _id: string; title: string; createdAt: string }>;
+  };
   const now = Date.now();
   const twentyFourHours = 24 * 60 * 60 * 1000;
 
@@ -34,7 +42,9 @@ async function deleteStaleBooks(api: APIRequestContext, dryRun: boolean): Promis
     return 0;
   }
 
-  console.log(`[E2E Stale Cleanup] Found ${staleBooks.length} stale E2E book(s)`);
+  console.log(
+    `[E2E Stale Cleanup] Found ${staleBooks.length} stale E2E book(s)`,
+  );
   for (const book of staleBooks) {
     console.log(`  - ${book.title} (created: ${book.createdAt})`);
   }
@@ -50,7 +60,9 @@ async function deleteStaleBooks(api: APIRequestContext, dryRun: boolean): Promis
     if (del.ok() || del.status() === 404) {
       deleted++;
     } else {
-      console.error(`[E2E Stale Cleanup] Failed to delete ${book._id}: ${del.status()}`);
+      console.error(
+        `[E2E Stale Cleanup] Failed to delete ${book._id}: ${del.status()}`,
+      );
     }
   }
   console.log(`[E2E Stale Cleanup] Deleted ${deleted} stale book(s)`);
@@ -58,16 +70,23 @@ async function deleteStaleBooks(api: APIRequestContext, dryRun: boolean): Promis
 }
 
 async function main(): Promise<void> {
-  const dryRun = process.argv.includes("--dry-run") || !process.argv.includes("--force");
+  const dryRun =
+    process.argv.includes("--dry-run") || !process.argv.includes("--force");
   const isStaging = process.env.E2E_STAGING === "1";
 
   if (isStaging && !process.env.E2E_RUN_ID) {
-    console.error("[E2E Stale Cleanup] REFUSING to clean staging without explicit E2E_RUN_ID");
-    console.error("Set E2E_RUN_ID to the run ID you want to clean, or run without E2E_STAGING=1 for local cleanup");
+    console.error(
+      "[E2E Stale Cleanup] REFUSING to clean staging without explicit E2E_RUN_ID",
+    );
+    console.error(
+      "Set E2E_RUN_ID to the run ID you want to clean, or run without E2E_STAGING=1 for local cleanup",
+    );
     process.exit(1);
   }
 
-  console.log(`[E2E Stale Cleanup] Starting (staging: ${isStaging}, dryRun: ${dryRun})`);
+  console.log(
+    `[E2E Stale Cleanup] Starting (staging: ${isStaging}, dryRun: ${dryRun})`,
+  );
 
   const apiBase = getApiBaseUrl();
   const api = await pwRequest.newContext({ baseURL: apiBase });

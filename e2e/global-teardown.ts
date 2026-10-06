@@ -22,22 +22,32 @@ function loadEnvFileLocal(filePath: string): Record<string, string> {
 function getApiBaseUrl(): string {
   const isStaging = process.env.E2E_STAGING === "1";
   if (isStaging) {
-    return process.env.PLAYWRIGHT_API_URL || "https://api-staging.literaria-nocturna.render.com";
+    return (
+      process.env.PLAYWRIGHT_API_URL ||
+      "https://api-staging.literaria-nocturna.render.com"
+    );
   }
   const env = loadEnvFileLocal(resolve("backend/.env"));
   const port = env.PORT || "3000";
   return `http://localhost:${port}`;
 }
 
-async function deleteRunBooks(api: APIRequestContext, runId: string): Promise<number> {
+async function deleteRunBooks(
+  api: APIRequestContext,
+  runId: string,
+): Promise<number> {
   try {
     const response = await api.get("/api/books?limit=100");
     if (!response.ok()) {
       const errorBody = await response.text().catch(() => "unknown");
-      console.warn(`[E2E Global Teardown] Failed to fetch books for cleanup: ${response.status()} ${response.statusText()} - ${errorBody}`);
+      console.warn(
+        `[E2E Global Teardown] Failed to fetch books for cleanup: ${response.status()} ${response.statusText()} - ${errorBody}`,
+      );
       return 0;
     }
-    const body = (await response.json()) as { data: Array<{ _id: string; title: string }> };
+    const body = (await response.json()) as {
+      data: Array<{ _id: string; title: string }>;
+    };
     const runPrefix = `E2E:${runId}:`;
     const runBooks = body.data.filter((b) => b.title.startsWith(runPrefix));
 
@@ -47,7 +57,9 @@ async function deleteRunBooks(api: APIRequestContext, runId: string): Promise<nu
       if (del.ok() || del.status() === 404) {
         deleted++;
       } else {
-        console.warn(`[E2E Global Teardown] Failed to delete book ${book._id}: ${del.status()}`);
+        console.warn(
+          `[E2E Global Teardown] Failed to delete book ${book._id}: ${del.status()}`,
+        );
       }
     }
     return deleted;
@@ -75,11 +87,15 @@ export default async function globalTeardown(): Promise<void> {
   }
 
   if (isStaging && !process.env.E2E_RUN_ID) {
-    console.error("[E2E Global Teardown] REFUSING to clean staging without explicit run ID");
+    console.error(
+      "[E2E Global Teardown] REFUSING to clean staging without explicit run ID",
+    );
     return;
   }
 
-  console.log(`[E2E Global Teardown] Cleaning up run ${runId} (staging: ${isStaging})`);
+  console.log(
+    `[E2E Global Teardown] Cleaning up run ${runId} (staging: ${isStaging})`,
+  );
 
   const apiBase = getApiBaseUrl();
   const api = await pwRequest.newContext({ baseURL: apiBase });

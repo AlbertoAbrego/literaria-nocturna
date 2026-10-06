@@ -33,7 +33,10 @@ test.describe("Catalog Journey", () => {
 
     // Filter by unique prefix to isolate this test's books
     const filterResponse = page.waitForResponse(
-      (r) => r.url().includes("/api/books") && r.request().method() === "GET" && matchBooksApi(new URL(r.url())),
+      (r) =>
+        r.url().includes("/api/books") &&
+        r.request().method() === "GET" &&
+        matchBooksApi(new URL(r.url())),
     );
     await page.getByLabel("Title").fill("CATALOG_TEST_");
     await filterResponse;
@@ -48,7 +51,10 @@ test.describe("Catalog Journey", () => {
   }) => {
     await gotoCatalog(page);
     const filterResponse = page.waitForResponse(
-      (r) => r.url().includes("/api/books") && r.request().method() === "GET" && matchBooksApi(new URL(r.url())),
+      (r) =>
+        r.url().includes("/api/books") &&
+        r.request().method() === "GET" &&
+        matchBooksApi(new URL(r.url())),
     );
     await page.getByLabel("Title").fill("CATALOG_TEST_");
     await filterResponse;
@@ -60,7 +66,9 @@ test.describe("Catalog Journey", () => {
     const bookTitle = await titleCell.textContent();
 
     // Wait for the view details button to be visible before clicking
-    await expect(firstRow.getByRole("button", { name: /View details/i })).toBeVisible();
+    await expect(
+      firstRow.getByRole("button", { name: /View details/i }),
+    ).toBeVisible();
     await firstRow.getByRole("button", { name: /View details/i }).click();
 
     await expect(page).toHaveURL(/\/books\//);
@@ -70,7 +78,10 @@ test.describe("Catalog Journey", () => {
   test("TC-H36-003: Book Details matches selected book", async ({ page }) => {
     await gotoCatalog(page);
     const filterResponse = page.waitForResponse(
-      (r) => r.url().includes("/api/books") && r.request().method() === "GET" && matchBooksApi(new URL(r.url())),
+      (r) =>
+        r.url().includes("/api/books") &&
+        r.request().method() === "GET" &&
+        matchBooksApi(new URL(r.url())),
     );
     await page.getByLabel("Title").fill("CATALOG_TEST_");
     await filterResponse;
@@ -83,7 +94,9 @@ test.describe("Catalog Journey", () => {
     const bookGenre = await firstRow.getByRole("cell").nth(2).textContent();
 
     // Wait for the view details button to be visible before clicking
-    await expect(firstRow.getByRole("button", { name: /View details/i })).toBeVisible();
+    await expect(
+      firstRow.getByRole("button", { name: /View details/i }),
+    ).toBeVisible();
     await firstRow.getByRole("button", { name: /View details/i }).click();
     await page.getByRole("heading", { name: bookTitle! }).waitFor();
 
@@ -98,7 +111,10 @@ test.describe("Catalog Journey", () => {
   }) => {
     await gotoCatalog(page);
     const filterResponse = page.waitForResponse(
-      (r) => r.url().includes("/api/books") && r.request().method() === "GET" && matchBooksApi(new URL(r.url())),
+      (r) =>
+        r.url().includes("/api/books") &&
+        r.request().method() === "GET" &&
+        matchBooksApi(new URL(r.url())),
     );
     await page.getByLabel("Title").fill("CATALOG_TEST_");
     await filterResponse;
@@ -109,7 +125,9 @@ test.describe("Catalog Journey", () => {
     const bookTitle = await firstRow.getByRole("cell").first().textContent();
 
     // Wait for the view details button to be visible before clicking
-    await expect(firstRow.getByRole("button", { name: /View details/i })).toBeVisible();
+    await expect(
+      firstRow.getByRole("button", { name: /View details/i }),
+    ).toBeVisible();
     await firstRow.getByRole("button", { name: /View details/i }).click();
     await page.getByRole("heading", { name: bookTitle! }).waitFor();
 

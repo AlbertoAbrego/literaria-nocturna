@@ -4,11 +4,13 @@ const isStaging = process.env.E2E_STAGING === "1";
 const isCI = !!process.env.CI;
 
 const baseURL = isStaging
-  ? process.env.PLAYWRIGHT_BASE_URL || "https://staging.literaria-nocturna.vercel.app"
+  ? process.env.PLAYWRIGHT_BASE_URL ||
+    "https://staging.literaria-nocturna.vercel.app"
   : "http://localhost:5173";
 
 const apiBaseURL = isStaging
-  ? process.env.PLAYWRIGHT_API_URL || "https://api-staging.literaria-nocturna.render.com"
+  ? process.env.PLAYWRIGHT_API_URL ||
+    "https://api-staging.literaria-nocturna.render.com"
   : "http://localhost:3000";
 
 const projects = isStaging

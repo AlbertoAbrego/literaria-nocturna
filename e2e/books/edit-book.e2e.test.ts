@@ -34,7 +34,10 @@ test.describe("Edit Book Journey", () => {
     await expect(page).toHaveURL(/\/books$/);
 
     const getResponse = page.waitForResponse(
-      (r) => r.url().includes("/api/books") && r.request().method() === "GET" && matchBooksApi(new URL(r.url())),
+      (r) =>
+        r.url().includes("/api/books") &&
+        r.request().method() === "GET" &&
+        matchBooksApi(new URL(r.url())),
     );
     await getResponse;
 
@@ -91,7 +94,10 @@ test.describe("Edit Book Journey", () => {
     await expect(page).toHaveURL(/\/books$/);
 
     const getResponse1 = page.waitForResponse(
-      (r) => r.url().includes("/api/books") && r.request().method() === "GET" && matchBooksApi(new URL(r.url())),
+      (r) =>
+        r.url().includes("/api/books") &&
+        r.request().method() === "GET" &&
+        matchBooksApi(new URL(r.url())),
     );
     await getResponse1;
 
@@ -130,7 +136,10 @@ test.describe("Edit Book Journey", () => {
     await expect(page).toHaveURL(/\/books$/);
 
     const getResponse2 = page.waitForResponse(
-      (r) => r.url().includes("/api/books") && r.request().method() === "GET" && matchBooksApi(new URL(r.url())),
+      (r) =>
+        r.url().includes("/api/books") &&
+        r.request().method() === "GET" &&
+        matchBooksApi(new URL(r.url())),
     );
     await getResponse2;
 

@@ -1,5 +1,7 @@
 # Story 38 — E2E Test Data & Environment Management
+
 ## Objective
+
 Establish a reliable, deterministic, and maintainable strategy for preparing, controlling, and cleaning E2E test data across local development and staging environments.
 
 The goal is to resolve the test-data problem identified during Stories 36 and 37 without introducing unnecessary complexity.
@@ -13,6 +15,7 @@ The E2E suite must be reproducible regardless of whether it is executed:
 This Story focuses on test-data and environment management rather than adding new functional E2E coverage.
 
 ## Context
+
 Stories 33–37 established the Playwright infrastructure and the first meaningful Books E2E coverage.
 
 During those Stories, the suite required different types of data:
@@ -30,6 +33,7 @@ The current strategy should now be reviewed as a complete system.
 The objective is not to assume that the existing approach is wrong, but to determine whether it remains appropriate as the E2E suite grows.
 
 ## Scope
+
 ### 1. Define E2E test-data strategy
 
 Establish a clear strategy for:
@@ -260,6 +264,7 @@ Update the appropriate project documentation to explain:
 Documentation should be concise and maintained alongside the implementation.
 
 ## Scope Boundaries
+
 In scope:
 
 - E2E test-data architecture.
@@ -291,6 +296,7 @@ Out of scope:
 - Managing production data.
 
 ## Important Constraints
+
 The E2E strategy must never require developers to manually create or delete test records in MongoDB.
 
 Tests must not depend on:
@@ -306,6 +312,7 @@ The cleanup strategy must never blindly delete all Books or all records in an en
 The solution must protect real application data.
 
 ## Acceptance Criteria
+
 - A documented E2E test-data lifecycle exists.
 - Test-data preparation is deterministic.
 - Tests can identify data created for E2E purposes.
@@ -328,6 +335,7 @@ The solution must protect real application data.
 - The implementation does not modify production data or production infrastructure.
 
 ## Definition of Done
+
 - The test-data strategy has been reviewed against the actual repository.
 - A concrete implementation has been selected.
 - Required utilities/configuration have been implemented.
@@ -342,6 +350,7 @@ The solution must protect real application data.
 - No Git commits or pushes are performed by the AI agent.
 
 ## Expected Outcome
+
 At the end of Story 38, Literaria Nocturna should have a clear and maintainable E2E data lifecycle.
 
 A developer should be able to clone the project, configure the required environment, run the E2E suite, and know exactly:

@@ -4,7 +4,8 @@ import { matchBooksApi } from "./api";
 export async function gotoCatalog(page: Page): Promise<void> {
   const getResponse = page.waitForResponse(
     (response) =>
-      response.request().method() === "GET" && matchBooksApi(new URL(response.url())),
+      response.request().method() === "GET" &&
+      matchBooksApi(new URL(response.url())),
   );
   await page.goto("/books");
   await page.getByRole("heading", { name: "Catalog" }).waitFor();
