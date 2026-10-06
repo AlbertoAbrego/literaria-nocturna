@@ -14,3 +14,11 @@ export function loadEnvFile(filePath: string): Record<string, string> {
   }
   return vars;
 }
+
+export function getE2ERunId(): string {
+  return process.env.E2E_RUN_ID || "local";
+}
+
+export function isStagingE2E(): boolean {
+  return process.env.E2E_STAGING === "1";
+}

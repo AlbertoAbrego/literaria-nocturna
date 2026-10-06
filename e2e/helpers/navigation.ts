@@ -1,8 +1,16 @@
 import type { Page } from "@playwright/test";
+import { matchBooksApi } from "./api";
 
 export async function gotoCatalog(page: Page): Promise<void> {
+  const getResponse = page.waitForResponse(
+    (response) =>
+      response.request().method() === "GET" &&
+      matchBooksApi(new URL(response.url())),
+  );
   await page.goto("/books");
   await page.getByRole("heading", { name: "Catalog" }).waitFor();
+  await page.getByRole("table", { name: "Book catalog" }).waitFor();
+  await getResponse;
 }
 
 export async function gotoCreateBook(page: Page): Promise<void> {

@@ -1,6 +1,10 @@
 import { resolve } from "node:path";
+import { writeFileSync } from "node:fs";
+import { randomBytes } from "node:crypto";
 import { MongoClient } from "mongodb";
 import { loadEnvFile } from "./helpers/env";
+
+export const RUN_ID_PATH = resolve(".e2e-run-id");
 
 export const SEED_BOOKS = [
   {
@@ -97,6 +101,11 @@ export const SEED_BOOKS = [
 ];
 
 export default async function globalSetup(): Promise<void> {
+  const runId = randomBytes(4).toString("hex");
+  process.env.E2E_RUN_ID = runId;
+  writeFileSync(RUN_ID_PATH, runId);
+  console.log(`[E2E Global Setup] Run ID: ${runId}`);
+
   const env = loadEnvFile(resolve("backend/.env"));
   const mongodbUri = env.MONGODB_URI;
   if (!mongodbUri) {
@@ -113,11 +122,19 @@ export default async function globalSetup(): Promise<void> {
   const db = client.db();
   const books = db.collection("books");
 
-  await books.deleteMany({});
-  console.log("[E2E Global Setup] Cleared books collection");
+  const existingCount = await books.countDocuments({
+    title: { $in: SEED_BOOKS.map((b) => b.title) },
+  });
 
-  await books.insertMany(SEED_BOOKS);
-  console.log(`[E2E Global Setup] Seeded ${SEED_BOOKS.length} base books`);
+  if (existingCount < SEED_BOOKS.length) {
+    await books.deleteMany({ title: { $in: SEED_BOOKS.map((b) => b.title) } });
+    await books.insertMany(SEED_BOOKS);
+    console.log(
+      `[E2E Global Setup] Seeded ${SEED_BOOKS.length} reference books`,
+    );
+  } else {
+    console.log("[E2E Global Setup] Reference books already present");
+  }
 
   await client.close();
   console.log("[E2E Global Setup] Disconnected from MongoDB");

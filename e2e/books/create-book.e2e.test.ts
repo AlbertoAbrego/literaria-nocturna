@@ -1,5 +1,6 @@
 import { test, expect } from "@playwright/test";
 import { gotoCreateBook } from "../helpers/navigation";
+import { matchBooksApi } from "../helpers/api";
 import { createUniqueBookData } from "../fixtures/test-data";
 
 test.describe("Create Book Journey", () => {
@@ -29,9 +30,19 @@ test.describe("Create Book Journey", () => {
     const response = await postResponse;
     const body = (await response.json()) as { _id: string };
     createdBookIds.push(body._id);
-    await page.waitForLoadState("networkidle");
 
     await expect(page).toHaveURL(/\/books$/);
+
+    const getResponse = page.waitForResponse(
+      (r) =>
+        r.url().includes("/api/books") &&
+        r.request().method() === "GET" &&
+        matchBooksApi(new URL(r.url())),
+    );
+    await getResponse;
+
+    await page.getByLabel("Title").fill(bookData.title);
+    await expect(page.getByText("1 active filter")).toBeVisible();
     await expect(
       page.getByRole("cell", { name: bookData.title, exact: true }),
     ).toBeVisible();
@@ -56,8 +67,19 @@ test.describe("Create Book Journey", () => {
     const response = await postResponse;
     const body = (await response.json()) as { _id: string };
     createdBookIds.push(body._id);
-    await page.waitForLoadState("networkidle");
 
+    await expect(page).toHaveURL(/\/books$/);
+
+    const getResponse = page.waitForResponse(
+      (r) =>
+        r.url().includes("/api/books") &&
+        r.request().method() === "GET" &&
+        matchBooksApi(new URL(r.url())),
+    );
+    await getResponse;
+
+    await page.getByLabel("Title").fill(bookData.title);
+    await expect(page.getByText("1 active filter")).toBeVisible();
     await expect(
       page.getByRole("cell", { name: bookData.title, exact: true }),
     ).toBeVisible();

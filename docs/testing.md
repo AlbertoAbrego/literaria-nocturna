@@ -727,9 +727,11 @@ Each layer tests different aspects of the same feature. Overlap is intentional f
 1. **Real database**: E2E uses real MongoDB (configured in `backend/.env`). Tests run against the same database the application uses in development.
 2. **Deterministic creation**: Tests create data via UI interactions or API calls within the test — never via direct database access.
 3. **Unique identifiers**: Use timestamps, random suffixes, or UUIDs for titles and other unique fields to avoid collisions between parallel tests.
-4. **No shared seeds**: No global seed data that multiple tests depend on. Each test owns its data lifecycle.
-5. **Cleanup**: Prefer API cleanup in `test.afterEach` (delete created books via `DELETE /api/books/:id`). Direct database cleanup is a fallback only if API cleanup fails.
-6. **No database reset between tests**: Rely on unique data and per-test cleanup. Full database reset is reserved for infrastructure smoke tests only.
+4. **Run-scoped ownership**: Each test run gets a unique `E2E_RUN_ID` (8-char hex). All test-created books have titles prefixed with `E2E:${runId}:` enabling run-scoped isolation and cleanup.
+5. **No shared seeds**: No global seed data that multiple tests depend on. Each test owns its data lifecycle. Reference books (15 hardcoded) are seeded once in global setup and never modified.
+6. **Cleanup**: Prefer API cleanup in `test.afterEach` (delete created books via `DELETE /api/books/:id`). Global teardown performs a run-scoped sweep via API. Direct database cleanup is prohibited.
+7. **No database reset between tests**: Rely on unique data and per-test cleanup. Full database reset is reserved for infrastructure smoke tests only.
+8. **Staging safety**: Staging runs require explicit `E2E_STAGING=1` opt-in. Cleanup only targets books matching the current run ID. Dry-run mode available.
 
 ### Data Creation Patterns
 
@@ -760,22 +762,19 @@ export function createUniqueBook(overrides = {}) {
 - `test.afterEach` deletes created books via API:
   ```typescript
   test.afterEach(async ({ request }) => {
-    const books = await request
-      .get("/api/books?limit=100")
-      .then((r) => r.json());
-    for (const book of books.data) {
-      if (book.title.startsWith("E2E Book") || book.title.startsWith("Book ")) {
-        await request.delete(`/api/books/${book._id}`);
-      }
+    for (const id of createdBookIds) {
+      await request.delete(`/api/books/${id}`);
     }
   });
   ```
-- Alternatively, track created IDs within the test and delete specifically.
+- Global teardown performs run-scoped cleanup via API (deletes only books matching `E2E:${runId}:`).
+- Stale data cleanup script (`npm run e2e:cleanup-stale`) removes books older than 24h with `E2E:` prefix.
 
 ### Collision Prevention
 
 - Unique titles prevent `409 Conflict` on duplicate title+author.
 - Random suffix ensures parallel test safety.
+- Run ID prefix (`E2E:${runId}:`) provides run-scoped isolation.
 - No reliance on specific database IDs — use content-based assertions.
 
 ---

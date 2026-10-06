@@ -1,4 +1,5 @@
 import type { APIRequestContext, Page } from "@playwright/test";
+import { isE2EOwned, extractRunId } from "../fixtures/test-data";
 
 // URL predicate for page.route() interception of Books API requests.
 //
@@ -52,6 +53,48 @@ export async function deleteBooksByTitlePrefix(
   }
 }
 
+export async function deleteBooksByRunId(
+  request: APIRequestContext,
+  runId: string,
+): Promise<number> {
+  const response = await request.get("/api/books?limit=1000");
+  if (!response.ok()) {
+    return 0;
+  }
+  const body = (await response.json()) as PaginatedResponse;
+  const runPrefix = `E2E:${runId}:`;
+  const runBooks = body.data.filter((b) => b.title.startsWith(runPrefix));
+
+  let deleted = 0;
+  for (const book of runBooks) {
+    const del = await request.delete(`/api/books/${book._id}`);
+    if (del.ok() || del.status() === 404) {
+      deleted++;
+    }
+  }
+  return deleted;
+}
+
+export async function deleteE2EOwnedBooks(
+  request: APIRequestContext,
+): Promise<number> {
+  const response = await request.get("/api/books?limit=1000");
+  if (!response.ok()) {
+    return 0;
+  }
+  const body = (await response.json()) as PaginatedResponse;
+  const runBooks = body.data.filter((b) => isE2EOwned(b.title));
+
+  let deleted = 0;
+  for (const book of runBooks) {
+    const del = await request.delete(`/api/books/${book._id}`);
+    if (del.ok() || del.status() === 404) {
+      deleted++;
+    }
+  }
+  return deleted;
+}
+
 export async function getBookByTitle(
   request: APIRequestContext,
   title: string,
@@ -61,4 +104,8 @@ export async function getBookByTitle(
   );
   const body = (await response.json()) as PaginatedResponse;
   return body.data.find((book) => book.title === title) ?? null;
+}
+
+export function getCurrentRunId(): string {
+  return process.env.E2E_RUN_ID || "local";
 }

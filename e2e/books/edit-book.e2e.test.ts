@@ -1,5 +1,6 @@
 import { test, expect } from "@playwright/test";
 import { gotoCreateBook } from "../helpers/navigation";
+import { matchBooksApi } from "../helpers/api";
 import { createUniqueBookData } from "../fixtures/test-data";
 
 test.describe("Edit Book Journey", () => {
@@ -29,8 +30,19 @@ test.describe("Edit Book Journey", () => {
     const createRes = await createResponse;
     const createBody = (await createRes.json()) as { _id: string };
     createdBookIds.push(createBody._id);
-    await page.waitForLoadState("networkidle");
 
+    await expect(page).toHaveURL(/\/books$/);
+
+    const getResponse = page.waitForResponse(
+      (r) =>
+        r.url().includes("/api/books") &&
+        r.request().method() === "GET" &&
+        matchBooksApi(new URL(r.url())),
+    );
+    await getResponse;
+
+    await page.getByLabel("Title").fill(original.title);
+    await expect(page.getByText("1 active filter")).toBeVisible();
     await expect(
       page.getByRole("cell", { name: original.title, exact: true }),
     ).toBeVisible();
@@ -78,8 +90,19 @@ test.describe("Edit Book Journey", () => {
     const createRes = await createResponse;
     const createBody = (await createRes.json()) as { _id: string };
     createdBookIds.push(createBody._id);
-    await page.waitForLoadState("networkidle");
 
+    await expect(page).toHaveURL(/\/books$/);
+
+    const getResponse1 = page.waitForResponse(
+      (r) =>
+        r.url().includes("/api/books") &&
+        r.request().method() === "GET" &&
+        matchBooksApi(new URL(r.url())),
+    );
+    await getResponse1;
+
+    await page.getByLabel("Title").fill(original.title);
+    await expect(page.getByText("1 active filter")).toBeVisible();
     await expect(
       page.getByRole("cell", { name: original.title, exact: true }),
     ).toBeVisible();
@@ -111,6 +134,17 @@ test.describe("Edit Book Journey", () => {
     await page.waitForLoadState("networkidle");
 
     await expect(page).toHaveURL(/\/books$/);
+
+    const getResponse2 = page.waitForResponse(
+      (r) =>
+        r.url().includes("/api/books") &&
+        r.request().method() === "GET" &&
+        matchBooksApi(new URL(r.url())),
+    );
+    await getResponse2;
+
+    await page.getByLabel("Title").fill(updatedTitle);
+    await expect(page.getByText("1 active filter")).toBeVisible();
     await expect(
       page.getByRole("cell", { name: updatedTitle, exact: true }),
     ).toBeVisible();

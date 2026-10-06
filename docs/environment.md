@@ -200,6 +200,63 @@ This prevents automated tests from modifying persistent development or staging d
 
 ---
 
+## E2E Test Environment
+
+E2E tests exercise the full stack (browser → frontend → backend → real MongoDB) and require a distinct environment model supporting three execution modes:
+
+### 1. Local E2E
+
+| Aspect       | Configuration                              |
+| ------------ | ------------------------------------------ |
+| Frontend URL | `http://localhost:5173` (Vite dev server)  |
+| API URL      | `http://localhost:3000` (local backend)    |
+| Database     | Atlas `literaria-nocturna-dev`             |
+| Run ID       | Auto-generated per run                     |
+| Cleanup      | Per-test API + global teardown sweep       |
+| Web Servers  | Started by Playwright (`webServer` config) |
+
+### 2. CI E2E
+
+| Aspect       | Configuration                                                        |
+| ------------ | -------------------------------------------------------------------- |
+| Frontend URL | `http://localhost:5173` (Vite dev server)                            |
+| API URL      | `http://localhost:3000` (local backend)                              |
+| Database     | Atlas `literaria-nocturna-dev` (same as local, run-scoped isolation) |
+| Run ID       | Auto-generated per workflow run                                      |
+| Cleanup      | Per-test API + global teardown + optional stale cleanup job          |
+| Web Servers  | Started by Playwright in CI                                          |
+
+### 3. Staging E2E
+
+| Aspect       | Configuration                                                                    |
+| ------------ | -------------------------------------------------------------------------------- |
+| Frontend URL | `PLAYWRIGHT_BASE_URL` (e.g., `https://staging.literaria-nocturna.vercel.app`)    |
+| API URL      | `PLAYWRIGHT_API_URL` (e.g., `https://api-staging.literaria-nocturna.render.com`) |
+| Database     | Atlas `staging` (shared, run-scoped isolation via `E2E:${runId}:` prefix)        |
+| Run ID       | Auto-generated per run                                                           |
+| Cleanup      | Run-scoped API cleanup only (requires `E2E_STAGING=1` opt-in)                    |
+| Web Servers  | None (uses deployed staging)                                                     |
+
+### Environment Variables
+
+| Variable              | Local                   | CI                      | Staging        | Description                        |
+| --------------------- | ----------------------- | ----------------------- | -------------- | ---------------------------------- |
+| `E2E_RUN_ID`          | Auto-generated          | Auto-generated          | Auto-generated | Unique run identifier (8-char hex) |
+| `E2E_STAGING`         | `0` (default)           | `0` (default)           | `1` (required) | Enables staging mode               |
+| `PLAYWRIGHT_BASE_URL` | `http://localhost:5173` | `http://localhost:5173` | Required       | Frontend URL for Playwright        |
+| `PLAYWRIGHT_API_URL`  | `http://localhost:3000` | `http://localhost:3000` | Required       | Backend API URL                    |
+| `E2E_DRY_RUN`         | Optional                | Optional                | Optional       | Dry-run mode for cleanup script    |
+
+### Staging Safety
+
+- Staging runs require explicit `E2E_STAGING=1` environment variable
+- Cleanup only targets books matching the current `E2E_RUN_ID`
+- Dry-run mode (`E2E_DRY_RUN=1`) logs deletions without executing
+- Global teardown refuses to run in staging without explicit `E2E_RUN_ID`
+- No direct database access in tests — all operations via API
+
+---
+
 ## Environment Variables
 
 ### Backend Variables
