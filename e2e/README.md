@@ -95,13 +95,16 @@ const bookData = createUniqueBookData({ title: "My Custom Title" });
 
 ## Key Helpers
 
-| Helper                            | Location                | Purpose                            |
-| --------------------------------- | ----------------------- | ---------------------------------- |
-| `gotoCatalog(page)`               | `helpers/navigation.ts` | Navigate to catalog, wait for data |
-| `gotoCreateBook(page)`            | `helpers/navigation.ts` | Navigate to create form            |
-| `createBookThroughUI(page, data)` | `helpers/books.ts`      | Create book via UI, return ID      |
-| `deleteRunBooks(api, runId)`      | `helpers/api.ts`        | Delete all books for a run ID      |
-| `isE2EOwned(title)`               | `fixtures/test-data.ts` | Check if title has E2E prefix      |
+| Helper                               | Location                | Purpose                            |
+| ------------------------------------ | ----------------------- | ---------------------------------- |
+| `gotoCatalog(page)`                  | `helpers/navigation.ts` | Navigate to catalog, wait for data |
+| `gotoCreateBook(page)`               | `helpers/navigation.ts` | Navigate to create form            |
+| `createBookThroughUI(page, data)`    | `helpers/books.ts`      | Create book via UI, return ID      |
+| `deleteRunBooks(api, runId)`         | `helpers/api.ts`        | Delete all books for a run ID      |
+| `isE2EOwned(title)`                  | `fixtures/test-data.ts` | Check if title has E2E prefix      |
+| `expectRequestMatches(resp, expect)` | `helpers/api.ts`        | Assert outgoing request contract   |
+| `expectSuccessResponse(resp, shape)` | `helpers/api.ts`        | Validate and return success body   |
+| `expectErrorResponse(resp, s, code)` | `helpers/api.ts`        | Validate and return error body     |
 
 ## Staging Safety Checklist
 

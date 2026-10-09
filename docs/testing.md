@@ -517,7 +517,7 @@ e2e/
 ├── helpers/                    # Reusable E2E utilities
 │   ├── navigation.ts           # High-level page navigation (gotoCatalog, gotoCreateBook)
 │   ├── assertions.ts           # Common assertion patterns (expectBookInCatalog, expectFieldError)
-│   ├── api.ts                  # Books API helpers (matchBooksApi route predicate, cleanup)
+│   ├── api.ts                  # Books API helpers (matchBooksApi route predicate, cleanup, contract assertions)
 │   ├── books.ts                # Book setup flows (createBookThroughUI)
 │   └── env.ts                  # Environment helpers
 ├── books/                      # Feature-organized test files (mirrors frontend features/)
@@ -530,6 +530,10 @@ e2e/
 │   ├── delete-book.error.e2e.test.ts
 │   ├── book-details.error.e2e.test.ts
 │   ├── empty-catalog.e2e.test.ts
+│   ├── contract-list-filter-pagination.e2e.test.ts
+│   ├── contract-create-book.e2e.test.ts
+│   ├── contract-get-book-by-id.e2e.test.ts
+│   ├── contract-validation-error.e2e.test.ts
 │   └── recovery.e2e.test.ts    # Cross-feature error recovery flows
 ├── global-setup.ts             # Seeds the Books database before each run
 ├── global-teardown.ts          # Clears Books after the run
@@ -550,7 +554,7 @@ Each feature module (Books, Members, Readings) gets its own subdirectory. Infras
 
 The `.e2e.` suffix in file names distinguishes E2E tests from backend (`*.integration.test.ts`) and frontend (`*.test.tsx`, `*.test.ts`) tests. This naming aligns with the backend convention of `<entity>.<action>.integration.test.ts`.
 
-Negative and error scenarios use the `.error.` journey segment (`create-book.error.e2e.test.ts`) so failure-path tests stay separate from successful journeys; cross-feature recovery flows get their own file (`recovery.e2e.test.ts`).
+Negative and error scenarios use the `.error.` journey segment (`create-book.error.e2e.test.ts`) so failure-path tests stay separate from successful journeys; cross-feature recovery flows get their own file (`recovery.e2e.test.ts`). API/UI contract scenarios use the `contract-` journey segment (`contract-create-book.e2e.test.ts`) to distinguish request/response contract assertions from journey behavior tests.
 
 ### Test Organization
 
