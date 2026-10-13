@@ -1,7 +1,12 @@
 import { defineConfig, devices } from "@playwright/test";
+import {
+  MOBILE_VIEWPORT,
+  TABLET_VIEWPORT,
+} from "./e2e/helpers/viewport";
 
 const isStaging = process.env.E2E_STAGING === "1";
 const isCI = !!process.env.CI;
+const isExtendedMatrix = process.env.E2E_EXTENDED_MATRIX === "1";
 
 const baseURL = isStaging
   ? process.env.PLAYWRIGHT_BASE_URL ||
@@ -32,6 +37,9 @@ const projects = isStaging
         name: "chromium",
         use: { ...devices["Desktop Chrome"] },
         testIgnore: "**/empty-catalog.e2e.test.ts",
+        // Baseline desktop suite runs everything except responsive-only tests,
+        // which target the chromium-mobile/chromium-tablet projects.
+        grepInvert: /@responsive/,
       },
       {
         name: "chromium-isolated",
@@ -39,6 +47,52 @@ const projects = isStaging
         testMatch: "**/empty-catalog.e2e.test.ts",
         dependencies: ["chromium"],
       },
+      // Extended matrix (Story 40). Opt-in via E2E_EXTENDED_MATRIX=1 so the
+      // default `npm run test:e2e` baseline is unchanged and browser engines
+      // other than Chromium are not required locally.
+      ...(!isExtendedMatrix
+        ? []
+        : [
+            {
+              // Cross-browser critical journeys only (tagged @cross-browser).
+              name: "firefox-desktop",
+              use: { ...devices["Desktop Firefox"] },
+              grep: /@cross-browser/,
+              testIgnore: "**/empty-catalog.e2e.test.ts",
+            },
+            {
+              name: "webkit-desktop",
+              use: { ...devices["Desktop Safari"] },
+              grep: /@cross-browser/,
+              testIgnore: "**/empty-catalog.e2e.test.ts",
+            },
+            // Viewport profiles around the app's only Tailwind breakpoint
+            // (sm: 640px). Explicit viewports instead of iPhone/iPad device
+            // descriptors, whose built-in sizes and defaultBrowserType do not
+            // match these profiles.
+            {
+              name: "chromium-mobile",
+              use: {
+                ...devices["Desktop Chrome"],
+                viewport: MOBILE_VIEWPORT,
+                isMobile: true,
+                hasTouch: true,
+              },
+              grep: /@responsive/,
+              testIgnore: "**/empty-catalog.e2e.test.ts",
+            },
+            {
+              name: "chromium-tablet",
+              use: {
+                ...devices["Desktop Chrome"],
+                viewport: TABLET_VIEWPORT,
+                isMobile: true,
+                hasTouch: true,
+              },
+              grep: /@responsive/,
+              testIgnore: "**/empty-catalog.e2e.test.ts",
+            },
+          ]),
     ];
 
 export default defineConfig({
