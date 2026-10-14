@@ -1,8 +1,5 @@
 import { defineConfig, devices } from "@playwright/test";
-import {
-  MOBILE_VIEWPORT,
-  TABLET_VIEWPORT,
-} from "./e2e/helpers/viewport";
+import { MOBILE_VIEWPORT, TABLET_VIEWPORT } from "./e2e/helpers/viewport";
 
 const isStaging = process.env.E2E_STAGING === "1";
 const isCI = !!process.env.CI;

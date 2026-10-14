@@ -13,40 +13,49 @@ test.describe("Create Book Journey", () => {
     createdBookIds = [];
   });
 
-  test("TC-H36-005: create valid book via UI", async ({ page }) => {
-    const bookData = createUniqueBookData();
+  test(
+    "TC-H36-005: create valid book via UI",
+    {
+      tag: "@cross-browser",
+    },
+    async ({ page }) => {
+      const bookData = createUniqueBookData();
 
-    await gotoCreateBook(page);
+      await gotoCreateBook(page);
 
-    await page.getByLabel("Title").fill(bookData.title);
-    await page.getByLabel("Author").fill(bookData.author);
-    await page.getByLabel("Genre").selectOption(bookData.genre);
-    await page.getByLabel("Synopsis").fill(bookData.synopsis);
+      await page.getByLabel("Title").fill(bookData.title);
+      await page.getByLabel("Author").fill(bookData.author);
+      await page.getByLabel("Genre").selectOption(bookData.genre);
+      await page.getByLabel("Synopsis").fill(bookData.synopsis);
 
-    const postResponse = page.waitForResponse(
-      (r) => r.url().includes("/api/books") && r.request().method() === "POST",
-    );
-    await page.getByRole("button", { name: /catalog the book/i }).click();
-    const response = await postResponse;
-    const body = (await response.json()) as { _id: string };
-    createdBookIds.push(body._id);
+      // Register both listeners before submitting: the catalog GET fires
+      // during the post-create redirect and can complete before a listener
+      // registered after toHaveURL, hanging the await (Story 40).
+      const postResponse = page.waitForResponse(
+        (r) =>
+          r.url().includes("/api/books") && r.request().method() === "POST",
+      );
+      const getResponse = page.waitForResponse(
+        (r) =>
+          r.url().includes("/api/books") &&
+          r.request().method() === "GET" &&
+          matchBooksApi(new URL(r.url())),
+      );
+      await page.getByRole("button", { name: /catalog the book/i }).click();
+      const response = await postResponse;
+      const body = (await response.json()) as { _id: string };
+      createdBookIds.push(body._id);
 
-    await expect(page).toHaveURL(/\/books$/);
+      await expect(page).toHaveURL(/\/books$/);
+      await getResponse;
 
-    const getResponse = page.waitForResponse(
-      (r) =>
-        r.url().includes("/api/books") &&
-        r.request().method() === "GET" &&
-        matchBooksApi(new URL(r.url())),
-    );
-    await getResponse;
-
-    await page.getByLabel("Title").fill(bookData.title);
-    await expect(page.getByText("1 active filter")).toBeVisible();
-    await expect(
-      page.getByRole("cell", { name: bookData.title, exact: true }),
-    ).toBeVisible();
-  });
+      await page.getByLabel("Title").fill(bookData.title);
+      await expect(page.getByText("1 active filter")).toBeVisible();
+      await expect(
+        page.getByRole("cell", { name: bookData.title, exact: true }),
+      ).toBeVisible();
+    },
+  );
 
   test("TC-H36-006: created book is accessible via Details", async ({
     page,

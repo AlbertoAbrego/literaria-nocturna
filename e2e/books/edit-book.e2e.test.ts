@@ -13,65 +13,75 @@ test.describe("Edit Book Journey", () => {
     createdBookIds = [];
   });
 
-  test("TC-H36-007: edit controlled book via UI", async ({ page }) => {
-    const original = createUniqueBookData();
-    const updatedTitle = `${original.title} Updated`;
+  test(
+    "TC-H36-007: edit controlled book via UI",
+    {
+      tag: "@cross-browser",
+    },
+    async ({ page }) => {
+      const original = createUniqueBookData();
+      const updatedTitle = `${original.title} Updated`;
 
-    await gotoCreateBook(page);
-    await page.getByLabel("Title").fill(original.title);
-    await page.getByLabel("Author").fill(original.author);
-    await page.getByLabel("Genre").selectOption(original.genre);
-    await page.getByLabel("Synopsis").fill(original.synopsis);
+      await gotoCreateBook(page);
+      await page.getByLabel("Title").fill(original.title);
+      await page.getByLabel("Author").fill(original.author);
+      await page.getByLabel("Genre").selectOption(original.genre);
+      await page.getByLabel("Synopsis").fill(original.synopsis);
 
-    const createResponse = page.waitForResponse(
-      (r) => r.url().includes("/api/books") && r.request().method() === "POST",
-    );
-    await page.getByRole("button", { name: /catalog the book/i }).click();
-    const createRes = await createResponse;
-    const createBody = (await createRes.json()) as { _id: string };
-    createdBookIds.push(createBody._id);
+      // Register both listeners before submitting: the catalog GET fires
+      // during the post-create redirect and can complete before a listener
+      // registered after toHaveURL, hanging the await (Story 40).
+      const createResponse = page.waitForResponse(
+        (r) =>
+          r.url().includes("/api/books") && r.request().method() === "POST",
+      );
+      const getResponse = page.waitForResponse(
+        (r) =>
+          r.url().includes("/api/books") &&
+          r.request().method() === "GET" &&
+          matchBooksApi(new URL(r.url())),
+      );
+      await page.getByRole("button", { name: /catalog the book/i }).click();
+      const createRes = await createResponse;
+      const createBody = (await createRes.json()) as { _id: string };
+      createdBookIds.push(createBody._id);
 
-    await expect(page).toHaveURL(/\/books$/);
+      await expect(page).toHaveURL(/\/books$/);
+      await getResponse;
 
-    const getResponse = page.waitForResponse(
-      (r) =>
-        r.url().includes("/api/books") &&
-        r.request().method() === "GET" &&
-        matchBooksApi(new URL(r.url())),
-    );
-    await getResponse;
+      await page.getByLabel("Title").fill(original.title);
+      await expect(page.getByText("1 active filter")).toBeVisible();
+      await expect(
+        page.getByRole("cell", { name: original.title, exact: true }),
+      ).toBeVisible();
 
-    await page.getByLabel("Title").fill(original.title);
-    await expect(page.getByText("1 active filter")).toBeVisible();
-    await expect(
-      page.getByRole("cell", { name: original.title, exact: true }),
-    ).toBeVisible();
+      await page
+        .getByRole("button", { name: `View details of ${original.title}` })
+        .click();
+      await page.waitForLoadState("networkidle");
+      await expect(
+        page.getByRole("heading", { name: original.title }),
+      ).toBeVisible({ timeout: 10_000 });
 
-    await page
-      .getByRole("button", { name: `View details of ${original.title}` })
-      .click();
-    await page.waitForLoadState("networkidle");
-    await expect(
-      page.getByRole("heading", { name: original.title }),
-    ).toBeVisible({ timeout: 10_000 });
+      await page.getByRole("link", { name: "Edit this volume" }).click();
+      await page.waitForLoadState("networkidle");
 
-    await page.getByRole("link", { name: "Edit this volume" }).click();
-    await page.waitForLoadState("networkidle");
+      await page.getByLabel("Title").fill(updatedTitle);
 
-    await page.getByLabel("Title").fill(updatedTitle);
+      const updateResponse = page.waitForResponse(
+        (r) =>
+          r.url().includes("/api/books") && r.request().method() === "PATCH",
+      );
+      await page.getByRole("button", { name: /update the book/i }).click();
+      await updateResponse;
+      await page.waitForLoadState("networkidle");
 
-    const updateResponse = page.waitForResponse(
-      (r) => r.url().includes("/api/books") && r.request().method() === "PATCH",
-    );
-    await page.getByRole("button", { name: /update the book/i }).click();
-    await updateResponse;
-    await page.waitForLoadState("networkidle");
-
-    await expect(page.getByRole("heading", { name: updatedTitle })).toBeVisible(
-      { timeout: 10_000 },
-    );
-    await expect(page.getByText(`by ${original.author}`)).toBeVisible();
-  });
+      await expect(
+        page.getByRole("heading", { name: updatedTitle }),
+      ).toBeVisible({ timeout: 10_000 });
+      await expect(page.getByText(`by ${original.author}`)).toBeVisible();
+    },
+  );
 
   test("TC-H36-008: updated book reflects in Catalog", async ({ page }) => {
     const original = createUniqueBookData();
