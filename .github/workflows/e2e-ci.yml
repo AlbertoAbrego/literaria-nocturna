@@ -1,0 +1,214 @@
+name: E2E CI
+
+# Story 40 - tiered execution strategy (see e2e/README.md):
+#   Tier 1 - e2e-chromium-desktop: existing baseline, desktop Chromium.
+#   Tier 2 - e2e-cross-browser (Firefox + WebKit desktop) and
+#            e2e-responsive (Chromium mobile + tablet viewports).
+#   Tier 3 - staging projects are intentionally NOT run here; they require a
+#            deployed environment and run via `npm run test:e2e:staging`.
+# PR checks are intentionally unchanged: this workflow has no pull_request
+# trigger, so the extended matrix only runs on the triggers below.
+
+on:
+  schedule:
+    # Nightly full matrix (UTC).
+    - cron: "17 6 * * *"
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  e2e-chromium-desktop:
+    name: Tier 1 - Chromium desktop
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      mongodb:
+        image: mongo:7
+        ports:
+          - "27017:27017"
+        options: >-
+          --health-cmd "mongosh --quiet --eval 'db.runCommand({ ping: 1 })'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            backend/package-lock.json
+            frontend/package-lock.json
+
+      - name: Install root dependencies
+        run: npm ci
+
+      - name: Install backend dependencies
+        run: npm ci
+        working-directory: backend
+
+      - name: Install frontend dependencies
+        run: npm ci
+        working-directory: frontend
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      # global-setup reads MONGODB_URI from backend/.env (which is
+      # gitignored), and the backend dev server loads the same file.
+      - name: Create backend E2E environment file
+        run: |
+          printf "MONGODB_URI=%s\nPORT=3000\n" \
+            "mongodb://127.0.0.1:27017/literaria-nocturna-e2e" > backend/.env
+
+      - name: Run E2E suite (Chromium desktop)
+        run: npm run test:e2e:ci
+
+      - name: Upload Playwright artifacts on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-artifacts-chromium-desktop
+          path: test-results/
+          if-no-files-found: ignore
+          retention-days: 7
+
+  e2e-cross-browser:
+    name: Tier 2 - Cross-browser
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        project:
+          - firefox-desktop
+          - webkit-desktop
+    services:
+      mongodb:
+        image: mongo:7
+        ports:
+          - "27017:27017"
+        options: >-
+          --health-cmd "mongosh --quiet --eval 'db.runCommand({ ping: 1 })'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            backend/package-lock.json
+            frontend/package-lock.json
+
+      - name: Install root dependencies
+        run: npm ci
+
+      - name: Install backend dependencies
+        run: npm ci
+        working-directory: backend
+
+      - name: Install frontend dependencies
+        run: npm ci
+        working-directory: frontend
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps ${{ matrix.project == 'firefox-desktop' && 'firefox' || 'webkit' }}
+
+      - name: Create backend E2E environment file
+        run: |
+          printf "MONGODB_URI=%s\nPORT=3000\n" \
+            "mongodb://127.0.0.1:27017/literaria-nocturna-e2e" > backend/.env
+
+      - name: Run E2E suite (${{ matrix.project }})
+        run: E2E_EXTENDED_MATRIX=1 npx playwright test --project=${{ matrix.project }}
+
+      - name: Upload Playwright artifacts on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-artifacts-${{ matrix.project }}
+          path: test-results/
+          if-no-files-found: ignore
+          retention-days: 7
+
+  e2e-responsive:
+    name: Tier 2 - Responsive viewports
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        project:
+          - chromium-mobile
+          - chromium-tablet
+    services:
+      mongodb:
+        image: mongo:7
+        ports:
+          - "27017:27017"
+        options: >-
+          --health-cmd "mongosh --quiet --eval 'db.runCommand({ ping: 1 })'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            backend/package-lock.json
+            frontend/package-lock.json
+
+      - name: Install root dependencies
+        run: npm ci
+
+      - name: Install backend dependencies
+        run: npm ci
+        working-directory: backend
+
+      - name: Install frontend dependencies
+        run: npm ci
+        working-directory: frontend
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Create backend E2E environment file
+        run: |
+          printf "MONGODB_URI=%s\nPORT=3000\n" \
+            "mongodb://127.0.0.1:27017/literaria-nocturna-e2e" > backend/.env
+
+      - name: Run E2E suite (${{ matrix.project }})
+        run: E2E_EXTENDED_MATRIX=1 npx playwright test --project=${{ matrix.project }}
+
+      - name: Upload Playwright artifacts on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-artifacts-${{ matrix.project }}
+          path: test-results/
+          if-no-files-found: ignore
+          retention-days: 7

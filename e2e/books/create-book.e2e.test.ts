@@ -69,8 +69,17 @@ test.describe("Create Book Journey", () => {
     await page.getByLabel("Genre").selectOption(bookData.genre);
     await page.getByLabel("Synopsis").fill(bookData.synopsis);
 
+    // Register both listeners before submitting, same as TC-H36-005: the
+    // redirect GET can complete before a listener registered after
+    // toHaveURL, hanging the await (Story 40).
     const postResponse = page.waitForResponse(
       (r) => r.url().includes("/api/books") && r.request().method() === "POST",
+    );
+    const getResponse = page.waitForResponse(
+      (r) =>
+        r.url().includes("/api/books") &&
+        r.request().method() === "GET" &&
+        matchBooksApi(new URL(r.url())),
     );
     await page.getByRole("button", { name: /catalog the book/i }).click();
     const response = await postResponse;
@@ -78,13 +87,6 @@ test.describe("Create Book Journey", () => {
     createdBookIds.push(body._id);
 
     await expect(page).toHaveURL(/\/books$/);
-
-    const getResponse = page.waitForResponse(
-      (r) =>
-        r.url().includes("/api/books") &&
-        r.request().method() === "GET" &&
-        matchBooksApi(new URL(r.url())),
-    );
     await getResponse;
 
     await page.getByLabel("Title").fill(bookData.title);

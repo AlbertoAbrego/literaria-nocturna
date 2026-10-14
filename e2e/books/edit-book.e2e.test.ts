@@ -93,8 +93,17 @@ test.describe("Edit Book Journey", () => {
     await page.getByLabel("Genre").selectOption(original.genre);
     await page.getByLabel("Synopsis").fill(original.synopsis);
 
+    // Register both listeners before submitting: the catalog GET fires
+    // during the post-create redirect and can complete before a listener
+    // registered after toHaveURL, hanging the await (Story 40).
     const createResponse = page.waitForResponse(
       (r) => r.url().includes("/api/books") && r.request().method() === "POST",
+    );
+    const getResponse1 = page.waitForResponse(
+      (r) =>
+        r.url().includes("/api/books") &&
+        r.request().method() === "GET" &&
+        matchBooksApi(new URL(r.url())),
     );
     await page.getByRole("button", { name: /catalog the book/i }).click();
     const createRes = await createResponse;
@@ -102,13 +111,6 @@ test.describe("Edit Book Journey", () => {
     createdBookIds.push(createBody._id);
 
     await expect(page).toHaveURL(/\/books$/);
-
-    const getResponse1 = page.waitForResponse(
-      (r) =>
-        r.url().includes("/api/books") &&
-        r.request().method() === "GET" &&
-        matchBooksApi(new URL(r.url())),
-    );
     await getResponse1;
 
     await page.getByLabel("Title").fill(original.title);
@@ -140,17 +142,18 @@ test.describe("Edit Book Journey", () => {
       { timeout: 10_000 },
     );
 
-    await page.getByRole("link", { name: "Back to catalog" }).click();
-    await page.waitForLoadState("networkidle");
-
-    await expect(page).toHaveURL(/\/books$/);
-
+    // Register before navigating back: the catalog GET can complete before
+    // a listener registered after networkidle, hanging the await (Story 40).
     const getResponse2 = page.waitForResponse(
       (r) =>
         r.url().includes("/api/books") &&
         r.request().method() === "GET" &&
         matchBooksApi(new URL(r.url())),
     );
+    await page.getByRole("link", { name: "Back to catalog" }).click();
+    await page.waitForLoadState("networkidle");
+
+    await expect(page).toHaveURL(/\/books$/);
     await getResponse2;
 
     await page.getByLabel("Title").fill(updatedTitle);
