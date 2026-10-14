@@ -45,3 +45,4 @@ playwright-report/
 
 # Plannings
 docs/planning/*.md
+.e2e-run-id

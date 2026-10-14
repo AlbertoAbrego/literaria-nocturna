@@ -66,13 +66,16 @@ const projects = isStaging
             // Viewport profiles around the app's only Tailwind breakpoint
             // (sm: 640px). Explicit viewports instead of iPhone/iPad device
             // descriptors, whose built-in sizes and defaultBrowserType do not
-            // match these profiles.
+            // match these profiles. `isMobile` is deliberately NOT set: under
+            // mobile emulation Chromium expands the layout viewport to fit
+            // overflowing content (an overflowing catalog table widens
+            // window.innerWidth well past the configured viewport), which
+            // breaks click geometry on the responsive pages under test.
             {
               name: "chromium-mobile",
               use: {
                 ...devices["Desktop Chrome"],
                 viewport: MOBILE_VIEWPORT,
-                isMobile: true,
                 hasTouch: true,
               },
               grep: /@responsive/,
@@ -83,7 +86,6 @@ const projects = isStaging
               use: {
                 ...devices["Desktop Chrome"],
                 viewport: TABLET_VIEWPORT,
-                isMobile: true,
                 hasTouch: true,
               },
               grep: /@responsive/,
