@@ -33,6 +33,11 @@ Thumbs.db
 *.tmp
 *.temp
 
+# Local MongoDB workaround (Story 40 — contains credentials; delete after use)
+backend/.e2e-local-mongo.tmp.mjs
+backend/.env.story40-backup
+backend/e2e-local-mongo-uri.txt
+
 # Playwright
 test-results/
 playwright-report/
@@ -40,3 +45,4 @@ playwright-report/
 
 # Plannings
 docs/planning/*.md
+.e2e-run-id

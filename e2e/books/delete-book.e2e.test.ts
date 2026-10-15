@@ -13,60 +13,72 @@ test.describe("Delete Book Journey", () => {
     createdBookIds = [];
   });
 
-  test("TC-H36-009: delete via trash icon and confirmation modal", async ({
-    page,
-  }) => {
-    const bookData = createUniqueBookData();
+  test(
+    "TC-H36-009: delete via trash icon and confirmation modal",
+    {
+      tag: "@cross-browser",
+    },
+    async ({ page }) => {
+      const bookData = createUniqueBookData();
 
-    await gotoCreateBook(page);
-    await page.getByLabel("Title").fill(bookData.title);
-    await page.getByLabel("Author").fill(bookData.author);
-    await page.getByLabel("Genre").selectOption(bookData.genre);
-    await page.getByLabel("Synopsis").fill(bookData.synopsis);
+      await gotoCreateBook(page);
+      await page.getByLabel("Title").fill(bookData.title);
+      await page.getByLabel("Author").fill(bookData.author);
+      await page.getByLabel("Genre").selectOption(bookData.genre);
+      await page.getByLabel("Synopsis").fill(bookData.synopsis);
 
-    const createResponse = page.waitForResponse(
-      (r) => r.url().includes("/api/books") && r.request().method() === "POST",
-    );
-    await page.getByRole("button", { name: /catalog the book/i }).click();
-    const createRes = await createResponse;
-    const createBody = (await createRes.json()) as { _id: string };
-    createdBookIds.push(createBody._id);
+      const createResponse = page.waitForResponse(
+        (r) =>
+          r.url().includes("/api/books") && r.request().method() === "POST",
+      );
+      await page.getByRole("button", { name: /catalog the book/i }).click();
+      const createRes = await createResponse;
+      const createBody = (await createRes.json()) as { _id: string };
+      createdBookIds.push(createBody._id);
 
-    await expect(page).toHaveURL(/\/books$/);
+      await expect(page).toHaveURL(/\/books$/);
 
-    // Page is already at catalog after redirect; data is loaded
-    await page.getByLabel("Title").fill(bookData.title);
-    await expect(page.getByText("1 active filter")).toBeVisible();
-    await expect(
-      page.getByRole("cell", { name: bookData.title, exact: true }),
-    ).toBeVisible();
+      // Wait for the catalog route to finish rendering before interacting;
+      // the create form's Title input can still be mounted during the
+      // transition, and getByLabel("Title") would resolve to it (race
+      // surfaced by WebKit's slower re-render, Story 40).
+      const titleSearch = page.getByRole("searchbox", { name: "Title" });
+      await expect(titleSearch).toBeVisible();
+      await titleSearch.fill(bookData.title);
+      await expect(page.getByText("1 active filter")).toBeVisible();
+      await expect(
+        page.getByRole("cell", { name: bookData.title, exact: true }),
+      ).toBeVisible();
 
-    await page
-      .getByRole("button", { name: `Delete ${bookData.title}` })
-      .click();
+      await page
+        .getByRole("button", { name: `Delete ${bookData.title}` })
+        .click();
 
-    const modalTitle = `Delete "${bookData.title}"?`;
-    await expect(page.getByRole("dialog", { name: modalTitle })).toBeVisible();
+      const modalTitle = `Delete "${bookData.title}"?`;
+      await expect(
+        page.getByRole("dialog", { name: modalTitle }),
+      ).toBeVisible();
 
-    const deleteResponse = page.waitForResponse(
-      (r) =>
-        r.url().includes("/api/books") && r.request().method() === "DELETE",
-    );
-    await page
-      .getByRole("dialog", { name: modalTitle })
-      .getByRole("button", { name: "Delete" })
-      .click();
-    await deleteResponse;
+      const deleteResponse = page.waitForResponse(
+        (r) =>
+          r.url().includes("/api/books") && r.request().method() === "DELETE",
+      );
+      await page
+        .getByRole("dialog", { name: modalTitle })
+        .getByRole("button", { name: "Delete" })
+        .click();
+      await deleteResponse;
 
-    await expect(
-      page.getByRole("dialog", { name: modalTitle }),
-    ).not.toBeVisible();
-    await expect(
-      page.getByRole("cell", { name: bookData.title, exact: true }),
-    ).not.toBeVisible();
+      await expect(
+        page.getByRole("dialog", { name: modalTitle }),
+      ).not.toBeVisible();
+      await expect(
+        page.getByRole("cell", { name: bookData.title, exact: true }),
+      ).not.toBeVisible();
 
-    createdBookIds = [];
-  });
+      createdBookIds = [];
+    },
+  );
 
   test("TC-H36-010: deleted book shows not found on Details", async ({
     page,

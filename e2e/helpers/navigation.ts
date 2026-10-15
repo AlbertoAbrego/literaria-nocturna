@@ -9,7 +9,12 @@ export async function gotoCatalog(page: Page): Promise<void> {
   );
   await page.goto("/books");
   await page.getByRole("heading", { name: "Catalog" }).waitFor();
-  await page.getByRole("table", { name: "Book catalog" }).waitFor();
+  // An empty catalog renders EmptyState instead of the table; wait for
+  // either settled state so a fast response cannot race the wait.
+  await page
+    .getByRole("table", { name: "Book catalog" })
+    .or(page.getByTestId("empty-state"))
+    .waitFor();
   await getResponse;
 }
 
