@@ -228,14 +228,15 @@ E2E tests exercise the full stack (browser → frontend → backend → real Mon
 
 ### 3. Staging E2E
 
-| Aspect       | Configuration                                                                    |
-| ------------ | -------------------------------------------------------------------------------- |
-| Frontend URL | `PLAYWRIGHT_BASE_URL` (e.g., `https://staging.literaria-nocturna.vercel.app`)    |
-| API URL      | `PLAYWRIGHT_API_URL` (e.g., `https://api-staging.literaria-nocturna.render.com`) |
-| Database     | Atlas `staging` (shared, run-scoped isolation via `E2E:${runId}:` prefix)        |
-| Run ID       | Auto-generated per run                                                           |
-| Cleanup      | Run-scoped API cleanup only (requires `E2E_STAGING=1` opt-in)                    |
-| Web Servers  | None (uses deployed staging)                                                     |
+| Aspect       | Configuration                                                                                       |
+| ------------ | --------------------------------------------------------------------------------------------------- |
+| Frontend URL | `PLAYWRIGHT_BASE_URL` (default `https://literaria-nocturna.vercel.app`)                             |
+| API URL      | `PLAYWRIGHT_API_URL` (default `https://literaria-nocturna.onrender.com`)                            |
+| Database     | Atlas `staging` (shared; E2E never connects directly — API-only, run-scoped `E2E:${runId}:` prefix) |
+| Run ID       | Auto-generated per run                                                                              |
+| Cleanup      | Run-scoped API cleanup only (requires `E2E_STAGING=1` opt-in)                                       |
+| Web Servers  | None (uses deployed staging)                                                                        |
+| Seeding      | Skipped (global setup does not touch any database in staging mode)                                  |
 
 ### Environment Variables
 
@@ -254,6 +255,10 @@ E2E tests exercise the full stack (browser → frontend → backend → real Mon
 - Dry-run mode (`E2E_DRY_RUN=1`) logs deletions without executing
 - Global teardown refuses to run in staging without explicit `E2E_RUN_ID`
 - No direct database access in tests — all operations via API
+- The destructive empty-catalog suite is skipped in staging mode (deletes all books)
+- No custom request headers from the browser — the backend CORS allow-list is
+  `Content-Type,Authorization` only, so an extra header would fail every preflight
+- The staging API is rate-limited to 100 requests per 15 minutes (shared budget)
 
 ---
 

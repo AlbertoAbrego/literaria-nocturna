@@ -24,10 +24,7 @@ npm run test:e2e:headed
 # Debug mode (Playwright Inspector)
 npm run test:e2e:debug
 
-# Staging E2E (requires deployed staging)
-E2E_STAGING=1 \
-PLAYWRIGHT_BASE_URL=https://staging.literaria-nocturna.vercel.app \
-PLAYWRIGHT_API_URL=https://api-staging.literaria-nocturna.render.com \
+# Staging E2E (requires deployed staging - see "Staging E2E" below)
 npm run test:e2e:staging
 
 # Clean up stale test data (dry-run by default)
@@ -37,11 +34,11 @@ npm run e2e:cleanup-stale
 npm run e2e:cleanup-stale:force
 ```
 
-> **Windows note:** the `test:e2e:cross-browser`, `test:e2e:responsive` and
-> `test:e2e:full` scripts use POSIX `VAR=1` prefixes (same convention as the
-> pre-existing `test:e2e:staging`), which cmd.exe cannot parse. On PowerShell
-> run the underlying command instead:
+> **Windows note:** the `test:e2e:cross-browser`, `test:e2e:responsive`,
+> `test:e2e:full` and `test:e2e:staging` scripts use POSIX `VAR=1` prefixes,
+> which cmd.exe cannot parse. On PowerShell run the underlying command instead:
 > `$env:E2E_EXTENDED_MATRIX='1'; npx playwright test --project=chromium-mobile --project=chromium-tablet`
+> `$env:E2E_STAGING='1'; npx playwright test --project=chromium-staging`
 > (Git Bash/WSL/macOS/Linux can use the npm scripts as written.)
 
 ## Browser & Viewport Matrix
@@ -50,15 +47,15 @@ The matrix targets one deliberate slice per axis: **engine differences** on
 desktop, **breakpoint behavior** at viewports straddling the app's only
 Tailwind breakpoint (`sm:` 640px). The full local matrix is 59 executions.
 
-| Project             | Engine   | Viewport | Scope                                             | Runs in                           |
-| ------------------- | -------- | -------- | ------------------------------------------------- | --------------------------------- |
-| `chromium`          | Chromium | 1280x720 | Full baseline suite (untagged + `@cross-browser`) | `npm run test:e2e`, CI Tier 1     |
-| `chromium-isolated` | Chromium | 1280x720 | Empty-catalog test (depends on `chromium`)        | with baseline                     |
-| `firefox-desktop`   | Firefox  | 1280x720 | 4 `@cross-browser` journeys                       | `test:e2e:cross-browser`, nightly |
-| `webkit-desktop`    | WebKit   | 1280x720 | 4 `@cross-browser` journeys                       | `test:e2e:cross-browser`, nightly |
-| `chromium-mobile`   | Chromium | 375x667  | 8 `@responsive` tests (below `sm:`)               | `test:e2e:responsive`, nightly    |
-| `chromium-tablet`   | Chromium | 768x1024 | 8 `@responsive` tests (at/above `sm:`)            | `test:e2e:responsive`, nightly    |
-| `chromium-staging*` | Chromium | 1280x720 | Staging smoke (deployed environment)              | manual, `E2E_STAGING=1` only      |
+| Project             | Engine   | Viewport | Scope                                                                    | Runs in                           |
+| ------------------- | -------- | -------- | ------------------------------------------------------------------------ | --------------------------------- |
+| `chromium`          | Chromium | 1280x720 | Full baseline suite (untagged + `@cross-browser`)                        | `npm run test:e2e`, CI Tier 1     |
+| `chromium-isolated` | Chromium | 1280x720 | Empty-catalog test (depends on `chromium`)                               | with baseline                     |
+| `firefox-desktop`   | Firefox  | 1280x720 | 4 `@cross-browser` journeys                                              | `test:e2e:cross-browser`, nightly |
+| `webkit-desktop`    | WebKit   | 1280x720 | 4 `@cross-browser` journeys                                              | `test:e2e:cross-browser`, nightly |
+| `chromium-mobile`   | Chromium | 375x667  | 8 `@responsive` tests (below `sm:`)                                      | `test:e2e:responsive`, nightly    |
+| `chromium-tablet`   | Chromium | 768x1024 | 8 `@responsive` tests (at/above `sm:`)                                   | `test:e2e:responsive`, nightly    |
+| `chromium-staging`  | Chromium | 1280x720 | Same set as `chromium`, against deployed staging; empty-catalog excluded | manual, `E2E_STAGING=1` only      |
 
 Rationale:
 
@@ -81,11 +78,11 @@ Rationale:
 
 ## Test Annotations
 
-| Annotation       | Meaning                                     | Executed by                                                                          |
-| ---------------- | ------------------------------------------- | ------------------------------------------------------------------------------------ |
-| _(untagged)_     | Baseline regression coverage                | `chromium` + `chromium-isolated` only                                                |
-| `@cross-browser` | Critical journeys that must work on engines | baseline **and** `firefox-desktop` + `webkit-desktop`                                |
-| `@responsive`    | Viewport/breakpoint behavior                | `chromium-mobile` + `chromium-tablet` only (excluded from baseline via `grepInvert`) |
+| Annotation       | Meaning                                     | Executed by                                                                                      |
+| ---------------- | ------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| _(untagged)_     | Baseline regression coverage                | `chromium` + `chromium-isolated` + `chromium-staging`                                            |
+| `@cross-browser` | Critical journeys that must work on engines | baseline **and** `firefox-desktop` + `webkit-desktop`                                            |
+| `@responsive`    | Viewport/breakpoint behavior                | `chromium-mobile` + `chromium-tablet` only (excluded from baseline and staging via `grepInvert`) |
 
 There is no separate `@baseline` tag: baseline membership is simply the
 absence of `@responsive` (the baseline project runs everything except
@@ -131,7 +128,14 @@ coverage never reduces desktop coverage.
   closing the gap is a product-side follow-up.
 - **Tier 3 (staging) is not wired into CI** — it requires deployed staging
   environments and runs manually via `npm run test:e2e:staging`.
-- **`E2E_EXTENDED_MATRIX` scripts are POSIX-only** (see Windows note above).
+- **`E2E_EXTENDED_MATRIX` and staging scripts are POSIX-only** (see Windows
+  note above).
+- **Staging rate limit (100 req/15min) bounds staging runs** — repeated runs
+  within one window hit `429` responses; the suite has no 429-specific
+  handling (see Staging E2E above).
+- **Staging run ID is not sent as a header** — backend CORS allows only
+  `Content-Type,Authorization`; ownership is enforced solely via the
+  `E2E:${runId}:` title prefix.
 
 ## Test Data Strategy
 
@@ -141,6 +145,10 @@ coverage never reduces desktop coverage.
   - Per-test: `afterEach` deletes via API
   - Global: Teardown sweeps run-scoped books via API
   - Stale: `npm run e2e:cleanup-stale` removes books older than 24h
+- **Seeding** (local/CI only): global setup seeds 15 reference titles into the
+  database named by `backend/.env` `MONGODB_URI`. Staging runs skip seeding
+  entirely — tests never depend on seed titles, and the staging database is
+  only touched through the public API.
 
 ## Running Locally
 
@@ -166,16 +174,77 @@ Playwright's `webServer` config starts both servers automatically if not already
 
 Requires:
 
-- Deployed staging frontend (Vercel) and backend (Render)
-- Atlas `staging` database
-- Explicit opt-in via `E2E_STAGING=1`
+- Deployed staging frontend (Vercel) and backend (Render) reachable
+- Explicit opt-in via `E2E_STAGING=1` (what `test:e2e:staging` sets)
+- No local servers, no `backend/.env`, and no database credentials: staging
+  runs never start `webServer`, never seed MongoDB (global setup skips it in
+  staging mode), and talk only to the deployed API and UI
+
+Default endpoints (override with `PLAYWRIGHT_BASE_URL` / `PLAYWRIGHT_API_URL`
+if the deployment moves):
+
+```text
+Frontend  https://literaria-nocturna.vercel.app
+API       https://literaria-nocturna.onrender.com
+```
 
 ```bash
-E2E_STAGING=1 \
-PLAYWRIGHT_BASE_URL=https://staging.literaria-nocturna.vercel.app \
-PLAYWRIGHT_API_URL=https://api-staging.literaria-nocturna.render.com \
-npm run test:e2e --project=chromium-staging
+# POSIX (Git Bash/WSL/macOS/Linux)
+npm run test:e2e:staging
+
+# PowerShell
+$env:E2E_STAGING='1'; npx playwright test --project=chromium-staging
 ```
+
+### What runs against staging
+
+- **Included**: the same 34 tests as the local `chromium` baseline (untagged +
+  `@cross-browser`: smoke, catalog/details, create/edit/delete, error
+  scenarios, recovery, contract validation).
+- **Excluded**: `@responsive` tests (viewport-only, via `grepInvert`) and
+  `empty-catalog` (destructive — it deletes every book; also guarded by an
+  in-test `test.skip(isStagingE2E())` as defense-in-depth, so
+  `--project=chromium-staging-isolated` cannot wipe staging data either).
+
+### Data safety on the shared environment
+
+- All test books are titled `E2E:${runId}:...` and created/deleted through the
+  public API only; global teardown sweeps the run's books after every staging
+  run; `npm run e2e:cleanup-stale` (dry-run first) removes leftovers older
+  than 24h and refuses to run in staging without an explicit `E2E_RUN_ID`.
+- The staging API is rate-limited (**100 requests / 15 minutes**, shared across
+  all clients). A full staging run is close to one entire window — wait for
+  `ratelimit-reset` before re-running, and expect `429 RATE_LIMIT_EXCEEDED`
+  responses if you run repeatedly within the window. No test asserts on 429,
+  so a rate-limited run fails with unrelated symptoms; check response headers
+  first when results look inconsistent.
+- No request header outside the backend's CORS allow-list
+  (`Content-Type,Authorization`) is sent from the browser, or every preflight
+  would be rejected (Story 42: the run ID travels in test-data titles).
+
+### Verification results (Story 42, 2026-10-15)
+
+| Check                  | Result                                                                                                                                                                                                                                    |
+| ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Local baseline         | **35/35 passed** (1.4m) after the shared-fixture refactor — behavior unchanged (AC3/AC8)                                                                                                                                                  |
+| Config/URL resolution  | Local → `localhost:5173`/`:3000`; staging → Vercel/Render defaults; env overrides honored                                                                                                                                                 |
+| Stale-cleanup script   | Loads and runs (imports fixed); staging dry-run **refuses without `E2E_RUN_ID`** (exit 1)                                                                                                                                                 |
+| Destructive-test guard | `empty-catalog` under `E2E_STAGING=1`: **1 skipped**, no API call made (verified via kill-switch API URL)                                                                                                                                 |
+| Staging run — pre-fix  | 8 passed / 26 failed: injected `X-E2E-Run-ID` header failed CORS preflight on every real API call; route-mocked tests passed                                                                                                              |
+| Staging run — post-fix | **34/34 passed** vs. live deployment: full staging project (smoke, CRUD journeys, details, errors, recovery, contract) through deployed Vercel → Render → Atlas (AC5), split across 4 batches (6+10+8+10) to stay inside the rate windows |
+| Data safety post-run   | Staging DB re-checked after every batch: only the pre-existing book, **0 `E2E:` leftovers** (per-test `afterEach` + teardown)                                                                                                             |
+| Env overrides          | `PLAYWRIGHT_API_URL` override takes effect (verified with a local kill-switch URL during the guard test)                                                                                                                                  |
+
+**Staging run scope:** the deployed API allows **100 requests / 15 minutes**,
+and the full 34-test project costs ~8 requests per test (~270 total) — more
+than two rate windows. Verification split the project into batches around
+`ratelimit-reset` until **all 34 tests passed**; do the same when re-running
+(the batches above are a workable split), or run a representative subset if
+you only need a smoke-level signal.
+
+**Known environment limits (not test defects):** staging CORS allow-list is
+fixed at `Content-Type,Authorization`; staging rate limit is 100 req/15min;
+the staging API database cannot be seeded by E2E (by design).
 
 ## Stale Data Cleanup
 
@@ -186,8 +255,10 @@ npm run e2e:cleanup-stale
 # Force delete stale books (older than 24h with E2E: prefix)
 npm run e2e:cleanup-stale:force
 
-# Staging cleanup (requires explicit opt-in)
+# Staging cleanup (requires explicit opt-in + explicit run ID)
 E2E_STAGING=1 E2E_RUN_ID=abc12345 npm run e2e:cleanup-stale:force
+# PowerShell:
+$env:E2E_STAGING='1'; $env:E2E_RUN_ID='abc12345'; npx tsx scripts/e2e-cleanup-stale.ts --force
 ```
 
 ## Test Data Patterns
