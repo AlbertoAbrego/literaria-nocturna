@@ -1,4 +1,4 @@
-import { test, expect, type Page } from "@playwright/test";
+import { test, expect, type Page } from "../fixtures/test-fixtures";
 import { gotoCreateBook } from "../helpers/navigation";
 import { expectFieldError, expectFormErrorAlert } from "../helpers/assertions";
 import { matchBooksApi } from "../helpers/api";

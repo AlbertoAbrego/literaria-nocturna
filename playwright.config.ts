@@ -1,19 +1,14 @@
 import { defineConfig, devices } from "@playwright/test";
+import { getApiBaseURL, getBaseURL } from "./e2e/helpers/config";
+import { isStagingE2E } from "./e2e/helpers/env";
 import { MOBILE_VIEWPORT, TABLET_VIEWPORT } from "./e2e/helpers/viewport";
 
-const isStaging = process.env.E2E_STAGING === "1";
+const isStaging = isStagingE2E();
 const isCI = !!process.env.CI;
 const isExtendedMatrix = process.env.E2E_EXTENDED_MATRIX === "1";
 
-const baseURL = isStaging
-  ? process.env.PLAYWRIGHT_BASE_URL ||
-    "https://staging.literaria-nocturna.vercel.app"
-  : "http://localhost:5173";
-
-const apiBaseURL = isStaging
-  ? process.env.PLAYWRIGHT_API_URL ||
-    "https://api-staging.literaria-nocturna.render.com"
-  : "http://localhost:3000";
+const baseURL = getBaseURL();
+const apiBaseURL = getApiBaseURL();
 
 const projects = isStaging
   ? [
@@ -21,6 +16,10 @@ const projects = isStaging
         name: "chromium-staging",
         use: { ...devices["Desktop Chrome"] },
         testIgnore: "**/empty-catalog.e2e.test.ts",
+        // Same membership as the local `chromium` baseline (Story 42 AC8):
+        // untagged + @cross-browser journeys; @responsive tests are excluded
+        // because they belong to the mobile/tablet viewport projects.
+        grepInvert: /@responsive/,
       },
       {
         name: "chromium-staging-isolated",
@@ -111,9 +110,11 @@ export default defineConfig({
     trace: "on-first-retry",
     screenshot: "only-on-failure",
     video: "retain-on-failure",
-    extraHTTPHeaders: isStaging
-      ? { "X-E2E-Run-ID": process.env.E2E_RUN_ID || "" }
-      : {},
+    // Story 42: no X-E2E-Run-ID header on browser requests. The deployed
+    // backend CORS allows only Content-Type/Authorization, so a custom header
+    // would fail every preflight and block the real API from the page. The
+    // run ID travels in test-data titles instead (see fixtures/test-data.ts);
+    // the API request fixture carries the header where CORS does not apply.
   },
   projects,
   webServer: isStaging

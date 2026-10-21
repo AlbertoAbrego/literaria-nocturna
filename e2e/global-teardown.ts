@@ -1,36 +1,8 @@
 import { readFileSync } from "node:fs";
-import { resolve } from "node:path";
 import { APIRequestContext, request as pwRequest } from "@playwright/test";
 import { RUN_ID_PATH } from "./global-setup";
-import { loadEnvFile } from "./helpers/env";
-
-function loadEnvFileLocal(filePath: string): Record<string, string> {
-  const vars: Record<string, string> = {};
-  const content = readFileSync(filePath, "utf-8");
-  for (const line of content.split("\n")) {
-    const trimmed = line.trim();
-    if (!trimmed || trimmed.startsWith("#")) continue;
-    const eqIndex = trimmed.indexOf("=");
-    if (eqIndex === -1) continue;
-    const key = trimmed.slice(0, eqIndex).trim();
-    const value = trimmed.slice(eqIndex + 1).trim();
-    vars[key] = value;
-  }
-  return vars;
-}
-
-function getApiBaseUrl(): string {
-  const isStaging = process.env.E2E_STAGING === "1";
-  if (isStaging) {
-    return (
-      process.env.PLAYWRIGHT_API_URL ||
-      "https://api-staging.literaria-nocturna.render.com"
-    );
-  }
-  const env = loadEnvFileLocal(resolve("backend/.env"));
-  const port = env.PORT || "3000";
-  return `http://localhost:${port}`;
-}
+import { getApiBaseURL } from "./helpers/config";
+import { isStagingE2E } from "./helpers/env";
 
 async function deleteRunBooks(
   api: APIRequestContext,
@@ -70,7 +42,7 @@ async function deleteRunBooks(
 }
 
 export default async function globalTeardown(): Promise<void> {
-  const isStaging = process.env.E2E_STAGING === "1";
+  const isStaging = isStagingE2E();
   const runIdFile = RUN_ID_PATH;
 
   let runId: string | null = null;
@@ -97,7 +69,7 @@ export default async function globalTeardown(): Promise<void> {
     `[E2E Global Teardown] Cleaning up run ${runId} (staging: ${isStaging})`,
   );
 
-  const apiBase = getApiBaseUrl();
+  const apiBase = getApiBaseURL();
   const api = await pwRequest.newContext({ baseURL: apiBase });
   const deleted = await deleteRunBooks(api, runId);
   await api.dispose();

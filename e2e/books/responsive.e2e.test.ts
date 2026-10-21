@@ -3,7 +3,7 @@ import {
   expect,
   type Page,
   type APIRequestContext,
-} from "@playwright/test";
+} from "../fixtures/test-fixtures";
 import { gotoCatalog, gotoCreateBook } from "../helpers/navigation";
 import { matchBooksApi } from "../helpers/api";
 import {

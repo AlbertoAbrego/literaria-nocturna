@@ -1,16 +1,10 @@
 import { resolve } from "node:path";
-import { loadEnvFile } from "./helpers/env";
 import { APIRequestContext, request as pwRequest } from "@playwright/test";
-import { isE2EOwned } from "./fixtures/test-data";
+import { getApiBaseURL } from "../e2e/helpers/config";
+import { isE2EOwned } from "../e2e/fixtures/test-data";
+import { loadEnvFile } from "../e2e/helpers/env";
 
-function getApiBaseUrl(): string {
-  const isStaging = process.env.E2E_STAGING === "1";
-  if (isStaging) {
-    return (
-      process.env.PLAYWRIGHT_API_URL ||
-      "https://api-staging.literaria-nocturna.render.com"
-    );
-  }
+function getLocalApiBaseUrl(): string {
   const env = loadEnvFile(resolve("backend/.env"));
   const port = env.PORT || "3000";
   return `http://localhost:${port}`;
@@ -88,7 +82,7 @@ async function main(): Promise<void> {
     `[E2E Stale Cleanup] Starting (staging: ${isStaging}, dryRun: ${dryRun})`,
   );
 
-  const apiBase = getApiBaseUrl();
+  const apiBase = isStaging ? getApiBaseURL() : getLocalApiBaseUrl();
   const api = await pwRequest.newContext({ baseURL: apiBase });
 
   try {

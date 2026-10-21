@@ -2,7 +2,7 @@ import { resolve } from "node:path";
 import { writeFileSync } from "node:fs";
 import { randomBytes } from "node:crypto";
 import { MongoClient } from "mongodb";
-import { loadEnvFile } from "./helpers/env";
+import { isStagingE2E, loadEnvFile } from "./helpers/env";
 
 export const RUN_ID_PATH = resolve(".e2e-run-id");
 
@@ -105,6 +105,18 @@ export default async function globalSetup(): Promise<void> {
   process.env.E2E_RUN_ID = runId;
   writeFileSync(RUN_ID_PATH, runId);
   console.log(`[E2E Global Setup] Run ID: ${runId}`);
+
+  // Story 42: staging runs never touch a database directly. The deployed
+  // environment is validated through its API and UI only; seeding is a local
+  // convenience (tests create their own run-scoped data and do not depend on
+  // the reference titles), and backend/.env on a dev machine points at the
+  // development database — writing there during a staging run would be wrong.
+  if (isStagingE2E()) {
+    console.log(
+      "[E2E Global Setup] Staging mode: skipping MongoDB seeding (API-only)",
+    );
+    return;
+  }
 
   const env = loadEnvFile(resolve("backend/.env"));
   const mongodbUri = env.MONGODB_URI;

@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect } from "../fixtures/test-fixtures";
 import { gotoCreateBook } from "../helpers/navigation";
 import {
   expectErrorState,

@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect } from "../fixtures/test-fixtures";
 import { gotoCatalog, gotoCreateBook } from "../helpers/navigation";
 import { expectFieldError, expectFormErrorAlert } from "../helpers/assertions";
 import { matchBooksApi } from "../helpers/api";

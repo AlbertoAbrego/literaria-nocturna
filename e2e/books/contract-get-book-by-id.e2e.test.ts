@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect } from "../fixtures/test-fixtures";
 import { gotoCatalog } from "../helpers/navigation";
 import { expectBookDetails } from "../helpers/assertions";
 import {
