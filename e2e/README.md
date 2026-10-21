@@ -191,6 +191,7 @@ API       https://literaria-nocturna.onrender.com
 ```bash
 # POSIX (Git Bash/WSL/macOS/Linux)
 npm run test:e2e:staging
+npm run test:e2e:staging:full   # + chromium-staging-isolated (empty-catalog, skipped in staging)
 
 # PowerShell
 $env:E2E_STAGING='1'; npx playwright test --project=chromium-staging
@@ -221,6 +222,31 @@ $env:E2E_STAGING='1'; npx playwright test --project=chromium-staging
 - No request header outside the backend's CORS allow-list
   (`Content-Type,Authorization`) is sent from the browser, or every preflight
   would be rejected (Story 42: the run ID travels in test-data titles).
+
+### Rate-limit batching
+
+A full 34-test run costs ~270 requests — more than the 100 requests / 15
+minutes the staging API allows — so one run crosses at least one window and
+then fails with misleading symptoms (no test asserts on 429). Split the run
+into four batches and wait for the `ratelimit-reset` response header (or ~15
+minutes) between them:
+
+```bash
+# Batch 1 (6): smoke, catalog, delete-error
+E2E_STAGING=1 npx playwright test --project=chromium-staging e2e/smoke.test.ts e2e/books/catalog.e2e.test.ts e2e/books/delete-book.error.e2e.test.ts
+
+# Batch 2 (10): CRUD journeys + details errors
+E2E_STAGING=1 npx playwright test --project=chromium-staging e2e/books/create-book.e2e.test.ts e2e/books/edit-book.e2e.test.ts e2e/books/delete-book.e2e.test.ts e2e/books/book-details.error.e2e.test.ts
+
+# Batch 3 (8): recovery + contract validation
+E2E_STAGING=1 npx playwright test --project=chromium-staging e2e/books/recovery.e2e.test.ts e2e/books/contract-list-filter-pagination.e2e.test.ts e2e/books/contract-get-book-by-id.e2e.test.ts e2e/books/contract-create-book.e2e.test.ts e2e/books/contract-validation-error.e2e.test.ts
+
+# Batch 4 (10): error scenarios
+E2E_STAGING=1 npx playwright test --project=chromium-staging e2e/books/create-book.error.e2e.test.ts e2e/books/edit-book.error.e2e.test.ts
+```
+
+PowerShell: set `$env:E2E_STAGING='1'` once, then run the same
+`npx playwright test ...` commands without the `E2E_STAGING=1` prefix.
 
 ### Verification results (Story 42, 2026-10-15)
 
