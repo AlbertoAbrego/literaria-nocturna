@@ -100,7 +100,11 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: isCI,
   retries: isCI ? 2 : 0,
-  reporter: "list",
+  // Story 42 phase 1: staging runs keep the list reporter and additionally
+  // write an HTML report (playwright-report/, gitignored) for post-mortem
+  // diagnostics - rate-limit failures are hard to read from list output.
+  // Local and CI reporting are unchanged.
+  reporter: isStaging ? [["list"], ["html", { open: "never" }]] : "list",
   timeout: 30_000,
   expect: {
     timeout: 5_000,
