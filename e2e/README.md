@@ -170,6 +170,14 @@ npm run test:e2e
 
 Playwright's `webServer` config starts both servers automatically if not already running.
 
+> **Rate-limit pitfall:** Playwright raises the backend limit to
+> `RATE_LIMIT_MAX=10000` only for servers **it** starts. A manually started
+> `npm run dev` backend already on port 3000 is reused with the default
+> **100 requests / 15 minutes**, so a full 35-test run exhausts it around test
+> 20 and the remaining tests fail with `429` / `RATE_LIMIT_EXCEEDED` (seen
+> 2026-10-21: 20 passed / 14 rate-limit casualties). Stop any manual server
+> before `npm run test:e2e`, or start it with `RATE_LIMIT_MAX=10000`.
+
 ## Staging E2E
 
 Requires:
@@ -258,18 +266,18 @@ PowerShell: set `$env:E2E_STAGING='1'` once, then run the same
 
 ### Verification results (Story 42, 2026-10-15)
 
-| Check                        | Result                                                                                                                                                                                                                                    |
-| ---------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Local baseline               | **35/35 passed** (1.4m) after the shared-fixture refactor — behavior unchanged (AC3/AC8)                                                                                                                                                  |
-| Config/URL resolution        | Local → `localhost:5173`/`:3000`; staging → Vercel/Render defaults; env overrides honored                                                                                                                                                 |
-| Stale-cleanup script         | Loads and runs (imports fixed); staging dry-run **refuses without `E2E_RUN_ID`** (exit 1)                                                                                                                                                 |
-| Destructive-test guard       | `empty-catalog` under `E2E_STAGING=1`: **1 skipped**, no API call made (verified via kill-switch API URL)                                                                                                                                 |
-| Staging run — pre-fix        | 8 passed / 26 failed: injected `X-E2E-Run-ID` header failed CORS preflight on every real API call; route-mocked tests passed                                                                                                              |
-| Staging run — post-fix       | **34/34 passed** vs. live deployment: full staging project (smoke, CRUD journeys, details, errors, recovery, contract) through deployed Vercel → Render → Atlas (AC5), split across 4 batches (6+10+8+10) to stay inside the rate windows |
-| Data safety post-run         | Staging DB re-checked after every batch: only the pre-existing book, **0 `E2E:` leftovers** (per-test `afterEach` + teardown)                                                                                                             |
-| Env overrides                | `PLAYWRIGHT_API_URL` override takes effect (verified with a local kill-switch URL during the guard test)                                                                                                                                  |
-| Phase 1 staging (2026-10-21) | Warm-up + HTML report verified: staging smoke **1/1 passed** vs. live deployment; warm-up absorbed a **31.7 s API cold start** in setup, not in the first test; selections confirmed 34 staging / 35 staging:full / 35 local              |
-| Phase 1 checks (2026-10-21)  | `prettier --check` passed, `eslint frontend`/`eslint backend` passed, `tsc --strict` clean on config + global setup; local baseline not re-run (Atlas unreachable from this machine; Tier 1 CI covers it)                                 |
+| Check                        | Result                                                                                                                                                                                                                                                                                   |
+| ---------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Local baseline               | **35/35 passed** (1.4m) after the shared-fixture refactor — behavior unchanged (AC3/AC8)                                                                                                                                                                                                 |
+| Config/URL resolution        | Local → `localhost:5173`/`:3000`; staging → Vercel/Render defaults; env overrides honored                                                                                                                                                                                                |
+| Stale-cleanup script         | Loads and runs (imports fixed); staging dry-run **refuses without `E2E_RUN_ID`** (exit 1)                                                                                                                                                                                                |
+| Destructive-test guard       | `empty-catalog` under `E2E_STAGING=1`: **1 skipped**, no API call made (verified via kill-switch API URL)                                                                                                                                                                                |
+| Staging run — pre-fix        | 8 passed / 26 failed: injected `X-E2E-Run-ID` header failed CORS preflight on every real API call; route-mocked tests passed                                                                                                                                                             |
+| Staging run — post-fix       | **34/34 passed** vs. live deployment: full staging project (smoke, CRUD journeys, details, errors, recovery, contract) through deployed Vercel → Render → Atlas (AC5), split across 4 batches (6+10+8+10) to stay inside the rate windows                                                |
+| Data safety post-run         | Staging DB re-checked after every batch: only the pre-existing book, **0 `E2E:` leftovers** (per-test `afterEach` + teardown)                                                                                                                                                            |
+| Env overrides                | `PLAYWRIGHT_API_URL` override takes effect (verified with a local kill-switch URL during the guard test)                                                                                                                                                                                 |
+| Phase 1 staging (2026-10-21) | Warm-up + HTML report verified: staging smoke **1/1 passed** vs. live deployment; warm-up absorbed a **31.7 s API cold start** in setup, not in the first test; selections confirmed 34 staging / 35 staging:full / 35 local                                                             |
+| Phase 1 checks (2026-10-21)  | `prettier --check` passed, `eslint frontend`/`eslint backend` passed, `tsc --strict` clean on config + global setup; **local baseline 35/35 passed** (31.7 s) after Atlas IP whitelisting, once Playwright started the servers itself (see the rate-limit pitfall under Running Locally) |
 
 **Staging run scope:** the deployed API allows **100 requests / 15 minutes**,
 and the full 34-test project costs ~8 requests per test (~270 total) — more
