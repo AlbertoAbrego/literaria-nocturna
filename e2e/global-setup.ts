@@ -2,9 +2,71 @@ import { resolve } from "node:path";
 import { writeFileSync } from "node:fs";
 import { randomBytes } from "node:crypto";
 import { MongoClient } from "mongodb";
+import { getApiBaseURL, getBaseURL } from "./helpers/config";
 import { isStagingE2E, loadEnvFile } from "./helpers/env";
 
 export const RUN_ID_PATH = resolve(".e2e-run-id");
+
+// Story 42 phase 1: Render cold starts can take 30-60s on the first request,
+// which would otherwise surface as a timeout in the first test. Warm both
+// deployed endpoints first. Deliberately frugal - the staging API allows 100
+// requests / 15 minutes, so a healthy warm-up costs exactly 2 requests and
+// failures stop early instead of burning the window.
+const WARMUP_ATTEMPTS = 3;
+const WARMUP_TIMEOUT_MS = 60_000;
+const WARMUP_RETRY_DELAY_MS = 5_000;
+
+const sleep = (ms: number): Promise<void> =>
+  new Promise((resolveDelay) => setTimeout(resolveDelay, ms));
+
+async function warmUpStagingEndpoint(name: string, url: string): Promise<void> {
+  let lastFailure = "not attempted";
+  let terminal = false;
+
+  for (let attempt = 1; attempt <= WARMUP_ATTEMPTS; attempt++) {
+    const startedAt = Date.now();
+    try {
+      const response = await fetch(url, {
+        signal: AbortSignal.timeout(WARMUP_TIMEOUT_MS),
+      });
+      if (response.ok) {
+        console.log(
+          `[E2E Global Setup] Warm-up ${name} OK (${url}) in ${Date.now() - startedAt}ms`,
+        );
+        return;
+      }
+      lastFailure = `HTTP ${response.status}`;
+      // Waiting a few seconds will not clear an exhausted rate-limit window;
+      // stop and tell the operator to wait for ratelimit-reset instead.
+      terminal = response.status === 429;
+    } catch (error) {
+      lastFailure = error instanceof Error ? error.message : String(error);
+    }
+
+    console.warn(
+      `[E2E Global Setup] Warm-up ${name} attempt ${attempt}/${WARMUP_ATTEMPTS} failed: ${lastFailure}`,
+    );
+    if (terminal || attempt === WARMUP_ATTEMPTS) break;
+    await sleep(WARMUP_RETRY_DELAY_MS);
+  }
+
+  throw new Error(
+    `Staging warm-up failed for ${name} (${url}): ${lastFailure}. ` +
+      "A sleeping staging service needs ~30-60s to wake (retry once it is " +
+      "up); HTTP 429 means the 100 requests / 15 minutes window is " +
+      "exhausted - wait for ratelimit-reset and re-run.",
+  );
+}
+
+async function warmUpStaging(): Promise<void> {
+  const startedAt = Date.now();
+  console.log("[E2E Global Setup] Warming up staging services...");
+  await warmUpStagingEndpoint("API", `${getApiBaseURL()}/api/health`);
+  await warmUpStagingEndpoint("frontend", getBaseURL());
+  console.log(
+    `[E2E Global Setup] Staging warm-up complete in ${Date.now() - startedAt}ms`,
+  );
+}
 
 export const SEED_BOOKS = [
   {
@@ -115,6 +177,7 @@ export default async function globalSetup(): Promise<void> {
     console.log(
       "[E2E Global Setup] Staging mode: skipping MongoDB seeding (API-only)",
     );
+    await warmUpStaging();
     return;
   }
 

@@ -14,6 +14,7 @@
     "test:e2e:full": "E2E_EXTENDED_MATRIX=1 playwright test",
     "test:e2e:staging": "E2E_STAGING=1 playwright test --project=chromium-staging",
     "test:e2e:staging:headed": "E2E_STAGING=1 playwright test --project=chromium-staging --headed",
+    "test:e2e:staging:full": "E2E_STAGING=1 playwright test --project=chromium-staging --project=chromium-staging-isolated",
     "e2e:cleanup-stale": "tsx scripts/e2e-cleanup-stale.ts --dry-run",
     "e2e:cleanup-stale:force": "tsx scripts/e2e-cleanup-stale.ts --force"
   },
