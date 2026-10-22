@@ -106,6 +106,76 @@ coverage never reduces desktop coverage.
 - Traces, screenshots and videos in `test-results/` are uploaded as
   artifacts when a job fails (traces arrive on the first CI retry).
 
+## Investigating Flaky / Retry-Passing Tests (Story 43)
+
+- **What "flaky" means here** — with CI `retries: 2`, a test that fails once
+  and passes on a retry is reported as _flaky_, not passed: it is a signal to
+  investigate, never proof of stability. Locally `retries: 0`, so the same
+  problem fails immediately. Do not raise retries or timeouts to silence a
+  flaky test; find the root cause.
+- **Investigation loop**
+  1. Re-run the suspect in isolation with repetition until it reproduces:
+     `npx playwright test <file> -g "<title>" --repeat-each=10`.
+  2. Read the failure artifacts in `test-results/<test>/`: `error-context.md`
+     (page snapshot), screenshot, video, and the `api-responses` attachment
+     (all `/api/*` responses seen by the page, status + truncated body).
+  3. Replay the trace (arrives on the first CI retry):
+     `npx playwright show-trace test-results/<test>/trace.zip` and inspect the
+     moments before the failure for missing waits, late responses, or layout
+     shifts.
+  4. Fix the root cause (explicit response/locator sync, font/layout
+     settlement), never a blanket sleep, timeout bump, or extra retry.
+  5. Verify with repetition (`--repeat-each=10` for the test, then the full
+     tier) — a single passing run is not evidence of stability.
+- **Reports** — every non-staging run writes `test-results/junit.xml`
+  (JUnit XML for dashboards; included in the CI failure artifact) alongside
+  the list output.
+
+## Reliability Findings & Audit (Story 43)
+
+Evidence base: 10x Tier 1 + 5x responsive pre-change baseline (all green),
+plus 400+ executions after the changes below (targeted `--repeat-each`,
+full Tier 1 / responsive / cross-browser regressions — 0 failures).
+
+**Sources of non-determinism found and fixed**
+
+| Finding                                                                                 | Root cause                                                                                                                     | Corrective action                                                                                                                                                                                                                                    |
+| --------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `waitForLoadState("networkidle")` x7 (edit-book, create-book)                           | Waits on _all_ network incl. Google Fonts/Vite traffic; masks races instead of synchronizing on the state under test           | Replaced with explicit by-id `waitForResponse` (registered before navigation/submit, Story 40 pattern) or the route-transition heading wait; the detail->edit hop has **no** API call (`staleTime: 60_000`), so a heading wait is the real condition |
+| 4x `timeout: 10_000` overrides (edit-book)                                              | Padding over assertion default that hid missing response sync                                                                  | Removed after adding the explicit waits; assertions themselves unchanged (default `expect` timeout)                                                                                                                                                  |
+| **Confirmed flaky: TC-H40-005** (failed 2/8 responsive runs, `second.y=560` vs `>=576`) | Google Fonts load with `display=swap`; the late font swap reflowed text metrics between two back-to-back `boundingBox()` calls | `await page.evaluate(() => document.fonts.ready)` before geometry measurement — 40/40 targeted + 80/80 full responsive green after                                                                                                                   |
+| Positional `getByRole("row").nth(1)` x3 (catalog)                                       | Row index counted the header row; breaks if header/sort/extra rows change                                                      | `getByRole("row", { name: firstBookTitle })` — position-independent; column `.nth()` kept (column order is an asserted UI contract)                                                                                                                  |
+| Structural `dl > div` (responsive details)                                              | Coupled to wrapper markup                                                                                                      | ARIA `term`/`definition` roles with identical stacking semantics                                                                                                                                                                                     |
+
+**Configuration rationale (unchanged by design):** `retries` (CI 2 / local 0),
+`timeout: 30_000`, `expect.timeout: 5_000`, `fullyParallel`, and artifacts
+(traces on first retry, screenshots/video on failure) were reviewed against
+the evidence and kept — nothing justified changing them. The only config
+change is the JUnit reporter (diagnostics, above). Retries remain a
+_diagnostic_ signal, never a stability claim.
+
+**Known unresolved limitations**
+
+- CI `workflow_dispatch` x3 verification could not be executed from the
+  local machine (no `gh` CLI; pushes restricted) — CI evidence limited to
+  what the workflow itself records.
+- `test:e2e:responsive` / `test:e2e:cross-browser` npm scripts use POSIX
+  inline env syntax and fail under cmd.exe on Windows; invoke
+  `E2E_EXTENDED_MATRIX=1` in the shell (PowerShell `$env:...`) and run
+  `npx playwright test --project=<p>` instead.
+- `api-responses` attachments are best-effort (in-flight bodies stay null).
+
+**Quarterly reliability audit (recommended)**
+
+1. Re-run the evidence battery: Tier 1 x10, responsive x5 — compare pass
+   rates against this section.
+2. Grep CI logs/artifacts for `flaky` markers and investigate with the
+   loop above; update this table with any new findings.
+3. Repeat the audit after Playwright, browser, or font-pipeline upgrades
+   (the font-swap class of failure is tied to the Google Fonts pipeline).
+4. Keep the finding table, commands, and limitations in sync with the
+   suite — documentation drift is itself a reliability risk.
+
 ## Known Limitations
 
 - **No WebKit/Firefox mobile projects** — engine coverage is desktop-only;

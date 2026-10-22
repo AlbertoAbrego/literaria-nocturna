@@ -223,16 +223,30 @@ test.describe("Responsive Layout", () => {
         page.getByRole("heading", { name: bookData.title }),
       ).toBeVisible();
 
-      const items = page.locator("dl > div");
-      await expect(items).toHaveCount(2);
-      const first = (await items.nth(0).boundingBox())!;
-      const second = (await items.nth(1).boundingBox())!;
+      // Google Fonts are loaded with display=swap; the late swap reflows text
+      // metrics and shifts geometry between measurements, so settle fonts
+      // before reading bounding boxes (Story 43, TC-H40-005 flake).
+      await page.evaluate(() => document.fonts.ready);
+
+      // dt/dd expose the ARIA term/definition roles, so metadata items are
+      // located semantically instead of via structural `dl > div` CSS
+      // (Story 43). Item boundaries are equivalent: an item starts at its
+      // term and ends at its definition.
+      const terms = page.getByRole("term");
+      const definitions = page.getByRole("definition");
+      await expect(terms).toHaveCount(2);
+      await expect(definitions).toHaveCount(2);
+      const firstTerm = (await terms.nth(0).boundingBox())!;
+      const firstDef = (await definitions.nth(0).boundingBox())!;
+      const secondTerm = (await terms.nth(1).boundingBox())!;
 
       if (isBelowSmBreakpoint(viewport)) {
-        expect(second.y).toBeGreaterThanOrEqual(first.y + first.height);
+        expect(secondTerm.y).toBeGreaterThanOrEqual(
+          firstDef.y + firstDef.height,
+        );
       } else {
-        expect(Math.abs(second.y - first.y)).toBeLessThanOrEqual(2);
-        expect(second.x).toBeGreaterThan(first.x);
+        expect(Math.abs(secondTerm.y - firstTerm.y)).toBeLessThanOrEqual(2);
+        expect(secondTerm.x).toBeGreaterThan(firstTerm.x);
       }
 
       const backLink = page.getByRole("link", { name: /back to catalog/i });

@@ -55,16 +55,25 @@ test.describe("Edit Book Journey", () => {
         page.getByRole("cell", { name: original.title, exact: true }),
       ).toBeVisible();
 
+      const detailResponse = page.waitForResponse(
+        (r) =>
+          r.request().method() === "GET" &&
+          new URL(r.url()).pathname === `/api/books/${createBody._id}`,
+      );
       await page
         .getByRole("button", { name: `View details of ${original.title}` })
         .click();
-      await page.waitForLoadState("networkidle");
+      await detailResponse;
       await expect(
         page.getByRole("heading", { name: original.title }),
-      ).toBeVisible({ timeout: 10_000 });
+      ).toBeVisible();
 
       await page.getByRole("link", { name: "Edit this volume" }).click();
-      await page.waitForLoadState("networkidle");
+      // staleTime (60s) keeps the cached detail fresh, so no GET fires here;
+      // wait for the route transition instead (Story 43).
+      await expect(
+        page.getByRole("heading", { name: "Edit Volume" }),
+      ).toBeVisible();
 
       await page.getByLabel("Title").fill(updatedTitle);
 
@@ -72,13 +81,20 @@ test.describe("Edit Book Journey", () => {
         (r) =>
           r.url().includes("/api/books") && r.request().method() === "PATCH",
       );
+      // Invalidation forces a by-id refetch after the update; register before
+      // submitting so the listener cannot miss it (Story 40 pattern).
+      const refetchResponse = page.waitForResponse(
+        (r) =>
+          r.request().method() === "GET" &&
+          new URL(r.url()).pathname === `/api/books/${createBody._id}`,
+      );
       await page.getByRole("button", { name: /update the book/i }).click();
       await updateResponse;
-      await page.waitForLoadState("networkidle");
+      await refetchResponse;
 
       await expect(
         page.getByRole("heading", { name: updatedTitle }),
-      ).toBeVisible({ timeout: 10_000 });
+      ).toBeVisible();
       await expect(page.getByText(`by ${original.author}`)).toBeVisible();
     },
   );
@@ -119,31 +135,48 @@ test.describe("Edit Book Journey", () => {
       page.getByRole("cell", { name: original.title, exact: true }),
     ).toBeVisible();
 
+    const detailResponse = page.waitForResponse(
+      (r) =>
+        r.request().method() === "GET" &&
+        new URL(r.url()).pathname === `/api/books/${createBody._id}`,
+    );
     await page
       .getByRole("button", { name: `View details of ${original.title}` })
       .click();
-    await page.waitForLoadState("networkidle");
+    await detailResponse;
     await expect(
       page.getByRole("heading", { name: original.title }),
-    ).toBeVisible({ timeout: 10_000 });
+    ).toBeVisible();
 
     await page.getByRole("link", { name: "Edit this volume" }).click();
-    await page.waitForLoadState("networkidle");
+    // staleTime (60s) keeps the cached detail fresh, so no GET fires here;
+    // wait for the route transition instead (Story 43).
+    await expect(
+      page.getByRole("heading", { name: "Edit Volume" }),
+    ).toBeVisible();
 
     await page.getByLabel("Title").fill(updatedTitle);
 
     const updateResponse = page.waitForResponse(
       (r) => r.url().includes("/api/books") && r.request().method() === "PATCH",
     );
+    // Invalidation forces a by-id refetch after the update; register before
+    // submitting so the listener cannot miss it (Story 40 pattern).
+    const refetchResponse = page.waitForResponse(
+      (r) =>
+        r.request().method() === "GET" &&
+        new URL(r.url()).pathname === `/api/books/${createBody._id}`,
+    );
     await page.getByRole("button", { name: /update the book/i }).click();
     await updateResponse;
+    await refetchResponse;
 
-    await expect(page.getByRole("heading", { name: updatedTitle })).toBeVisible(
-      { timeout: 10_000 },
-    );
+    await expect(
+      page.getByRole("heading", { name: updatedTitle }),
+    ).toBeVisible();
 
     // Register before navigating back: the catalog GET can complete before
-    // a listener registered after networkidle, hanging the await (Story 40).
+    // a listener registered after navigation, hanging the await (Story 40).
     const getResponse2 = page.waitForResponse(
       (r) =>
         r.url().includes("/api/books") &&
@@ -151,7 +184,6 @@ test.describe("Edit Book Journey", () => {
         matchBooksApi(new URL(r.url())),
     );
     await page.getByRole("link", { name: "Back to catalog" }).click();
-    await page.waitForLoadState("networkidle");
 
     await expect(page).toHaveURL(/\/books$/);
     await getResponse2;

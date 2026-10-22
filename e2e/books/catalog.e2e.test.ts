@@ -13,6 +13,10 @@ test.describe("Catalog Journey", () => {
   // or firstRow navigation can race another worker's afterEach cleanup
   // (Story 40).
   let filterTag = "";
+  // Title of the first book created for this test; row selection is done by
+  // accessible name instead of a positional index so header rows, sort order,
+  // or extra rows cannot shift the target (Story 43).
+  let firstBookTitle = "";
 
   test.afterEach(async ({ request }) => {
     for (const id of createdBookIds) {
@@ -23,14 +27,17 @@ test.describe("Catalog Journey", () => {
 
   test.beforeEach(async ({ request }) => {
     filterTag = `CATALOG_TEST_${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`;
+    const titles: string[] = [];
     for (let i = 0; i < 3; i++) {
       const bookData = createUniqueBookData({
         title: generateUniqueTitle(`${filterTag}_${i + 1}`),
       });
+      titles.push(bookData.title);
       const response = await request.post("/api/books", { data: bookData });
       const body = (await response.json()) as { _id: string };
       createdBookIds.push(body._id);
     }
+    firstBookTitle = titles[0];
   });
 
   test("TC-H36-001: Books List loads with test books", async ({ page }) => {
@@ -73,7 +80,7 @@ test.describe("Catalog Journey", () => {
       await filterResponse;
       await expect(page.getByText("1 active filter")).toBeVisible();
 
-      const firstRow = page.getByRole("row").nth(1);
+      const firstRow = page.getByRole("row", { name: firstBookTitle });
       await expect(firstRow.getByRole("cell").first()).toBeVisible();
       const titleCell = firstRow.getByRole("cell").first();
       const bookTitle = await titleCell.textContent();
@@ -103,7 +110,7 @@ test.describe("Catalog Journey", () => {
     await filterResponse;
     await expect(page.getByText("1 active filter")).toBeVisible();
 
-    const firstRow = page.getByRole("row").nth(1);
+    const firstRow = page.getByRole("row", { name: firstBookTitle });
     await expect(firstRow.getByRole("cell").first()).toBeVisible();
     const bookTitle = await firstRow.getByRole("cell").first().textContent();
     const bookAuthor = await firstRow.getByRole("cell").nth(1).textContent();
@@ -136,7 +143,7 @@ test.describe("Catalog Journey", () => {
     await filterResponse;
     await expect(page.getByText("1 active filter")).toBeVisible();
 
-    const firstRow = page.getByRole("row").nth(1);
+    const firstRow = page.getByRole("row", { name: firstBookTitle });
     await expect(firstRow.getByRole("cell").first()).toBeVisible();
     const bookTitle = await firstRow.getByRole("cell").first().textContent();
 

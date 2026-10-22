@@ -103,8 +103,12 @@ export default defineConfig({
   // Story 42 phase 1: staging runs keep the list reporter and additionally
   // write an HTML report (playwright-report/, gitignored) for post-mortem
   // diagnostics - rate-limit failures are hard to read from list output.
-  // Local and CI reporting are unchanged.
-  reporter: isStaging ? [["list"], ["html", { open: "never" }]] : "list",
+  // Story 43 phase 4: non-staging runs also write JUnit XML
+  // (test-results/junit.xml, gitignored) for CI dashboard integration; CI
+  // already uploads test-results/ on failure, so no workflow change needed.
+  reporter: isStaging
+    ? [["list"], ["html", { open: "never" }]]
+    : [["list"], ["junit", { outputFile: "test-results/junit.xml" }]],
   timeout: 30_000,
   expect: {
     timeout: 5_000,

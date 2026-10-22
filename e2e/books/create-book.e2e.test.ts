@@ -95,10 +95,15 @@ test.describe("Create Book Journey", () => {
       page.getByRole("cell", { name: bookData.title, exact: true }),
     ).toBeVisible();
 
+    const detailResponse = page.waitForResponse(
+      (r) =>
+        r.request().method() === "GET" &&
+        new URL(r.url()).pathname === `/api/books/${body._id}`,
+    );
     await page
       .getByRole("button", { name: `View details of ${bookData.title}` })
       .click();
-    await page.waitForLoadState("networkidle");
+    await detailResponse;
 
     await expect(
       page.getByRole("heading", { name: bookData.title }),
